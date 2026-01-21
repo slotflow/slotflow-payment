@@ -24,7 +24,7 @@ export const serviceConfig = {
 };
 
 export const stripeConfig = {
-    stripeApiKey: appConfig.nodeEnv === "development" ? validator.requireEnv("STRIPE_API_KEY_DEV") : validator.requireEnv("STRIPE_API_KEY"),
+    stripeApiKey: appConfig.nodeEnv === "development" ? validator.requireEnv("STRIPE_SECRET_KEY_DEV") : validator.requireEnv("STRIPE_SECRET_KEY"),
 };
 
 export const redisConfig = {

@@ -1,4 +1,4 @@
-import { PaymentDTO } from "./common.dtos";
+import { ApiPaginationRequest, PaymentDTO } from "./common.dtos";
 
 // **** subscription queries findByProviderId method response payment data fething model
 
@@ -34,3 +34,71 @@ export interface findSubscriptionFullDetailsResProps {
 //   subscriptionPlanId: PlanProps,
   paymentId: PaymentsProps | null,
 }
+
+
+export interface ProviderFetchDashboardPaymentStatsDataResponse {
+    totalSubscriptionPaidAmount: number;
+    totalEarnings: number;
+    todaysEarnings: number;
+    totalPayoutsMade: number;
+    pendingPayout: number;
+};
+
+
+// Admin fetch revenue report request
+export interface AdminFetchRevenueReportRequest extends ApiPaginationRequest {
+    startDate?: Date;
+    endDate: Date;
+};
+
+export interface ProviderFetchDashboardPaymentStatsDataResponse {
+    totalSubscriptionPaidAmount: number;
+    totalEarnings: number;
+    todaysEarnings: number;
+    totalPayoutsMade: number;
+    pendingPayout: number;
+};
+
+// used as the return type of the admin fetch dashboard revenue stats data
+export interface AdminFetchDashboardRevenueStatsDataResponse {
+    totalRevenue: number;
+    totalRevenueViaSubscriptions: number;
+    revenueByStripe: number;
+    revenueByRazorpay: number;
+    revenueByPaypal: number;
+    totalRevenueViaAppointments: number;
+    totalRefundsIssued: number;
+    totalFailedPayments: number;
+    totalPayoutsToProviders: number;
+};
+
+export interface AdminFetchDashboardTodayStatsDataResponse {
+  newUsers: number;
+  newProviders: number;
+
+  todaysTotalRevenue: number;
+  todaysTotalPayouts: number;
+
+  todaysAppointments: number;
+  todaysCancelledAppointments: number;
+  todaysCompletedAppointments: number;
+};
+
+export type AdminFetchDashboardTodayPaymentStatsDataResponse = Pick<AdminFetchDashboardTodayStatsDataResponse, "todaysTotalPayouts" | "todaysTotalRevenue">;
+
+// Admin fetch revenue report response
+export type AdminFetchRevenueReportRow = Pick<
+  PaymentDTO,
+  | "createdAt"
+  | "discountAmount"
+  | "initialAmount"
+  | "totalAmount"
+  | "paymentGateway"
+  | "paymentFor"
+>;
+export interface AdminFetchRevenueReportResponse {
+  rows: AdminFetchRevenueReportRow[];
+  grandTotal: number;
+  grandDiscount: number;
+  grandInitalAmount: number;
+};

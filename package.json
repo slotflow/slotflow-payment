@@ -5,7 +5,7 @@
   "main": "index.ts",
   "type": "module",
   "scripts": {
-    "predev": "npx kill-port 4000",
+    "predev": "npx kill-port 7000",
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
@@ -14,14 +14,18 @@
   "author": "midhun_kalarikkal",
   "license": "ISC",
   "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "dayjs": "^1.11.19",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "helmet": "^8.1.0",
     "kafkajs": "^2.2.4",
     "mongoose": "^9.1.2",
     "stripe": "^20.1.2",
     "winston": "^3.19.0"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",
     "@types/mongoose": "^5.11.96",
     "@types/node": "^25.0.5",

@@ -21,4 +21,18 @@ export interface PaymentDTO {
   chargeId?: string | null,
   createdAt: Date,
   updatedAt: Date,
+};
+
+// **** Used as the type of table data
+export interface TableData<T> {
+  totalPages?: number;
+  currentPage?: number;
+  totalCount?: number;
+  data?: T
+};
+
+
+export interface ApiPaginationRequest {
+  page: number;
+  limit: number;
 }
