@@ -1,9 +1,13 @@
+import { kafkaProducer } from "../infrastructure/messaging";
+import { paymentRepository } from "../infrastructure/repositoryImpls";
+import { ProviderCreatePaymentUseCase } from "../application/useCases/kafkaConsumerUsecases/providerCreatePayment.usecase";
+
 export const handlers = {
-    providerSubscriptionPayment: ,
+    providerSubscriptionPaymentRequest: new ProviderCreatePaymentUseCase(paymentRepository, kafkaProducer),
 
-    userBookingPayment: ,
+    // userBookingPayment: ,
 
-    providerPayoutPayment: ,
+    // providerPayoutPayment: ,
 
-    userCancelBooking: ,
+    // userCancelBooking: ,
 }
