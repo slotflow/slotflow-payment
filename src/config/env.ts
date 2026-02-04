@@ -24,7 +24,8 @@ export const serviceConfig = {
 };
 
 export const stripeConfig = {
-    stripeApiKey: appConfig.nodeEnv === "development" ? validator.requireEnv("STRIPE_SECRET_KEY_DEV") : validator.requireEnv("STRIPE_SECRET_KEY"),
+    stripeSecretKey: appConfig.nodeEnv === "development" ? validator.requireEnv("STRIPE_SECRET_KEY_DEV") : validator.requireEnv("STRIPE_SECRET_KEY"),
+    stripeWebhookSecret: appConfig.nodeEnv === "development" ? validator.requireEnv("STRIPE_WEBHOOK_SECRET_DEV") : validator.requireEnv("STRIPE_WEBHOOK_SECRET"),
 };
 
 export const redisConfig = {
@@ -47,7 +48,6 @@ export const kafkaConfig = {
 
     topics: {
         sub: {
-            providerSubscriptionPaymentRequest: validator.requireEnv("KAFKA_PROVIDER_SUBSCRIPTION_PAYMENT_REQUEST"),
             userBookingPayment: validator.requireEnv("KAFKA_USER_BOOKING_PAYMENT"),
             providerPayoutPayment: validator.requireEnv("KAFKA_PROVIDER_PAYOUT"),
             userCancelBooking: validator.requireEnv("KAFKA_USER_CANCEL_BOOKING"),
@@ -55,6 +55,7 @@ export const kafkaConfig = {
         pub: {
             providerSubscriptionPaymentSuccess: validator.requireEnv("KAFKA_PROVIDER_SUBSCRIPTION_PAYMENT_SUCCESS"),
             providerSubscriptionPaymentFailed: validator.requireEnv("KAFKA_PROVIDER_SUBSCRIPTION_PAYMENT_FAILED"),
+            // added till
 
             userBookingPaymentSuccess: validator.requireEnv("KAFKA_USER_BOOKING_PAYMENT_SUCCESS"),
             userBookingPaymentFailed: validator.requireEnv("KAFKA_USER_BOOKING_PAYMENT_FAILED"),
@@ -62,6 +63,7 @@ export const kafkaConfig = {
             providerPayoutFailed: validator.requireEnv("KAFKA_PROVIDER_PAYOUT_FAILED"),
             userCancelBookingSuccess: validator.requireEnv("KAFKA_USER_CANCEL_BOOKING_SUCCESS"),
             userCancelBookingFailed: validator.requireEnv("KAFKA_USER_CANCEL_BOOKING_FAILED"),
+
         },
     },
 };

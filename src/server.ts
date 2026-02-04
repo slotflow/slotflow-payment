@@ -3,7 +3,7 @@ import { appConfig } from './config/env';
 import { log } from './shared/logger/logger';
 import connectDB from './config/databse/mongodb/mongodb';
 import { kafkaConsumer, kafkaProducer } from './infrastructure/messaging';
-import { kafkaConsumerController } from './presentation/kafka.controller';
+import { kafkaConsumerController } from './presentation/kafkaController/kafka.controller';
 
 const start = async () => {
   try {

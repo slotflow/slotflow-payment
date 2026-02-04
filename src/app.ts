@@ -2,6 +2,8 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import express from 'express';
 import cookieParser from 'cookie-parser';
+import paymentRouter from './presentation/httpController/payment.router';
+import webhookRoutes from './presentation/httpController/webhook.router';
 
 dotenv.config();
 
@@ -18,6 +20,7 @@ const app = express();
 // }));
 
 app.use(helmet());
+app.use(webhookRoutes);
 app.use(express.json({limit: '5mb'}));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -27,7 +30,7 @@ app.use(cookieParser());
 //     const metrics = await client.register.metrics();
 //     res.send(metrics);
 // })
-
+app.use("/api/payment", paymentRouter);
 app.use("/status", (req, res) => {
     res.send("On Live");
 });

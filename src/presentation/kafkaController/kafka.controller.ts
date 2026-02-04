@@ -1,8 +1,8 @@
 import { handlers } from ".";
-import { kafkaConfig } from "../config/env";
-import { log } from "../shared/logger/logger";
-import { kafkaConsumer } from "../infrastructure/messaging";
-import { IKafkaConsumerAdapter } from "../domain/interfaces/messaging/IKafkaConsumerAdapter";
+import { kafkaConfig } from "../../config/env";
+import { log } from "../../shared/logger/logger";
+import { kafkaConsumer } from "../../infrastructure/messaging";
+import { IKafkaConsumerAdapter } from "../../domain/interfaces/messaging/IKafkaConsumerAdapter";
 
 class KafkaConsumerController {
 
