@@ -1,4 +1,20 @@
+import { Role } from "../../domain/enums/common.enum";
 import { PaymentFor, PaymentGateway, PaymentMethod, PaymentStatus } from "../../domain/enums/payment.enum";
+
+// **** Used as the response interface for the all request
+export interface CommonResponse {
+  success?: boolean;
+  message?: string;
+};
+
+
+// **** Used as the response interface for the paginated response
+export interface ApiResponse<T = unknown> extends CommonResponse {
+  totalPages?: number;
+  currentPage?: number;
+  totalCount?: number;
+  data?: T;
+}
 
 // **** PAYMENT INTERFACE
 export interface PaymentDTO {
@@ -36,3 +52,18 @@ export interface ApiPaginationRequest {
   page: number;
   limit: number;
 }
+
+export interface DecodedUser {
+  userOrProviderId?: string;
+  role?: Role;
+  googleAccessToken?: string;
+  googleRefreshToken?: string;
+  googleId?: string;
+  email?: string;
+  name?: string;
+  image: string | null;
+  connectOnly?: boolean;
+  exp?: number;
+  iat?: number;
+  userId?: string;
+};

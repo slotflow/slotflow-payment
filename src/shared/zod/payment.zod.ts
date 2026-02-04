@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { dateSchema, validateProviderIdSchema } from "./base.zod";
+import { dateSchema, paginationSchema, validateProviderIdSchema } from "./base.zod";
 import { PlanName } from "../../domain/enums/plan.enum";
 import { PaymentFor } from "../../domain/enums/payment.enum";
 import { descriptionRegex, objectIdRegex } from "../utils/regex";
@@ -31,3 +31,6 @@ export const providerSubscipriotonCheckoutSchema = z.object({
         .min(0, "Discount amount must be at least 0")
         .max(100000, "Discount amount must be at most 100000"),
 }).merge(validateProviderIdSchema);
+
+//
+export const providerIdWithPaginationSchema = validateProviderIdSchema.merge(paginationSchema);

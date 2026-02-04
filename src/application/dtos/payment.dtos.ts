@@ -121,3 +121,12 @@ export interface ProviderPaymentCheckoutRequest {
   initialAmount: number;
   discountAmount: number;
 };
+
+
+// Used as the payments fetching request and response dto
+export interface userIdAndProviderIdFilterForFetchPayments {
+  userId?: string;
+  providerId?: string;
+}
+export interface FetchPaymentsRequest extends ApiPaginationRequest, userIdAndProviderIdFilterForFetchPayments { };
+export type FetchPaymentResponse = Array<Pick<PaymentDTO, "_id" | "createdAt" | "totalAmount" | "paymentFor" | "paymentGateway" | "paymentStatus" | "paymentMethod" | "discountAmount">> | null;

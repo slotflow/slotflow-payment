@@ -1,8 +1,8 @@
 import Stripe from "stripe";
 import { Request, Response } from "express";
-import { stripe } from "../../infrastructure/lib/stripe";
-import { providerStripeCheckoutCompleteUseCase } from ".";
-import { ProviderStripeCheckoutCompleteUseCase } from "../../application/useCases/providerPayment/providerStripeCheckoutCompleted";
+import { stripe } from "../../../infrastructure/lib/stripe";
+import { providerStripeCheckoutCompleteUseCase } from "..";
+import { ProviderStripeCheckoutCompleteUseCase } from "../../../application/useCases/providerPayment/providerStripeCheckoutCompleted";
 
 class StripeWebhookController {
     constructor(
