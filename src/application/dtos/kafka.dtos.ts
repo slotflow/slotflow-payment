@@ -1,0 +1,68 @@
+import { KafkaMessage } from "kafkajs";
+import { PaymentFor, PaymentStatus } from "../../domain/enums/payment.enum";
+
+// **** COMMON DTOS
+
+// kafka client adapter props
+export interface KafkaClientAdapterProps {
+    topic: string;
+    partition: number;
+    message: KafkaMessage;
+}
+
+// event envelope
+export interface EventEnvelope<T> {
+    eventId: string;
+    occurredAt: string;
+    attempt: number;
+    maxAttempts: number;
+    payload: T;
+}
+
+// send email common
+export interface SendEmailCommon {
+    email: string;
+    name: string;
+}
+
+// send notification common
+export interface SendNotificationCommon {
+    userId: string;
+    body: string;
+    pushNotification: boolean;
+    title: string;
+    data?: Record<string, string>;
+}
+
+// kafka client adapter message handler
+export type MessageHandler = (payload: KafkaClientAdapterProps) => Promise<void>;
+
+
+
+
+// **** KAFKA EVENTS PAYLOAD
+
+// provider create payment success event
+export type ProviderCreatePaymentSuccessEvent = {
+    mbsData: {
+        subscriptionId: string;
+        paymentId: string;
+        planDuration: number;
+        providerId: string;
+    };
+    emailData: SendEmailCommon & {
+        paymentDate: string;
+        paymentFor: PaymentFor;
+        paymentStatus: PaymentStatus;
+        totalAmount: number;
+        transactionId: string;
+    };
+    notificationData: SendNotificationCommon;
+};
+
+// provider create payment failed event
+export interface ProviderCreatePaymentFailedEvent {
+    mbsData: {
+        subscriptionId: string;
+    }
+};

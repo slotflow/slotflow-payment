@@ -1,28 +1,28 @@
 export enum PaymentFor {
-    ProviderSubscription = "ProviderSubscription",
-    AppointmentBooking = "AppointmentBooking",
-    ProviderPayout = "ProviderPayout",
-    CancelBooking = "CancelBooking",
-    CancelSubscription = "CancelSubscription",
+    PROVIDER_SUBSCRIPTION = "PROVIDER_SUBSCRIPTION",
+    APPOINTMENT_BOOKING = "APPOINTMENT_BOOKING",
+    PROVIDER_PAYOUT = "PROVIDER_PAYOUT",
+    CANCEL_BOOKING = "CANCEL_BOOKING",
+    CANCEL_SUBSCRIPTION = "CANCEL_SUBSCRIPTION",
 };
 
 export enum PaymentGateway {
-    Stripe = "Stripe",
-    Razorpay = "Razorpay",
-    Paypal = "Paypal"
+    STRIPE = "STRIPE",
+    RAZORPAY = "RAZORPAY",
+    PAYPAL = "PAYPAL"
 };
 
 export enum PaymentMethod {
-    Card = "card",
-    Upi = "upi",
-    Wallet = "wallet",
-    NetBanking = "netBanking",
+    CARD = "CARD",
+    UPI = "UPI",
+    WALLET = "WALLET",
+    NET_BANKING = "NET_BANKING",
 };
 
 export enum PaymentStatus {
-    Pending = "Pending",
-    Paid = "Paid",
-    Failed = "Failed",
-    Cancelled = "Cancelled",
-    Refunded = "Refunded",
+    PENDING = "PENDING",
+    PAID = "PAID",
+    FAILED = "FAILED",
+    CANCELLED = "CANCELLED",
+    REFUNDED = "REFUNDED",
 };

@@ -1,6 +1,6 @@
 import { PaymentProps } from "../contracts/payment.contract";
 import { PaymentFor, PaymentGateway, PaymentMethod, PaymentStatus } from "../enums/payment.enum";
-import { CreateForBookingProps, CreateForSubscriptionProps, UpdatePaymentProps } from "../commnands/payment.command";
+import { CreateForBookingProps, CreateForSubscriptionProps, UpdatePaymentProps } from "../commands/payment.command";
 
 export class Payment {
 
@@ -14,7 +14,7 @@ export class Payment {
         this.props.updatedAt = new Date();
     };
 
-    static createforSubscription(props: CreateForSubscriptionProps) {
+    static createForSubscription(props: CreateForSubscriptionProps) {
         return new Payment({
             _id: "",
             transactionId: props.transactionId,
@@ -105,7 +105,7 @@ export class Payment {
     };
 
     get userId(): string {
-        if(!this.props.userId) {
+        if (!this.props.userId) {
             throw new Error("UserId not found");
         };
         return this.props.userId;
