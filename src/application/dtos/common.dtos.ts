@@ -1,5 +1,5 @@
 import { Role } from "../../domain/enums/common.enum";
-import { PaymentFor, PaymentGateway, PaymentMethod, PaymentStatus } from "../../domain/enums/payment.enum";
+import { PaymentFor, PaymentGateway, PaymentStatus } from "../../domain/enums/payment.enum";
 
 // **** Used as the response interface for the all request
 export interface CommonResponse {
@@ -21,7 +21,7 @@ export interface PaymentDTO {
   _id: string,
   transactionId: string,
   paymentStatus: PaymentStatus,
-  paymentMethod: PaymentMethod,
+  paymentMethod: string,
   paymentGateway: PaymentGateway,
   paymentFor: PaymentFor,
   initialAmount: number,

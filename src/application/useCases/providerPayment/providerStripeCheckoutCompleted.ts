@@ -4,9 +4,9 @@ import { kafkaConfig } from "../../../config/env";
 import { log } from "../../../shared/logger/logger";
 import { Payment } from "../../../domain/entities/payment.entity";
 import { notificationContentMap } from "../../../shared/utils/constants";
+import { PaymentFor, PaymentGateway, PaymentStatus } from "../../../domain/enums/payment.enum";
 import { IPaymentRepository } from "../../../domain/interfaces/repositories/IPayment.repository";
 import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
-import { PaymentFor, PaymentGateway, PaymentMethod, PaymentStatus } from "../../../domain/enums/payment.enum";
 import { EventEnvelope, ProviderCreatePaymentFailedEvent, ProviderCreatePaymentSuccessEvent } from "../../dtos/kafka.dtos";
 
 export class ProviderStripeCheckoutCompleteUseCase {
@@ -16,12 +16,12 @@ export class ProviderStripeCheckoutCompleteUseCase {
     ) { };
 
     async execute(payload: Stripe.Checkout.Session): Promise<void> {
-        
-        log.info(`Payload : ${payload}`);
+
+        log.info(`Payload : ${JSON.stringify(payload)}`);
 
         const paymentStatus = payload?.payment_status === "paid" ? PaymentStatus.PAID : PaymentStatus.PENDING;
         const paymentIntent = payload?.payment_intent as string;
-        const paymentMethod = payload?.payment_method_types[0] as PaymentMethod;
+        const paymentMethod = payload?.payment_method_types[0];
         const providerId = payload?.metadata?.providerId;
         const totalAmount = Number(payload?.metadata?.totalAmount);
         const planDuration = Number(payload?.metadata?.planDuration);
@@ -32,6 +32,20 @@ export class ProviderStripeCheckoutCompleteUseCase {
         const initialAmount = Number(payload?.metadata?.initialAmount);
         const discountAmount = Number(payload?.metadata?.discountAmount);
         const subscriptionId = payload?.metadata?.subscriptionId;
+
+        console.log("paymentStatus : ", paymentStatus);
+        console.log("paymentIntent : ", paymentIntent);
+        console.log("paymentMethod : ", paymentMethod);
+        console.log("providerId : ", providerId);
+        console.log("totalAmount : ", totalAmount);
+        console.log("planDuration : ", planDuration);
+        console.log("paymentFor : ", paymentFor);
+        console.log("paymentDate : ", paymentDate);
+        console.log("name : ", name);
+        console.log("email : ", email);
+        console.log("initialAmount : ", initialAmount);
+        console.log("discountAmount : ", discountAmount);
+        console.log("subscriptionId : ", subscriptionId);
 
         if (!planDuration ||
             !email ||
@@ -46,7 +60,7 @@ export class ProviderStripeCheckoutCompleteUseCase {
 
         try {
 
-            const payment = await this.paymentRepository.create(Payment.createForSubscription({
+            const paymentData = Payment.createForSubscription({
                 transactionId: paymentIntent,
                 paymentStatus,
                 paymentMethod,
@@ -56,7 +70,9 @@ export class ProviderStripeCheckoutCompleteUseCase {
                 discountAmount,
                 totalAmount,
                 providerId,
-            }));
+            })
+
+            const payment = await this.paymentRepository.create(paymentData);
 
             await this.kafkaProducer.publish<EventEnvelope<ProviderCreatePaymentSuccessEvent>>(
                 kafkaConfig.topics.pub.providerSubscriptionPaymentSuccess,

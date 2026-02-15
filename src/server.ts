@@ -13,7 +13,7 @@ const start = async () => {
     await kafkaConsumerController.startListening();
 
     app.listen(appConfig.port, () =>
-      log.info(`Main Backend Service is running on http://localhost:${appConfig.port}`)
+      log.info(`Payment Service is running on http://localhost:${appConfig.port}`)
     );
 
   } catch (error) {

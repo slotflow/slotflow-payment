@@ -30,6 +30,9 @@ export class ProviderPaymentCheckoutUseCase {
 
         try {
 
+            console.log("successUrl : ",serviceConfig.frontendUrl + providerPaymentSuccessUrl);
+            console.log("cancelUrl : ",serviceConfig.frontendUrl + providerPaymentFailedUrl);
+
             const result = await this.paymentGateway.subscriptionCreateCheckoutSession({
                 planName,
                 description,

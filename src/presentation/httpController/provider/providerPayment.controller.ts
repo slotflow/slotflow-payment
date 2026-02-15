@@ -19,11 +19,13 @@ class ProviderPaymentController {
 
     async subscriptionCheckout(req: Request, res: Response, next: NextFunction) {
         try {
+            console.log("req.body : ",req.body);
             const validatedData = providerSubscipriotonCheckoutSchema.parse(req.body);
             const result = await this.providerPaymentCheckoutUseCase.execute({
                 ...validatedData,
                 paymentDate: new Date(validatedData.paymentDate),
             });
+            console.log("result : ",result);
             sendResponse(res, result);
         } catch (error) {
             log.error("providerSubscriptionCheckout failed : ", error as Error);

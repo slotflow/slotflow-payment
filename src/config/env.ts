@@ -53,9 +53,12 @@ export const kafkaConfig = {
             userCancelBooking: validator.requireEnv("KAFKA_USER_CANCEL_BOOKING"),
         },
         pub: {
+            // PS -> MBS & NS
             providerSubscriptionPaymentSuccess: validator.requireEnv("KAFKA_PROVIDER_SUBSCRIPTION_PAYMENT_SUCCESS"),
+            // PS -> MBS
             providerSubscriptionPaymentFailed: validator.requireEnv("KAFKA_PROVIDER_SUBSCRIPTION_PAYMENT_FAILED"),
-            // added till
+
+            // added till here
 
             userBookingPaymentSuccess: validator.requireEnv("KAFKA_USER_BOOKING_PAYMENT_SUCCESS"),
             userBookingPaymentFailed: validator.requireEnv("KAFKA_USER_BOOKING_PAYMENT_FAILED"),

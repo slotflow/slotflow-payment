@@ -29,3 +29,29 @@ export const startOfToday = (): Date => {
 export const startOfTomorrow = (): Date => {
     return dayjs.utc().add(1, "day").startOf("day").toDate();
 }
+
+export const getUtcDateRange = (startDate: string | number | Date, endDate: string | number | Date): { startDate: string; endDate: string } => {
+  const start = dayjs.utc(startDate);
+  const end = dayjs.utc(endDate);
+
+  return {
+    startDate: start.format("YYYY-MM-DD"),
+    endDate: end.format("YYYY-MM-DD"),
+  };
+};
+
+export const isSubscriptionExpired = (endDate: string | Date): boolean => {
+  return dayjs().isAfter(dayjs(endDate), "day");
+};
+
+export const getDateAfterDays = (days: number): Date => {
+  return dayjs().add(days, "day").toDate();
+};
+
+export const getNumberOfMonths = (days: number): number => {
+  return days/30;
+};
+
+export const getNumberOfTotalDays = (numberOfMonths: number): number => {
+  return numberOfMonths * 30
+}

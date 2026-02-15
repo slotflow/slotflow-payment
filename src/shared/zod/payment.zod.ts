@@ -23,7 +23,6 @@ export const providerSubscipriotonCheckoutSchema = z.object({
     paymentDate: dateSchema,
     name: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().email("Invalid email"),
-    paymentId: z.string().regex(objectIdRegex, "Invalid paymentId"),
     initialAmount: z.number()
         .min(0, "Initial amount must be at least 0")
         .max(100000, "Initial amount must be at most 100000"),
