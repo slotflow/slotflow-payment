@@ -1,6 +1,5 @@
-import { PaymentFor } from "../../domain/enums/payment.enum";
 import { PlanName } from "../../domain/enums/plan.enum";
-import { SubscriptionValidity } from "../../domain/enums/subscription.enum";
+import { PaymentFor } from "../../domain/enums/payment.enum";
 import { ApiPaginationRequest, PaymentDTO } from "./common.dtos";
 
 // **** subscription queries findByProviderId method response payment data fething model
@@ -108,18 +107,16 @@ export interface AdminFetchRevenueReportResponse {
 
 export interface ProviderPaymentCheckoutRequest {
   subscriptionId: string;
+  providerId: string;
   planName: PlanName;
   description: string;
-  planDuration: SubscriptionValidity;
+  planDuration: number;
   unitAmount: number;
-  providerId: string;
-  totalAmount: number;
   paymentFor: PaymentFor;
   paymentDate: Date;
   name: string;
   email: string;
   initialAmount: number;
-  discountAmount: number;
 };
 
 

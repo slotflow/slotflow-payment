@@ -26,7 +26,12 @@ export class Payment {
             discountAmount: props.discountAmount,
             providerId: props.providerId,
             totalAmount: props.totalAmount,
-            chargeId: null,
+            chargeId: props.chargeId ?? null,
+            receiptUrl: props.receiptUrl ?? null,
+            receiptNumber: props.receiptNumber ?? null,
+            receiptEmail: props.receiptEmail ?? null,
+            customerEmail: props.customerEmail ?? null,
+            description: props.description ?? null,
             refundAmount: null,
             refundAt: null,
             refundId: null,
@@ -50,7 +55,12 @@ export class Payment {
             discountAmount: props.discountAmount,
             providerId: props.providerId,
             totalAmount: props.totalAmount,
-            chargeId: null,
+            chargeId: props.chargeId ?? null,
+            receiptUrl: props.receiptUrl ?? null,
+            receiptNumber: props.receiptNumber ?? null,
+            receiptEmail: props.receiptEmail ?? null,
+            customerEmail: props.customerEmail ?? null,
+            description: props.description ?? null,
             refundAmount: null,
             refundAt: null,
             refundId: null,
@@ -102,6 +112,26 @@ export class Payment {
 
     get initialAmount(): number {
         return this.props.initialAmount;
+    };
+
+    get receiptUrl(): string | null | undefined {
+        return this.props.receiptUrl;
+    };
+
+    get receiptNumber(): string | null | undefined {
+        return this.props.receiptNumber;
+    };
+
+    get receiptEmail(): string | null | undefined {
+        return this.props.receiptEmail;
+    };
+
+    get customerEmail(): string | null | undefined {
+        return this.props.customerEmail;
+    };
+
+    get description(): string | null | undefined {
+        return this.props.description;
     };
 
     get userId(): string {

@@ -11,10 +11,12 @@ export class PaymentGateway implements IPaymentGateway {
     async subscriptionCreateCheckoutSession(payload: SubscriptionCreateCheckoutSessionPayload): Promise<SubscriptionCreateCheckoutSessionResult> {
         try {
             console.log("subscriptionCreateCheckoutSession");
-            console.log("payload : ",payload);
+            console.log("payload : ", payload);
             const session = await this.stripe.checkout.sessions.create({
                 mode: "payment",
                 payment_method_types: ["card"],
+                customer_email: payload.email,
+                allow_promotion_codes: true,
                 line_items: [
                     {
                         price_data: {
@@ -23,9 +25,9 @@ export class PaymentGateway implements IPaymentGateway {
                                 name: payload.planName,
                                 description: payload.description,
                             },
-                            unit_amount: payload.totalAmount * 100,
+                            unit_amount: payload.unitAmount * 100,
                         },
-                        quantity: 1,
+                        quantity: payload.planDuration,
                     },
                 ],
                 success_url: payload.successUrl,
@@ -34,13 +36,11 @@ export class PaymentGateway implements IPaymentGateway {
                     subscriptionId: payload.subscriptionId,
                     providerId: payload.providerId,
                     planDuration: payload.planDuration,
-                    totalAmount: payload.totalAmount,
                     paymentFor: payload.paymentFor,
                     paymentDate: payload.paymentDate,
                     name: payload.name,
                     email: payload.email,
                     initialAmount: payload.initialAmount,
-                    discountAmount: payload.discountAmount,
                 },
             });
 

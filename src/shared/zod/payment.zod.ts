@@ -12,13 +12,10 @@ export const providerSubscipriotonCheckoutSchema = z.object({
         .min(10, "Plan description must be at least 10 characters")
         .max(200, "Plan description must be at most 200 characters")
         .regex(descriptionRegex, "Invalid description. Contains unsupported characters."),
-    planDuration: z.nativeEnum(SubscriptionValidity),
+    planDuration: z.number().min(1).max(12),
     unitAmount: z.number()
         .min(0, "Plan price must be at least 0")
         .max(100000, "Plan price must be at most 100000"),
-    totalAmount: z.number()
-        .min(0, "Total amount must be at least 0")
-        .max(100000, "Total amount must be at most 100000"),
     paymentFor: z.nativeEnum(PaymentFor),
     paymentDate: dateSchema,
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -26,9 +23,6 @@ export const providerSubscipriotonCheckoutSchema = z.object({
     initialAmount: z.number()
         .min(0, "Initial amount must be at least 0")
         .max(100000, "Initial amount must be at most 100000"),
-    discountAmount: z.number()
-        .min(0, "Discount amount must be at least 0")
-        .max(100000, "Discount amount must be at most 100000"),
 }).merge(validateProviderIdSchema);
 
 //

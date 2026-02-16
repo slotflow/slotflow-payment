@@ -3,19 +3,17 @@ import { PaymentFor } from "../../enums/payment.enum";
 export interface SubscriptionCreateCheckoutSessionPayload {
     subscriptionId: string;
     providerId: string;
-    planDuration: number;
     planName: string;
     description: string;
+    planDuration: number;
     unitAmount: number;
-    successUrl: string;
-    cancelUrl: string;
-    totalAmount: number;
     paymentFor: PaymentFor;
     paymentDate: string;
     name: string;
     email: string;
     initialAmount: number;
-    discountAmount: number;
+    successUrl: string;
+    cancelUrl: string;
 };
 
 export interface SubscriptionCreateCheckoutSessionResult {

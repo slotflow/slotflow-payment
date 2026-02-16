@@ -23,6 +23,11 @@ export interface IPayment extends Document {
     refundAt?: Date | null;
     refundReason?: string | null;
     chargeId?: string | null;
+    receiptUrl?: string | null;
+    receiptNumber?: string | null;
+    receiptEmail?: string | null;
+    customerEmail?: string | null;
+    description?: string | null;
 };
 
 const PaymentSchema = new Schema<IPayment>({
@@ -93,6 +98,21 @@ const PaymentSchema = new Schema<IPayment>({
         type: String
     },
     chargeId: {
+        type: String
+    },
+    receiptUrl: {
+        type: String
+    },
+    receiptNumber: {
+        type: String
+    },
+    receiptEmail: {
+        type: String
+    },
+    customerEmail: {
+        type: String
+    },
+    description: {
         type: String
     },
     createdAt: {

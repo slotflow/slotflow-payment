@@ -56,6 +56,7 @@ export type ProviderCreatePaymentSuccessEvent = {
         paymentStatus: PaymentStatus;
         totalAmount: number;
         transactionId: string;
+        receiptUrl?: string | null;
     };
     notificationData: SendNotificationCommon;
 };
