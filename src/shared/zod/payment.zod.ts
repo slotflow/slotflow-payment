@@ -26,4 +26,12 @@ export const providerSubscipriotonCheckoutSchema = z.object({
 }).merge(validateProviderIdSchema);
 
 //
-export const providerIdWithPaginationSchema = validateProviderIdSchema.merge(paginationSchema);
+export const getPaymentsSchema = z.object({
+    userId: z.string().regex(objectIdRegex).optional(),
+    providerId: z.string().regex(objectIdRegex).optional(),
+}).merge(paginationSchema);
+
+//
+export const getPaymentDetailsSchema = z.object({
+    paymentId: z.string().regex(objectIdRegex, "Invalid paymentId"),
+});

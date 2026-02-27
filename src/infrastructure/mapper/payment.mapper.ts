@@ -29,6 +29,12 @@ export class PaymentMapper {
             refundAt: doc.refundAt ?? null,
             refundReason: doc.refundReason ?? null,
 
+            receiptUrl: doc.receiptUrl ?? null,
+            receiptNumber: doc.receiptNumber ?? null,
+            receiptEmail: doc.receiptEmail ?? null,
+            customerEmail: doc.customerEmail ?? null,
+            description: doc.description ?? null,
+
             createdAt: doc.createdAt,
             updatedAt: doc.updatedAt,
         });
@@ -58,6 +64,13 @@ export class PaymentMapper {
             refundStatus: props.refundStatus ?? null,
             refundAt: props.refundAt ?? null,
             refundReason: props.refundReason ?? null,
+
+            receiptUrl: props.receiptUrl ?? null,
+            receiptNumber: props.receiptNumber ?? null,
+            receiptEmail: props.receiptEmail ?? null,
+            customerEmail: props.customerEmail ?? null,
+            description: props.description ?? null,
+
             createdAt: props.createdAt,
             updatedAt: props.updatedAt,
         };

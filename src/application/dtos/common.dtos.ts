@@ -35,6 +35,11 @@ export interface PaymentDTO {
   refundAt?: Date | null,
   refundReason?: string | null,
   chargeId?: string | null,
+  receiptUrl?: string | null,
+  receiptNumber?: string | null,
+  receiptEmail?: string | null,
+  customerEmail?: string | null,
+  description?: string | null,
   createdAt: Date,
   updatedAt: Date,
 };

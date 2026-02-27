@@ -43,7 +43,7 @@ export type MessageHandler = (payload: KafkaClientAdapterProps) => Promise<void>
 // **** KAFKA EVENTS PAYLOAD
 
 // provider create payment success event
-export type ProviderCreatePaymentSuccessEvent = {
+export interface ProviderCreatePaymentSuccessEvent {
     mbsData: {
         subscriptionId: string;
         paymentId: string;
@@ -67,3 +67,28 @@ export interface ProviderCreatePaymentFailedEvent {
         subscriptionId: string;
     }
 };
+
+
+export interface CreateBookingPaymentSuccessEvent {
+    mbsData: {
+        bookingId: string;
+        paymentId: string;
+    };
+    emailData: {
+        email: string;
+        name: string;
+        paymentDate: Date;
+        paymentFor: PaymentFor;
+        paymentStatus: PaymentStatus;
+        totalAmount: number;
+        transactionId: string;
+        receiptUrl?: string | null;
+    };
+    notificationData: SendNotificationCommon;
+}
+
+export interface CreateBookingPaymentFailedEvent {
+    mbsData: {
+        bookingId: string;
+    }
+}

@@ -134,11 +134,36 @@ export class Payment {
         return this.props.description;
     };
 
-    get userId(): string {
-        if (!this.props.userId) {
-            throw new Error("UserId not found");
-        };
+    get userId(): string | null | undefined {
         return this.props.userId;
+    };
+
+    get refundId(): string | null | undefined {
+        return this.props.refundId;
+    }
+
+    get providerId(): string | null | undefined {
+        return this.props.providerId;
+    };
+
+    get refundAmount(): number | null | undefined {
+        return this.props.refundAmount;
+    };
+
+    get refundAt(): Date | null | undefined {
+        return this.props.refundAt;
+    };
+
+    get refundReason(): string | null | undefined {
+        return this.props.refundReason;
+    };
+
+    get refundStatus(): PaymentStatus | null | undefined {
+        return this.props.refundStatus;
+    };
+
+    get updatedAt(): Date {
+        return this.props.updatedAt;
     };
 
     // Business Methods

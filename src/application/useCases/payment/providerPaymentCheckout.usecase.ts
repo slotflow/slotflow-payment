@@ -12,7 +12,7 @@ export class ProviderPaymentCheckoutUseCase {
 
     async execute(payload: ProviderPaymentCheckoutRequest): Promise<string> {
 
-        const { 
+        const {
             subscriptionId,
             providerId,
             planName,
@@ -28,10 +28,10 @@ export class ProviderPaymentCheckoutUseCase {
 
         try {
 
-            console.log("successUrl : ",serviceConfig.frontendUrl + providerPaymentSuccessUrl);
-            console.log("cancelUrl : ",serviceConfig.frontendUrl + providerPaymentFailedUrl);
+            console.log("successUrl : ", serviceConfig.frontendUrl + providerPaymentSuccessUrl);
+            console.log("cancelUrl : ", serviceConfig.frontendUrl + providerPaymentFailedUrl);
 
-            const result = await this.paymentGateway.subscriptionCreateCheckoutSession({
+            const result = await this.paymentGateway.createSubscriptionCheckoutSession({
                 subscriptionId,
                 providerId,
                 planName,

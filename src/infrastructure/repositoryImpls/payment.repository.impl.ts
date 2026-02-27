@@ -40,17 +40,14 @@ export class PaymentRepositoryImpl implements IPaymentRepository {
         const filter: {
             userId?: Types.ObjectId;
             providerId?: Types.ObjectId;
-            paymentFor?: PaymentFor | { $in: PaymentFor[] };
         } = {};
 
         if (userId) {
             filter.userId = new Types.ObjectId(userId);
-            filter.paymentFor = PaymentFor.AppointmentBooking
         }
 
         if (providerId) {
             filter.providerId = new Types.ObjectId(providerId);
-            filter.paymentFor = { $in: [PaymentFor.ProviderPayout, PaymentFor.ProviderSubscription] }
         }
 
         const [payments, totalCount] = await Promise.all([
@@ -60,7 +57,6 @@ export class PaymentRepositoryImpl implements IPaymentRepository {
                 totalAmount: 1,
                 paymentFor: 1,
                 paymentMethod: 1,
-                paymentGateway: 1,
                 paymentStatus: 1,
                 discountAmount: 1,
             }).skip(skip).limit(limit).sort({ createdAt: 1 }).lean(),

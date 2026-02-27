@@ -1,6 +1,6 @@
 import { PaymentFor } from "../../enums/payment.enum";
 
-export interface SubscriptionCreateCheckoutSessionPayload {
+export interface CreateSubscriptionCheckoutSessionPayload {
     subscriptionId: string;
     providerId: string;
     planName: string;
@@ -16,10 +16,34 @@ export interface SubscriptionCreateCheckoutSessionPayload {
     cancelUrl: string;
 };
 
-export interface SubscriptionCreateCheckoutSessionResult {
+export interface CreateSubscriptionCheckoutSessionResponse {
     sessionId: string;
 };
 
+export interface CreateBookingCheckoutSessionPayload {
+    serviceName: string;
+    description: string;
+    unitAmount: number;
+    providerId: string;
+    slotDuration: number;
+    appointmentDate: string;
+    selectedServiceMode: string;
+    bookingId: string;
+    userId: string;
+    paymentFor: PaymentFor;
+    userEmail: string;
+    userName: string;
+    initialAmount: number;
+    successUrl: string;
+    cancelUrl: string;
+    pushNotification: string;
+}
+
+export interface CreateBookingCheckoutSessionResponse {
+    sessionId: string;
+}
+
 export interface IPaymentGateway {
-    subscriptionCreateCheckoutSession(payload: SubscriptionCreateCheckoutSessionPayload): Promise<SubscriptionCreateCheckoutSessionResult>;
+    createSubscriptionCheckoutSession(payload: CreateSubscriptionCheckoutSessionPayload): Promise<CreateSubscriptionCheckoutSessionResponse>;
+    createBookingCheckoutSession(payload: CreateBookingCheckoutSessionPayload): Promise<CreateBookingCheckoutSessionResponse>;
 };

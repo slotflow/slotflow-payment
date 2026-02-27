@@ -2,7 +2,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import express from 'express';
 import cookieParser from 'cookie-parser';
-import paymentRouter from './presentation/httpController/provider/router';
+import paymentRouter from './presentation/httpController/payment/router';
 import webhookRoutes from './presentation/httpController/stripe/webhook.router';
 
 dotenv.config();

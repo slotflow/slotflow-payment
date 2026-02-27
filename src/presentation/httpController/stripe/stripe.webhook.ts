@@ -2,9 +2,9 @@ import Stripe from "stripe";
 import { Request, Response } from "express";
 import { stripeConfig } from "../../../config/env";
 import { log } from "../../../shared/logger/logger";
-import { providerStripeCheckoutCompleteUseCase } from "..";
+import { providerStripeCheckoutCompleteUseCase } from '.';
 import { stripe } from "../../../infrastructure/lib/stripe";
-import { ProviderStripeCheckoutCompleteUseCase } from "../../../application/useCases/providerPayment/providerStripeCheckoutCompleted";
+import { ProviderStripeCheckoutCompleteUseCase } from "../../../application/useCases/payment/providerStripeCheckoutCompleted";
 
 class StripeWebhookController {
     constructor(
@@ -27,7 +27,7 @@ class StripeWebhookController {
             );
 
             res.json({ received: true });
-            console.log("event : ",event);
+            console.log("event : ", event);
             console.log("event type : ", event.type);
 
             if (event.type === "checkout.session.completed") {

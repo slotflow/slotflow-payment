@@ -4,12 +4,20 @@ export const notificationContentMap: Record<string, {
   body: (...args: any[]) => string;
 }> = {
   providerSubscriptionPayment: {
-    title: "Subscription Payment Success",
-    body: (planDuration: string) =>
-      `Your ${planDuration} subscription payment has been processed successfully.`
+    title: "Payment Received",
+    body: () =>
+      `Your payment has been received successfully. Your subscription is being activated`
+  },
+  bookingPaymentSuccess: {
+    title: "Payment Received",
+    body: () =>
+      `Your payment has been received successfully. Your booking is being confirmed`
   },
 };
 
 // payment urls
 export const providerPaymentSuccessUrl = "/provider/payment-success";
 export const providerPaymentFailedUrl = "/provider/payment-failed";
+
+export const bookingPaymentSuccessUrl = "/user/payment-success";
+export const bookingPaymentFailedUrl = "/user/payment-failed";

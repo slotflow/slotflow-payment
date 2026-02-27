@@ -1,38 +1,36 @@
 import { log } from "../../../shared/logger/logger";
 import { ApiResponse } from "../../dtos/common.dtos";
-import { FetchPaymentResponse, FetchPaymentsRequest } from "../../dtos/payment.dtos";
+import { GetPaymentsResponse, GetPaymentsRequest } from "../../dtos/payment.dtos";
 import { IPaymentRepository } from "../../../domain/interfaces/repositories/IPayment.repository";
 
-export class ProviderFetchAllPaymentsUseCase {
+export class GetPaymentsUseCase {
     constructor(
         private paymentRepository: IPaymentRepository,
     ) { };
 
-    async execute(payload: FetchPaymentsRequest): Promise<ApiResponse<FetchPaymentResponse>> {
-        try {
-            const { providerId, page, limit } = payload;
-            if (!providerId) throw new Error("Invalid request.");
+    async execute(payload: GetPaymentsRequest): Promise<ApiResponse<GetPaymentsResponse>> {
+        const { providerId, userId, page, limit } = payload;
 
-            const result = await this.paymentRepository.findAll(page, limit, undefined, providerId );
+        try {
+            const result = await this.paymentRepository.findAll(page, limit, userId, providerId);
             const { data: payments, currentPage, totalCount, totalPages } = result;
 
-            return { 
+            return {
                 data: payments.map(payment => ({
                     _id: payment._id,
                     createdAt: payment.createdAt,
                     totalAmount: payment.totalAmount,
                     paymentFor: payment.paymentFor,
-                    paymentGateway: payment.paymentGateway,
                     paymentStatus: payment.paymentStatus,
                     paymentMethod: payment.paymentMethod,
-                    discountAmount: payment.discountAmount
-                })), 
-                totalPages, 
-                currentPage, 
+                    discountAmount: payment.discountAmount,
+                })),
+                totalPages,
+                currentPage,
                 totalCount,
             };
         } catch (error) {
-            log.error("ProviderFetchAllPaymentsUseCase failed", error as Error);
+            log.error("GetPaymentsUseCase failed", error as Error);
             throw error;
         };
     };

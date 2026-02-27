@@ -60,8 +60,8 @@ export const kafkaConfig = {
 
             // added till here
 
-            userBookingPaymentSuccess: validator.requireEnv("KAFKA_USER_BOOKING_PAYMENT_SUCCESS"),
-            userBookingPaymentFailed: validator.requireEnv("KAFKA_USER_BOOKING_PAYMENT_FAILED"),
+            bookingPaymentSuccess: validator.requireEnv("KAFKA_BOOKING_PAYMENT_SUCCESS"),
+            bookingPaymentFailed: validator.requireEnv("KAFKA_BOOKING_PAYMENT_FAILED"),
             providerPayoutSuccess: validator.requireEnv("KAFKA_PROVIDER_PAYOUT_SUCCESS"),
             providerPayoutFailed: validator.requireEnv("KAFKA_PROVIDER_PAYOUT_FAILED"),
             userCancelBookingSuccess: validator.requireEnv("KAFKA_USER_CANCEL_BOOKING_SUCCESS"),

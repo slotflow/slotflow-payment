@@ -1,6 +1,7 @@
 import Stripe from "stripe";
-import { IPaymentGateway, SubscriptionCreateCheckoutSessionPayload, SubscriptionCreateCheckoutSessionResult } from "../../domain/interfaces/payment/IPaymentGateway";
 import { log } from "../../shared/logger/logger";
+import { IPaymentGateway, CreateSubscriptionCheckoutSessionPayload, CreateSubscriptionCheckoutSessionResponse, CreateBookingCheckoutSessionPayload, CreateBookingCheckoutSessionResponse } from "../../domain/interfaces/payment/IPaymentGateway";
+import { PaymentFor } from "../../domain/enums/payment.enum";
 
 export class PaymentGateway implements IPaymentGateway {
 
@@ -8,9 +9,9 @@ export class PaymentGateway implements IPaymentGateway {
         private readonly stripe: Stripe
     ) { };
 
-    async subscriptionCreateCheckoutSession(payload: SubscriptionCreateCheckoutSessionPayload): Promise<SubscriptionCreateCheckoutSessionResult> {
+    async createSubscriptionCheckoutSession(payload: CreateSubscriptionCheckoutSessionPayload): Promise<CreateSubscriptionCheckoutSessionResponse> {
         try {
-            console.log("subscriptionCreateCheckoutSession");
+            console.log("createSubscriptionCheckoutSession");
             console.log("payload : ", payload);
             const session = await this.stripe.checkout.sessions.create({
                 mode: "payment",
@@ -46,8 +47,53 @@ export class PaymentGateway implements IPaymentGateway {
 
             return { sessionId: session.id };
         } catch (error) {
-            log.error("PaymentGateway subscriptionCreateCheckoutSession failed : ", error as Error);
+            log.error("PaymentGateway createSubscriptionCheckoutSession failed : ", error as Error);
             throw error;
         }
     };
+
+    async createBookingCheckoutSession(payload: CreateBookingCheckoutSessionPayload): Promise<CreateBookingCheckoutSessionResponse> {
+        try {
+            console.log("createBookingCheckoutSession");
+            console.log("payload : ", payload);
+            const session = await this.stripe.checkout.sessions.create({
+                mode: "payment",
+                payment_method_types: ["card"],
+                customer_email: payload.userEmail,
+                allow_promotion_codes: true,
+                line_items: [
+                    {
+                        price_data: {
+                            currency: "inr",
+                            product_data: {
+                                name: payload.serviceName,
+                                description: payload.description,
+                            },
+                            unit_amount: payload.unitAmount * 100,
+                        },
+                        quantity: 1,
+                    },
+                ],
+                success_url: payload.successUrl,
+                cancel_url: payload.cancelUrl,
+                metadata: {
+                    providerId: payload.providerId,
+                    slotDuration: payload.slotDuration,
+                    appointmentDate: payload.appointmentDate,
+                    selectedServiceMode: payload.selectedServiceMode,
+                    bookingId: payload.bookingId,
+                    userId: payload.userId,
+                    paymentFor: payload.paymentFor,
+                    userEmail: payload.userEmail,
+                    userName: payload.userName,
+                    initialAmount: payload.initialAmount,
+                    pushNotification: payload.pushNotification
+                },
+            });
+            return { sessionId: session.id }
+        } catch (error) {
+            log.error("PaymentGateway createBookingCheckoutSession failed : ", error as Error);
+            throw error;
+        }
+    }
 };

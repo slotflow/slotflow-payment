@@ -2,13 +2,13 @@ import Stripe from "stripe";
 import { v4 as uuidv4 } from 'uuid';
 import { kafkaConfig } from "../../../config/env";
 import { log } from "../../../shared/logger/logger";
+import { stripe } from "../../../infrastructure/lib/stripe";
 import { Payment } from "../../../domain/entities/payment.entity";
 import { notificationContentMap } from "../../../shared/utils/constants";
 import { PaymentFor, PaymentGateway, PaymentStatus } from "../../../domain/enums/payment.enum";
 import { IPaymentRepository } from "../../../domain/interfaces/repositories/IPayment.repository";
 import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
 import { EventEnvelope, ProviderCreatePaymentFailedEvent, ProviderCreatePaymentSuccessEvent } from "../../dtos/kafka.dtos";
-import { stripe } from "../../../infrastructure/lib/stripe";
 
 export class ProviderStripeCheckoutCompleteUseCase {
     constructor(
@@ -71,8 +71,9 @@ export class ProviderStripeCheckoutCompleteUseCase {
             !paymentIntent ||
             !paymentFor ||
             !subscriptionId ||
-            !providerId) {
-            return;
+            !providerId
+        ) {
+            throw new Error("Missing required metadata");
         };
 
         try {
@@ -97,8 +98,9 @@ export class ProviderStripeCheckoutCompleteUseCase {
 
             const payment = await this.paymentRepository.create(paymentData);
 
-            await this.kafkaProducer.publish<EventEnvelope<ProviderCreatePaymentSuccessEvent>>(
-                kafkaConfig.topics.pub.providerSubscriptionPaymentSuccess,
+            if(payment) {
+                await this.kafkaProducer.publish<EventEnvelope<ProviderCreatePaymentSuccessEvent>>(
+                    kafkaConfig.topics.pub.providerSubscriptionPaymentSuccess,
                 {
                     eventId: uuidv4(),
                     attempt: 1,
@@ -125,13 +127,13 @@ export class ProviderStripeCheckoutCompleteUseCase {
                             userId: providerId,
                             pushNotification: false,
                             title: notificationContentMap.providerSubscriptionPayment.title,
-                            body: notificationContentMap.providerSubscriptionPayment.body(planDuration),
+                            body: notificationContentMap.providerSubscriptionPayment.body(),
                         },
                     },
                 },
-            );
-        } catch (error) {
-            await this.kafkaProducer.publish<EventEnvelope<ProviderCreatePaymentFailedEvent>>(
+            )
+        } else {
+                await this.kafkaProducer.publish<EventEnvelope<ProviderCreatePaymentFailedEvent>>(
                 kafkaConfig.topics.pub.providerSubscriptionPaymentFailed,
                 {
                     eventId: uuidv4(),
@@ -145,6 +147,8 @@ export class ProviderStripeCheckoutCompleteUseCase {
                     },
                 },
             );
+            }
+        } catch (error) {
             log.error("ProviderStripeCheckoutCompleteUseCase failed : ", error as Error);
             throw error;
         };

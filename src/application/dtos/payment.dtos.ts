@@ -119,11 +119,35 @@ export interface ProviderPaymentCheckoutRequest {
   initialAmount: number;
 };
 
+export interface BookingCheckoutRequest {
+  serviceName: string;
+  description: string;
+  unitAmount: number;
+  providerId: string;
+  slotDuration: number;
+  appointmentDate: string;
+  selectedServiceMode: string;
+  bookingId: string;
+  userId: string;
+  paymentFor: PaymentFor;
+  paymentDate: string;
+  userEmail: string;
+  userName: string;
+  initialAmount: number;
+  pushNotification: boolean;
+}
+
 
 // Used as the payments fetching request and response dto
 export interface userIdAndProviderIdFilterForFetchPayments {
   userId?: string;
   providerId?: string;
 }
-export interface FetchPaymentsRequest extends ApiPaginationRequest, userIdAndProviderIdFilterForFetchPayments { };
-export type FetchPaymentResponse = Array<Pick<PaymentDTO, "_id" | "createdAt" | "totalAmount" | "paymentFor" | "paymentGateway" | "paymentStatus" | "paymentMethod" | "discountAmount">> | null;
+export interface GetPaymentsRequest extends ApiPaginationRequest, userIdAndProviderIdFilterForFetchPayments { };
+export type GetPaymentsResponse = Array<Pick<PaymentDTO, "_id" | "createdAt" | "totalAmount" | "paymentFor" | "paymentMethod" | "paymentStatus" | "discountAmount">> | null;
+
+
+export interface GetPaymentDetailsRequest {
+  paymentId: string;
+};
+export type GetPaymentDetailsResponse = Omit<PaymentDTO, "_id" | "chargeId" | "receiptEmail" | "receiptNumber" | "updatedAt"> | null;
