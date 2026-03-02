@@ -1,7 +1,6 @@
 import Stripe from "stripe";
 import { log } from "../../shared/logger/logger";
 import { IPaymentGateway, CreateSubscriptionCheckoutSessionPayload, CreateSubscriptionCheckoutSessionResponse, CreateBookingCheckoutSessionPayload, CreateBookingCheckoutSessionResponse } from "../../domain/interfaces/payment/IPaymentGateway";
-import { PaymentFor } from "../../domain/enums/payment.enum";
 
 export class PaymentGateway implements IPaymentGateway {
 
@@ -38,7 +37,6 @@ export class PaymentGateway implements IPaymentGateway {
                     providerId: payload.providerId,
                     planDuration: payload.planDuration,
                     paymentFor: payload.paymentFor,
-                    paymentDate: payload.paymentDate,
                     name: payload.name,
                     email: payload.email,
                     initialAmount: payload.initialAmount,

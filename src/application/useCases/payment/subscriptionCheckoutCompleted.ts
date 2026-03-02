@@ -10,7 +10,7 @@ import { IPaymentRepository } from "../../../domain/interfaces/repositories/IPay
 import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
 import { EventEnvelope, ProviderCreatePaymentFailedEvent, ProviderCreatePaymentSuccessEvent } from "../../dtos/kafka.dtos";
 
-export class ProviderStripeCheckoutCompleteUseCase {
+export class SubscriptionCheckoutCompleteUseCase {
     constructor(
         private readonly paymentRepository: IPaymentRepository,
         private readonly kafkaProducer: IKafkaProducerAdapter,
@@ -20,7 +20,7 @@ export class ProviderStripeCheckoutCompleteUseCase {
 
         log.info(`Payload : ${JSON.stringify(payload)}`);
 
-        let receiptUrl = null;
+        let recieptUrl = null;
         let receiptNumber = null;
         let receiptEmail = null;
 
@@ -30,7 +30,7 @@ export class ProviderStripeCheckoutCompleteUseCase {
             });
             const latestCharge = paymentIntent.latest_charge as Stripe.Charge;
             if (latestCharge) {
-                receiptUrl = latestCharge.receipt_url;
+                recieptUrl = latestCharge.receipt_url;
                 receiptNumber = latestCharge.receipt_number;
                 receiptEmail = latestCharge.receipt_email;
             }
@@ -43,7 +43,6 @@ export class ProviderStripeCheckoutCompleteUseCase {
         const paymentIntent = payload?.payment_intent as string;
         const paymentMethod = payload?.payment_method_types[0];
         const paymentFor = payload?.metadata?.paymentFor as PaymentFor;
-        const paymentDate = payload?.metadata?.paymentDate;
         const name = payload?.metadata?.name;
         const email = payload?.metadata?.email;
         const initialAmount = Number(payload?.metadata?.initialAmount);
@@ -57,7 +56,6 @@ export class ProviderStripeCheckoutCompleteUseCase {
         console.log("paymentIntent : ", paymentIntent);
         console.log("paymentMethod : ", paymentMethod);
         console.log("paymentFor : ", paymentFor);
-        console.log("paymentDate : ", paymentDate);
         console.log("name : ", name);
         console.log("email : ", email);
         console.log("initialAmount : ", initialAmount);
@@ -67,7 +65,6 @@ export class ProviderStripeCheckoutCompleteUseCase {
         if (!planDuration ||
             !email ||
             !name ||
-            !paymentDate ||
             !paymentIntent ||
             !paymentFor ||
             !subscriptionId ||
@@ -89,7 +86,7 @@ export class ProviderStripeCheckoutCompleteUseCase {
                 totalAmount,
                 providerId,
                 chargeId: payload.payment_intent as string,
-                receiptUrl,
+                recieptUrl,
                 receiptNumber,
                 receiptEmail,
                 customerEmail: payload.customer_details?.email || email,
@@ -98,55 +95,55 @@ export class ProviderStripeCheckoutCompleteUseCase {
 
             const payment = await this.paymentRepository.create(paymentData);
 
-            if(payment) {
+            if (payment) {
                 await this.kafkaProducer.publish<EventEnvelope<ProviderCreatePaymentSuccessEvent>>(
                     kafkaConfig.topics.pub.providerSubscriptionPaymentSuccess,
-                {
-                    eventId: uuidv4(),
-                    attempt: 1,
-                    maxAttempts: 1,
-                    occurredAt: new Date().toString(),
-                    payload: {
-                        mbsData: {
-                            subscriptionId,
-                            paymentId: payment._id,
-                            planDuration,
-                            providerId
-                        },
-                        emailData: {
-                            email,
-                            name,
-                            totalAmount,
-                            paymentDate,
-                            paymentStatus,
-                            receiptUrl,
-                            transactionId: paymentIntent,
-                            paymentFor,
-                        },
-                        notificationData: {
-                            userId: providerId,
-                            pushNotification: false,
-                            title: notificationContentMap.providerSubscriptionPayment.title,
-                            body: notificationContentMap.providerSubscriptionPayment.body(),
+                    {
+                        eventId: uuidv4(),
+                        attempt: 1,
+                        maxAttempts: 1,
+                        occurredAt: new Date().toString(),
+                        payload: {
+                            mbsData: {
+                                subscriptionId,
+                                paymentId: payment._id,
+                                planDuration,
+                                providerId
+                            },
+                            emailData: {
+                                email,
+                                name,
+                                totalAmount,
+                                paymentDate: payment.createdAt,
+                                paymentStatus,
+                                recieptUrl,
+                                transactionId: paymentIntent,
+                                paymentFor,
+                            },
+                            notificationData: {
+                                userId: providerId,
+                                pushNotification: false,
+                                title: notificationContentMap.providerSubscriptionPayment.title,
+                                body: notificationContentMap.providerSubscriptionPayment.body(),
+                            },
                         },
                     },
-                },
-            )
-        } else {
+                )
+            } else {
                 await this.kafkaProducer.publish<EventEnvelope<ProviderCreatePaymentFailedEvent>>(
-                kafkaConfig.topics.pub.providerSubscriptionPaymentFailed,
-                {
-                    eventId: uuidv4(),
-                    attempt: 1,
-                    maxAttempts: 1,
-                    occurredAt: new Date().toString(),
-                    payload: {
-                        mbsData: {
-                            subscriptionId
+                    kafkaConfig.topics.pub.providerSubscriptionPaymentFailed,
+                    {
+                        eventId: uuidv4(),
+                        attempt: 1,
+                        maxAttempts: 1,
+                        occurredAt: new Date().toString(),
+                        payload: {
+                            mbsData: {
+                                subscriptionId
+                            },
                         },
                     },
-                },
-            );
+                );
             }
         } catch (error) {
             log.error("ProviderStripeCheckoutCompleteUseCase failed : ", error as Error);

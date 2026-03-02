@@ -1,6 +1,6 @@
 import { log } from "../../../shared/logger/logger";
-import { IPaymentRepository } from "../../../domain/interfaces/repositories/IPayment.repository";
 import { GetPaymentDetailsRequest, GetPaymentDetailsResponse } from "../../dtos/payment.dtos";
+import { IPaymentRepository } from "../../../domain/interfaces/repositories/IPayment.repository";
 
 export class GetPaymentDetailsUseCase {
     constructor(
@@ -27,7 +27,7 @@ export class GetPaymentDetailsUseCase {
                 refundStatus: result?.refundStatus,
                 refundAt: result?.refundAt,
                 refundReason: result?.refundReason,
-                receiptUrl: result?.receiptUrl,
+                recieptUrl: result?.recieptUrl,
                 customerEmail: result?.customerEmail,
                 description: result?.description,
                 createdAt: result?.createdAt,

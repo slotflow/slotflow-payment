@@ -51,12 +51,12 @@ export interface ProviderCreatePaymentSuccessEvent {
         providerId: string;
     };
     emailData: SendEmailCommon & {
-        paymentDate: string;
+        paymentDate: Date;
         paymentFor: PaymentFor;
         paymentStatus: PaymentStatus;
         totalAmount: number;
         transactionId: string;
-        receiptUrl?: string | null;
+        recieptUrl?: string | null;
     };
     notificationData: SendNotificationCommon;
 };
@@ -82,7 +82,7 @@ export interface CreateBookingPaymentSuccessEvent {
         paymentStatus: PaymentStatus;
         totalAmount: number;
         transactionId: string;
-        receiptUrl?: string | null;
+        recieptUrl?: string | null;
     };
     notificationData: SendNotificationCommon;
 }

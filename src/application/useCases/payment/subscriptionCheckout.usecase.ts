@@ -1,16 +1,16 @@
 import { log } from "../../../shared/logger/logger";
 import { serviceConfig } from "../../../config/env";
-import { ProviderPaymentCheckoutRequest } from "../../dtos/payment.dtos";
+import { SubscriptionCheckoutRequest } from "../../dtos/payment.dtos";
 import { IPaymentGateway } from "../../../domain/interfaces/payment/IPaymentGateway";
 import { providerPaymentFailedUrl, providerPaymentSuccessUrl } from "../../../shared/utils/constants";
 
-export class ProviderPaymentCheckoutUseCase {
+export class SubscriptionCheckoutUseCase {
 
     constructor(
         private readonly paymentGateway: IPaymentGateway
     ) { };
 
-    async execute(payload: ProviderPaymentCheckoutRequest): Promise<string> {
+    async execute(payload: SubscriptionCheckoutRequest): Promise<string> {
 
         const {
             subscriptionId,
@@ -20,7 +20,6 @@ export class ProviderPaymentCheckoutUseCase {
             planDuration,
             unitAmount,
             paymentFor,
-            paymentDate,
             name,
             email,
             initialAmount,
@@ -39,7 +38,6 @@ export class ProviderPaymentCheckoutUseCase {
                 planDuration,
                 unitAmount,
                 paymentFor,
-                paymentDate: paymentDate.toISOString(),
                 name,
                 email,
                 initialAmount,

@@ -27,7 +27,7 @@ export class Payment {
             providerId: props.providerId,
             totalAmount: props.totalAmount,
             chargeId: props.chargeId ?? null,
-            receiptUrl: props.receiptUrl ?? null,
+            recieptUrl: props.recieptUrl ?? null,
             receiptNumber: props.receiptNumber ?? null,
             receiptEmail: props.receiptEmail ?? null,
             customerEmail: props.customerEmail ?? null,
@@ -56,7 +56,7 @@ export class Payment {
             providerId: props.providerId,
             totalAmount: props.totalAmount,
             chargeId: props.chargeId ?? null,
-            receiptUrl: props.receiptUrl ?? null,
+            recieptUrl: props.recieptUrl ?? null,
             receiptNumber: props.receiptNumber ?? null,
             receiptEmail: props.receiptEmail ?? null,
             customerEmail: props.customerEmail ?? null,
@@ -114,8 +114,8 @@ export class Payment {
         return this.props.initialAmount;
     };
 
-    get receiptUrl(): string | null | undefined {
-        return this.props.receiptUrl;
+    get recieptUrl(): string | null | undefined {
+        return this.props.recieptUrl;
     };
 
     get receiptNumber(): string | null | undefined {

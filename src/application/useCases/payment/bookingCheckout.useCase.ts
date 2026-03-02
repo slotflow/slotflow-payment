@@ -1,8 +1,8 @@
 import { serviceConfig } from "../../../config/env";
-import { IPaymentGateway } from "../../../domain/interfaces/payment/IPaymentGateway";
 import { log } from "../../../shared/logger/logger";
-import { bookingPaymentFailedUrl, bookingPaymentSuccessUrl } from "../../../shared/utils/constants";
 import { BookingCheckoutRequest } from "../../dtos/payment.dtos";
+import { IPaymentGateway } from "../../../domain/interfaces/payment/IPaymentGateway";
+import { bookingPaymentFailedUrl, bookingPaymentSuccessUrl } from "../../../shared/utils/constants";
 
 export class BookingCheckoutUseCase {
     constructor(

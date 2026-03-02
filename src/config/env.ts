@@ -48,24 +48,16 @@ export const kafkaConfig = {
 
     topics: {
         sub: {
-            userBookingPayment: validator.requireEnv("KAFKA_USER_BOOKING_PAYMENT"),
-            providerPayoutPayment: validator.requireEnv("KAFKA_PROVIDER_PAYOUT"),
-            userCancelBooking: validator.requireEnv("KAFKA_USER_CANCEL_BOOKING"),
+            
         },
         pub: {
             // PS -> MBS & NS
             providerSubscriptionPaymentSuccess: validator.requireEnv("KAFKA_PROVIDER_SUBSCRIPTION_PAYMENT_SUCCESS"),
+            userBookingPaymentSuccess: validator.requireEnv("KAFKA_USER_BOOKING_PAYMENT_SUCCESS"),
+
             // PS -> MBS
             providerSubscriptionPaymentFailed: validator.requireEnv("KAFKA_PROVIDER_SUBSCRIPTION_PAYMENT_FAILED"),
-
-            // added till here
-
-            bookingPaymentSuccess: validator.requireEnv("KAFKA_BOOKING_PAYMENT_SUCCESS"),
-            bookingPaymentFailed: validator.requireEnv("KAFKA_BOOKING_PAYMENT_FAILED"),
-            providerPayoutSuccess: validator.requireEnv("KAFKA_PROVIDER_PAYOUT_SUCCESS"),
-            providerPayoutFailed: validator.requireEnv("KAFKA_PROVIDER_PAYOUT_FAILED"),
-            userCancelBookingSuccess: validator.requireEnv("KAFKA_USER_CANCEL_BOOKING_SUCCESS"),
-            userCancelBookingFailed: validator.requireEnv("KAFKA_USER_CANCEL_BOOKING_FAILED"),
+            userBookingPaymentFailed: validator.requireEnv("KAFKA_USER_BOOKING_PAYMENT_FAILED"),
 
         },
     },

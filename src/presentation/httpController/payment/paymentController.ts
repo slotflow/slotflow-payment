@@ -3,22 +3,25 @@ import { Role } from "../../../domain/enums/common.enum";
 import { NextFunction, Request, Response } from "express";
 import { sendResponse } from "../../../shared/utils/response";
 import { DecodedUser } from "../../../application/dtos/common.dtos";
-import { getPaymentsUseCase, getPaymentDetailsUseCase, providerPaymentCheckoutUseCase } from ".";
-import { getPaymentDetailsSchema, getPaymentsSchema, providerSubscipriotonCheckoutSchema } from "../../../shared/zod/payment.zod";
+import { getPaymentsUseCase, getPaymentDetailsUseCase, subscriptionCheckoutUseCase, bookingCheckoutUseCase } from ".";
+import { bookingCheckoutShcema, getPaymentDetailsSchema, getPaymentsSchema, subscipriotonCheckoutSchema } from "../../../shared/zod/payment.zod";
 import { GetPaymentsUseCase } from "../../../application/useCases/payment/getPayments.useCase";
 import { GetPaymentDetailsUseCase } from "../../../application/useCases/payment/getPaymentDetails.useCase";
-import { ProviderPaymentCheckoutUseCase } from "../../../application/useCases/payment/providerPaymentCheckout.usecase";
+import { SubscriptionCheckoutUseCase } from "../../../application/useCases/payment/subscriptionCheckout.usecase";
+import { BookingCheckoutUseCase } from "../../../application/useCases/payment/bookingCheckout.useCase";
 
 class PaymentController {
 
     constructor(
         private readonly getPaymentsUseCase: GetPaymentsUseCase,
         private readonly getPaymentDetailsUseCase: GetPaymentDetailsUseCase,
-        private readonly providerPaymentCheckoutUseCase: ProviderPaymentCheckoutUseCase,
+        private readonly subscriptionCheckoutUseCase: SubscriptionCheckoutUseCase,
+        private readonly bookingCheckoutUseCase: BookingCheckoutUseCase
     ) {
         this.getPayments = this.getPayments.bind(this);
         this.getPaymentDetails = this.getPaymentDetails.bind(this);
         this.subscriptionCheckout = this.subscriptionCheckout.bind(this);
+        this.bookingCheckout = this.bookingCheckout.bind(this);
     };
 
     async getPayments(req: Request, res: Response, next: NextFunction) {
@@ -79,11 +82,8 @@ class PaymentController {
     async subscriptionCheckout(req: Request, res: Response, next: NextFunction) {
         try {
             console.log("req.body : ", req.body);
-            const validatedData = providerSubscipriotonCheckoutSchema.parse(req.body);
-            const result = await this.providerPaymentCheckoutUseCase.execute({
-                ...validatedData,
-                paymentDate: new Date(validatedData.paymentDate),
-            });
+            const validatedData = subscipriotonCheckoutSchema.parse(req.body);
+            const result = await this.subscriptionCheckoutUseCase.execute(validatedData);
             console.log("result : ", result);
             sendResponse(res, result);
         } catch (error) {
@@ -94,7 +94,11 @@ class PaymentController {
 
     async bookingCheckout(req: Request, res: Response, next: NextFunction) {
         try {
-
+            console.log("req.body : ", req.body);
+            const validatedData = bookingCheckoutShcema.parse(req.body);
+            const result = await this.bookingCheckoutUseCase.execute(validatedData);
+            console.log("result : ", result);
+            sendResponse(res, result);
         } catch (error) {
             log.error("bookingCheckout failed : ", error as Error);
             next(error);
@@ -106,6 +110,6 @@ class PaymentController {
 export const paymentController = new PaymentController(
     getPaymentsUseCase,
     getPaymentDetailsUseCase,
-    providerPaymentCheckoutUseCase
-
+    subscriptionCheckoutUseCase,
+    bookingCheckoutUseCase
 );

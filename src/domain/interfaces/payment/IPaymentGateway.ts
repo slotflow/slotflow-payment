@@ -8,7 +8,6 @@ export interface CreateSubscriptionCheckoutSessionPayload {
     planDuration: number;
     unitAmount: number;
     paymentFor: PaymentFor;
-    paymentDate: string;
     name: string;
     email: string;
     initialAmount: number;

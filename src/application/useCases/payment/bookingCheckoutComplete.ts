@@ -1,16 +1,16 @@
 import Stripe from "stripe";
-import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
-import { IPaymentRepository } from "../../../domain/interfaces/repositories/IPayment.repository";
+import { v4 as uuidv4 } from 'uuid';
+import { kafkaConfig } from "../../../config/env";
 import { log } from "../../../shared/logger/logger";
 import { stripe } from "../../../infrastructure/lib/stripe";
 import { Payment } from "../../../domain/entities/payment.entity";
-import { PaymentFor, PaymentGateway, PaymentStatus } from "../../../domain/enums/payment.enum";
-import { kafkaConfig } from "../../../config/env";
-import { v4 as uuidv4 } from 'uuid';
-import { CreateBookingPaymentFailedEvent, CreateBookingPaymentSuccessEvent, EventEnvelope } from "../../dtos/kafka.dtos";
 import { notificationContentMap } from "../../../shared/utils/constants";
+import { PaymentFor, PaymentGateway, PaymentStatus } from "../../../domain/enums/payment.enum";
+import { IPaymentRepository } from "../../../domain/interfaces/repositories/IPayment.repository";
+import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
+import { CreateBookingPaymentFailedEvent, CreateBookingPaymentSuccessEvent, EventEnvelope } from "../../dtos/kafka.dtos";
 
-export class BookingStripeCheckoutCompleteUseCase {
+export class BookingCheckoutCompleteUseCase {
     constructor(
         private readonly paymentRepository: IPaymentRepository,
         private readonly kafkaProducer: IKafkaProducerAdapter
@@ -20,7 +20,7 @@ export class BookingStripeCheckoutCompleteUseCase {
         try {
             log.info(`Payload : ${JSON.stringify(payload)}`);
 
-            let receiptUrl = null;
+            let recieptUrl = null;
             let receiptNumber = null;
             let receiptEmail = null;
 
@@ -30,7 +30,7 @@ export class BookingStripeCheckoutCompleteUseCase {
                 });
                 const latestCharge = paymentIntent.latest_charge as Stripe.Charge;
                 if (latestCharge) {
-                    receiptUrl = latestCharge.receipt_url;
+                    recieptUrl = latestCharge.receipt_url;
                     receiptNumber = latestCharge.receipt_number;
                     receiptEmail = latestCharge.receipt_email;
                 }
@@ -54,7 +54,7 @@ export class BookingStripeCheckoutCompleteUseCase {
             const discountAmount = (payload.total_details?.amount_discount || 0) / 100;
             const pushNotification = Boolean(payload?.metadata?.pushNotification);
 
-            if(!providerId ||
+            if (!providerId ||
                 !slotId ||
                 !selectedDay ||
                 !selectedServiceMode ||
@@ -68,7 +68,7 @@ export class BookingStripeCheckoutCompleteUseCase {
                 !bookingId ||
                 !email ||
                 !name
-            ){
+            ) {
                 throw new Error("Missing required metadata");
             }
 
@@ -84,7 +84,7 @@ export class BookingStripeCheckoutCompleteUseCase {
                 totalAmount,
                 providerId,
                 chargeId: payload.payment_intent as string,
-                receiptUrl,
+                recieptUrl,
                 receiptNumber,
                 receiptEmail,
                 customerEmail: payload.customer_details?.email || email,
@@ -93,42 +93,9 @@ export class BookingStripeCheckoutCompleteUseCase {
 
             const payment = await this.paymentRepository.create(paymentData);
 
-            if(payment) {
+            if (payment) {
                 await this.kafkaProducer.publish<EventEnvelope<CreateBookingPaymentSuccessEvent>>(
-                    kafkaConfig.topics.pub.bookingPaymentSuccess,
-                {
-                    eventId: uuidv4(),
-                    attempt: 1,
-                    maxAttempts: 1,
-                    occurredAt: new Date().toString(),
-                    payload: {
-                        mbsData: {
-                           bookingId,
-                           paymentId: payment._id,
-                        },
-                        emailData: {
-                            email,
-                            name,
-                            totalAmount,
-                            paymentDate: payment.createdAt,
-                            paymentStatus,
-                            receiptUrl,
-                            transactionId: paymentIntent,
-                            paymentFor,
-                        },
-                        notificationData: {
-                            userId: providerId,
-                            pushNotification,
-                            title: notificationContentMap.bookingPaymentSuccess.title,
-                            body: notificationContentMap.bookingPaymentSuccess.body(),
-                        },
-                    },
-                }
-            );
-
-        } else {
-                await this.kafkaProducer.publish<EventEnvelope<CreateBookingPaymentFailedEvent>>(
-                    kafkaConfig.topics.pub.bookingPaymentFailed,
+                    kafkaConfig.topics.pub.userBookingPaymentSuccess,
                     {
                         eventId: uuidv4(),
                         attempt: 1,
@@ -136,7 +103,40 @@ export class BookingStripeCheckoutCompleteUseCase {
                         occurredAt: new Date().toString(),
                         payload: {
                             mbsData: {
-                               bookingId,
+                                bookingId,
+                                paymentId: payment._id,
+                            },
+                            emailData: {
+                                email,
+                                name,
+                                totalAmount,
+                                paymentDate: payment.createdAt,
+                                paymentStatus,
+                                recieptUrl,
+                                transactionId: paymentIntent,
+                                paymentFor,
+                            },
+                            notificationData: {
+                                userId: providerId,
+                                pushNotification,
+                                title: notificationContentMap.bookingPaymentSuccess.title,
+                                body: notificationContentMap.bookingPaymentSuccess.body(),
+                            },
+                        },
+                    }
+                );
+
+            } else {
+                await this.kafkaProducer.publish<EventEnvelope<CreateBookingPaymentFailedEvent>>(
+                    kafkaConfig.topics.pub.userBookingPaymentFailed,
+                    {
+                        eventId: uuidv4(),
+                        attempt: 1,
+                        maxAttempts: 1,
+                        occurredAt: new Date().toString(),
+                        payload: {
+                            mbsData: {
+                                bookingId,
                             },
                         },
                     }

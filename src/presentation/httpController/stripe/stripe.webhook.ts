@@ -2,13 +2,17 @@ import Stripe from "stripe";
 import { Request, Response } from "express";
 import { stripeConfig } from "../../../config/env";
 import { log } from "../../../shared/logger/logger";
-import { providerStripeCheckoutCompleteUseCase } from '.';
 import { stripe } from "../../../infrastructure/lib/stripe";
-import { ProviderStripeCheckoutCompleteUseCase } from "../../../application/useCases/payment/providerStripeCheckoutCompleted";
+import { subscriptionCheckoutCompleteUseCase } from '.';
+import { SubscriptionCheckoutCompleteUseCase } from "../../../application/useCases/payment/subscriptionCheckoutCompleted";
+import { PaymentFor } from "../../../domain/enums/payment.enum";
+import { bookingCheckoutCompleteUseCase } from ".";
+import { BookingCheckoutCompleteUseCase } from "../../../application/useCases/payment/bookingCheckoutComplete";
 
 class StripeWebhookController {
     constructor(
-        private readonly providerStripeCheckoutCompleteUseCase: ProviderStripeCheckoutCompleteUseCase
+        private readonly subscriptionCheckoutCompleteUseCase: SubscriptionCheckoutCompleteUseCase,
+        private readonly bookingCheckoutCompleteUseCase: BookingCheckoutCompleteUseCase
     ) {
         this.handleStripeWebhook = this.handleStripeWebhook.bind(this);
     };
@@ -32,9 +36,17 @@ class StripeWebhookController {
 
             if (event.type === "checkout.session.completed") {
                 console.log("executing the useCase");
-                await this.providerStripeCheckoutCompleteUseCase.execute(
-                    event.data.object as Stripe.Checkout.Session
-                );
+                const session = event.data.object as Stripe.Checkout.Session;
+                const paymentFor = session.metadata?.paymentFor;
+                if (paymentFor === PaymentFor.PROVIDER_SUBSCRIPTION) {
+                    await this.subscriptionCheckoutCompleteUseCase.execute(
+                        event.data.object as Stripe.Checkout.Session
+                    );
+                } else if (paymentFor === PaymentFor.APPOINTMENT_BOOKING) {
+                    await this.bookingCheckoutCompleteUseCase.execute(
+                        event.data.object as Stripe.Checkout.Session
+                    );
+                }
             };
         } catch (error) {
             log.error("handleStripeWebhook failed : ", error as Error);
@@ -43,5 +55,6 @@ class StripeWebhookController {
 };
 
 export const stripeWebhookController = new StripeWebhookController(
-    providerStripeCheckoutCompleteUseCase,
+    subscriptionCheckoutCompleteUseCase,
+    bookingCheckoutCompleteUseCase
 );

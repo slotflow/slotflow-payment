@@ -29,7 +29,7 @@ export class PaymentMapper {
             refundAt: doc.refundAt ?? null,
             refundReason: doc.refundReason ?? null,
 
-            receiptUrl: doc.receiptUrl ?? null,
+            recieptUrl: doc.recieptUrl ?? null,
             receiptNumber: doc.receiptNumber ?? null,
             receiptEmail: doc.receiptEmail ?? null,
             customerEmail: doc.customerEmail ?? null,
@@ -65,7 +65,7 @@ export class PaymentMapper {
             refundAt: props.refundAt ?? null,
             refundReason: props.refundReason ?? null,
 
-            receiptUrl: props.receiptUrl ?? null,
+            recieptUrl: props.recieptUrl ?? null,
             receiptNumber: props.receiptNumber ?? null,
             receiptEmail: props.receiptEmail ?? null,
             customerEmail: props.customerEmail ?? null,
