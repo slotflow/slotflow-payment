@@ -25,7 +25,6 @@ export interface CreateBookingCheckoutSessionPayload {
     unitAmount: number;
     providerId: string;
     slotDuration: number;
-    appointmentDate: string;
     selectedServiceMode: string;
     bookingId: string;
     userId: string;

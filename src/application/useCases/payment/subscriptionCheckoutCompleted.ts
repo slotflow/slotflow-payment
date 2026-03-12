@@ -49,19 +49,6 @@ export class SubscriptionCheckoutCompleteUseCase {
         const totalAmount = (payload.amount_total || 0) / 100;
         const discountAmount = (payload.total_details?.amount_discount || 0) / 100;
 
-        console.log("subscriptionId : ", subscriptionId);
-        console.log("providerId : ", providerId);
-        console.log("paymentStatus : ", paymentStatus);
-        console.log("planDuration : ", planDuration);
-        console.log("paymentIntent : ", paymentIntent);
-        console.log("paymentMethod : ", paymentMethod);
-        console.log("paymentFor : ", paymentFor);
-        console.log("name : ", name);
-        console.log("email : ", email);
-        console.log("initialAmount : ", initialAmount);
-        console.log("totalAmount : ", totalAmount);
-        console.log("discountAmount : ", discountAmount);
-
         if (!planDuration ||
             !email ||
             !name ||

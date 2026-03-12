@@ -125,7 +125,6 @@ export interface BookingCheckoutRequest {
   unitAmount: number;
   providerId: string;
   slotDuration: number;
-  appointmentDate: string;
   selectedServiceMode: ServiceMode;
   bookingId: string;
   userId: string;

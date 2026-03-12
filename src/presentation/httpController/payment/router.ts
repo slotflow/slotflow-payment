@@ -8,8 +8,8 @@ router.get('/', authMiddleware, paymentController.getPayments);
 
 router.get('/:paymentId',authMiddleware, paymentController.getPaymentDetails);
 
-router.post("/subscription/checkout/session", authMiddleware,paymentController.subscriptionCheckout);
+router.post("/subscription/checkout/session", paymentController.subscriptionCheckout);
 
-router.post('/booking/checkout/session', authMiddleware, paymentController.bookingCheckout);
+router.post('/booking/checkout/session', paymentController.bookingCheckout);
 
 export default router;

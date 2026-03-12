@@ -6,6 +6,7 @@ import { DecodedUser } from "../../application/dtos/common.dtos";
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
 
   try {
+    console.log("req.headers : ",req.headers);
     const userId = req.headers["x-user-id"];
     const role = req.headers["x-user-role"];
 

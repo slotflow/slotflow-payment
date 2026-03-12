@@ -18,9 +18,7 @@ class StripeWebhookController {
     };
 
     async handleStripeWebhook(req: Request, res: Response) {
-        console.log("webhook")
         const sig = req.headers["stripe-signature"]!;
-        console.log("sig : ", sig);
 
         try {
 
@@ -31,11 +29,8 @@ class StripeWebhookController {
             );
 
             res.json({ received: true });
-            console.log("event : ", event);
-            console.log("event type : ", event.type);
 
             if (event.type === "checkout.session.completed") {
-                console.log("executing the useCase");
                 const session = event.data.object as Stripe.Checkout.Session;
                 const paymentFor = session.metadata?.paymentFor;
                 if (paymentFor === PaymentFor.PROVIDER_SUBSCRIPTION) {

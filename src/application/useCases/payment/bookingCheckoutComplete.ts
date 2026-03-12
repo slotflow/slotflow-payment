@@ -36,33 +36,29 @@ export class BookingCheckoutCompleteUseCase {
                 }
             }
 
-            const providerId = payload?.metadata?.providerId;
-            const selectedDay = payload?.metadata?.selectedDay;
-            const slotId = payload?.metadata?.slotId;
-            const selectedServiceMode = payload?.metadata?.selectedServiceMode;
-            const paymentStatus = payload?.payment_status === "paid" ? PaymentStatus.PAID : PaymentStatus.PENDING;
-            const paymentMethod = payload?.payment_method_types[0];
-            const dateString = payload?.metadata?.appointmentDate;
-            const paymentIntent = payload?.payment_intent as string;
-            const slotDuration = payload?.metadata?.slotDuration;
-            const paymentFor = payload?.metadata?.paymentFor as PaymentFor;
+            const userId = payload?.metadata?.userId;
             const bookingId = payload?.metadata?.bookingId;
             const email = payload?.metadata?.userEmail;
+            const slotDuration = payload?.metadata?.slotDuration;
             const name = payload?.metadata?.userName;
+            const providerId = payload?.metadata?.providerId;
             const initialAmount = Number(payload?.metadata?.initialAmount);
+            const selectedServiceMode = payload?.metadata?.selectedServiceMode;
+            const paymentFor = payload?.metadata?.paymentFor as PaymentFor;
+            const pushNotification = Boolean(payload?.metadata?.pushNotification);
+            const paymentIntent = payload?.payment_intent as string;
+            const paymentMethod = payload?.payment_method_types[0];
+            const paymentStatus = payload?.payment_status === "paid" ? PaymentStatus.PAID : PaymentStatus.PENDING;
             const totalAmount = (payload.amount_total || 0) / 100;
             const discountAmount = (payload.total_details?.amount_discount || 0) / 100;
-            const pushNotification = Boolean(payload?.metadata?.pushNotification);
 
             if (!providerId ||
-                !slotId ||
-                !selectedDay ||
+                !userId ||
                 !selectedServiceMode ||
                 !initialAmount ||
                 !totalAmount ||
                 !paymentStatus ||
                 !paymentMethod ||
-                !dateString ||
                 !paymentIntent ||
                 !slotDuration ||
                 !bookingId ||
@@ -83,6 +79,7 @@ export class BookingCheckoutCompleteUseCase {
                 discountAmount,
                 totalAmount,
                 providerId,
+                userId,
                 chargeId: payload.payment_intent as string,
                 recieptUrl,
                 receiptNumber,
@@ -117,7 +114,7 @@ export class BookingCheckoutCompleteUseCase {
                                 paymentFor,
                             },
                             notificationData: {
-                                userId: providerId,
+                                userId,
                                 pushNotification,
                                 title: notificationContentMap.bookingPaymentSuccess.title,
                                 body: notificationContentMap.bookingPaymentSuccess.body(),

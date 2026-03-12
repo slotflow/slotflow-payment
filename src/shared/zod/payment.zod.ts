@@ -45,7 +45,6 @@ export const bookingCheckoutShcema = z.object({
     unitAmount: z.number().min(1).max(1000000),
     providerId: z.string().regex(objectIdRegex, "Invalid providerId"),
     slotDuration: z.number().min(10).max(480),
-    appointmentDate: z.string(),
     selectedServiceMode: z.enum(ServiceMode),
     bookingId: z.string().regex(objectIdRegex, "Invalid bookingId"),
     userId: z.string().regex(objectIdRegex, "Invalid userId"),

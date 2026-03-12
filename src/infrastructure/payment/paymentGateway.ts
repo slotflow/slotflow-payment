@@ -10,8 +10,6 @@ export class PaymentGateway implements IPaymentGateway {
 
     async createSubscriptionCheckoutSession(payload: CreateSubscriptionCheckoutSessionPayload): Promise<CreateSubscriptionCheckoutSessionResponse> {
         try {
-            console.log("createSubscriptionCheckoutSession");
-            console.log("payload : ", payload);
             const session = await this.stripe.checkout.sessions.create({
                 mode: "payment",
                 payment_method_types: ["card"],
@@ -52,8 +50,6 @@ export class PaymentGateway implements IPaymentGateway {
 
     async createBookingCheckoutSession(payload: CreateBookingCheckoutSessionPayload): Promise<CreateBookingCheckoutSessionResponse> {
         try {
-            console.log("createBookingCheckoutSession");
-            console.log("payload : ", payload);
             const session = await this.stripe.checkout.sessions.create({
                 mode: "payment",
                 payment_method_types: ["card"],
@@ -77,7 +73,6 @@ export class PaymentGateway implements IPaymentGateway {
                 metadata: {
                     providerId: payload.providerId,
                     slotDuration: payload.slotDuration,
-                    appointmentDate: payload.appointmentDate,
                     selectedServiceMode: payload.selectedServiceMode,
                     bookingId: payload.bookingId,
                     userId: payload.userId,

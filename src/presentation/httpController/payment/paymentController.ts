@@ -26,9 +26,7 @@ class PaymentController {
 
     async getPayments(req: Request, res: Response, next: NextFunction) {
         try {
-            console.log("req.query : ", req.query);
             const user = req.user as DecodedUser;
-            console.log("user : ", user);
 
             const { userId, providerId, page, limit } =
                 getPaymentsSchema.parse(req.query);
@@ -65,7 +63,6 @@ class PaymentController {
 
     async getPaymentDetails(req: Request, res: Response, next: NextFunction) {
         try {
-            console.log("req.params : ", req.params);
             const { paymentId } = getPaymentDetailsSchema.parse(req.params);
 
             const result = await this.getPaymentDetailsUseCase.execute({
@@ -81,10 +78,8 @@ class PaymentController {
 
     async subscriptionCheckout(req: Request, res: Response, next: NextFunction) {
         try {
-            console.log("req.body : ", req.body);
             const validatedData = subscipriotonCheckoutSchema.parse(req.body);
             const result = await this.subscriptionCheckoutUseCase.execute(validatedData);
-            console.log("result : ", result);
             sendResponse(res, result);
         } catch (error) {
             log.error("providerSubscriptionCheckout failed : ", error as Error);
@@ -94,10 +89,8 @@ class PaymentController {
 
     async bookingCheckout(req: Request, res: Response, next: NextFunction) {
         try {
-            console.log("req.body : ", req.body);
             const validatedData = bookingCheckoutShcema.parse(req.body);
             const result = await this.bookingCheckoutUseCase.execute(validatedData);
-            console.log("result : ", result);
             sendResponse(res, result);
         } catch (error) {
             log.error("bookingCheckout failed : ", error as Error);
