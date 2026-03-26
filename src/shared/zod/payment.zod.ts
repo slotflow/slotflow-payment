@@ -69,3 +69,9 @@ export const getPaymentsSchema = z.object({
 export const getPaymentDetailsSchema = z.object({
     paymentId: z.string().regex(objectIdRegex, "Invalid paymentId"),
 });
+
+//
+export const getAdminRevenueReportSchema = z.object({
+    startDate: dateSchema,
+    endDate: dateSchema
+}).merge(paginationSchema);

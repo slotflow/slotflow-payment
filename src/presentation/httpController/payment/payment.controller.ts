@@ -3,12 +3,15 @@ import { Role } from "../../../domain/enums/common.enum";
 import { NextFunction, Request, Response } from "express";
 import { sendResponse } from "../../../shared/utils/response";
 import { DecodedUser } from "../../../application/dtos/common.dtos";
-import { getPaymentsUseCase, getPaymentDetailsUseCase, subscriptionCheckoutUseCase, bookingCheckoutUseCase } from ".";
-import { bookingCheckoutShcema, getPaymentDetailsSchema, getPaymentsSchema, subscipriotonCheckoutSchema } from "../../../shared/zod/payment.zod";
 import { GetPaymentsUseCase } from "../../../application/useCases/payment/getPayments.useCase";
-import { GetPaymentDetailsUseCase } from "../../../application/useCases/payment/getPaymentDetails.useCase";
-import { SubscriptionCheckoutUseCase } from "../../../application/useCases/payment/subscriptionCheckout.usecase";
 import { BookingCheckoutUseCase } from "../../../application/useCases/payment/bookingCheckout.useCase";
+import { GetPaymentDetailsUseCase } from "../../../application/useCases/payment/getPaymentDetails.useCase";
+import { StripeAccountLinkUseCase } from "../../../application/useCases/payment/stripeAccountLink.useCase";
+import { GetAdminRevenueReportUseCase } from "../../../application/useCases/payment/getRevenueReport.useCase";
+import { SubscriptionCheckoutUseCase } from "../../../application/useCases/payment/subscriptionCheckout.usecase";
+import { getPaymentsUseCase, getPaymentDetailsUseCase, subscriptionCheckoutUseCase, bookingCheckoutUseCase, getAdminRevenueReportUseCase, stripeAccountLinkUseCase } from ".";
+import { bookingCheckoutShcema, getAdminRevenueReportSchema, getPaymentDetailsSchema, getPaymentsSchema, subscipriotonCheckoutSchema } from "../../../shared/zod/payment.zod";
+import { validateEmailSchema } from "../../../shared/zod/common.zod";
 
 class PaymentController {
 
@@ -16,7 +19,9 @@ class PaymentController {
         private readonly getPaymentsUseCase: GetPaymentsUseCase,
         private readonly getPaymentDetailsUseCase: GetPaymentDetailsUseCase,
         private readonly subscriptionCheckoutUseCase: SubscriptionCheckoutUseCase,
-        private readonly bookingCheckoutUseCase: BookingCheckoutUseCase
+        private readonly bookingCheckoutUseCase: BookingCheckoutUseCase,
+        private readonly getAdminRevenueReportUseCase: GetAdminRevenueReportUseCase,
+        private readonly stripeAccountLinkUseCase: StripeAccountLinkUseCase
     ) {
         this.getPayments = this.getPayments.bind(this);
         this.getPaymentDetails = this.getPaymentDetails.bind(this);
@@ -98,11 +103,43 @@ class PaymentController {
         }
     }
 
+    async fetchRevenueReport(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { endDate, limit, page, startDate } = getAdminRevenueReportSchema.parse({
+                ...req.body,
+                ...req.query
+            });
+            const result = await this.getAdminRevenueReportUseCase.execute({
+                page,
+                limit,
+                startDate,
+                endDate
+            });
+            sendResponse(res, result);
+        } catch (error) {
+            log.error("fetchRevenueReport failed", error as Error);
+            next(error);
+        };
+    };
+
+    async linkStripeAccount(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { email } = validateEmailSchema.parse(req.body);
+            const result = await this.stripeAccountLinkUseCase.execute({ email });
+            sendResponse(res, result, "Stripe connected");
+        } catch (error) {
+            log.error("connectStripe failed", error as Error);
+            next(error);
+        };
+    };
+
 };
 
 export const paymentController = new PaymentController(
     getPaymentsUseCase,
     getPaymentDetailsUseCase,
     subscriptionCheckoutUseCase,
-    bookingCheckoutUseCase
+    bookingCheckoutUseCase,
+    getAdminRevenueReportUseCase,
+    stripeAccountLinkUseCase
 );
