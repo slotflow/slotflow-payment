@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { log } from "../../shared/logger/logger";
-import { IPaymentGateway, CreateSubscriptionCheckoutSessionPayload, CreateSubscriptionCheckoutSessionResponse, CreateBookingCheckoutSessionPayload, CreateBookingCheckoutSessionResponse } from "../../domain/interfaces/payment/IPaymentGateway";
+import { IPaymentGateway, CreateSubscriptionCheckoutSessionPayload, CreateSubscriptionCheckoutSessionResponse, CreateBookingCheckoutSessionPayload, CreateBookingCheckoutSessionResponse, CreateStripeCustomerPayload, CreateStripeCustomerResponse } from "../../domain/interfaces/payment/IPaymentGateway";
 
 export class PaymentGateway implements IPaymentGateway {
 
@@ -13,6 +13,7 @@ export class PaymentGateway implements IPaymentGateway {
             const session = await this.stripe.checkout.sessions.create({
                 mode: "payment",
                 payment_method_types: ["card"],
+                customer: payload.stripeCustomerId,
                 customer_email: payload.email,
                 allow_promotion_codes: true,
                 line_items: [
@@ -53,6 +54,7 @@ export class PaymentGateway implements IPaymentGateway {
             const session = await this.stripe.checkout.sessions.create({
                 mode: "payment",
                 payment_method_types: ["card"],
+                customer: payload.stripeCustomerId,
                 customer_email: payload.userEmail,
                 allow_promotion_codes: true,
                 line_items: [
@@ -86,6 +88,23 @@ export class PaymentGateway implements IPaymentGateway {
             return { sessionId: session.id }
         } catch (error) {
             log.error("PaymentGateway createBookingCheckoutSession failed : ", error as Error);
+            throw error;
+        }
+    }
+
+    async createStripeCustomer(payload: CreateStripeCustomerPayload): Promise<CreateStripeCustomerResponse> {
+        try {
+            const customer = await this.stripe.customers.create({
+                email: payload.email,
+                name: payload.name,
+                metadata: {
+                    userId: payload.userId,
+                    role: payload.role,
+                },
+            });
+            return { customerId: customer.id };
+        } catch (error) {
+            log.error("PaymentGateway createStripeCustomer failed : ", error as Error);
             throw error;
         }
     }

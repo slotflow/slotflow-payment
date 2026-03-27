@@ -3,6 +3,7 @@ import { PaymentFor } from "../../domain/enums/payment.enum";
 import { ServiceMode } from "../../domain/enums/service.enums";
 import { ApiPaginationRequest, PaymentDTO } from "./common.dtos";
 import Stripe from "stripe";
+import { Role } from "../../domain/enums/common.enum";
 
 
 export type FindSubscriptionsByProviderIdResponse = Array<Partial<Pick<PaymentDTO, "totalAmount">>>;
@@ -36,6 +37,11 @@ export interface ProviderFetchDashboardPaymentStatsDataResponse {
 };
 
 // used as the return type of the admin fetch dashboard revenue stats data
+export interface AdminFetchDashboardRevenueStatsDataRequest {
+  startDate: Date;
+  endDate: Date;
+}
+
 export interface AdminFetchDashboardRevenueStatsDataResponse {
   totalRevenue: number;
   totalRevenueViaSubscriptions: number;
@@ -60,7 +66,6 @@ export interface AdminFetchDashboardTodayStatsDataResponse {
   todaysCompletedAppointments: number;
 };
 
-export type AdminFetchDashboardTodayPaymentStatsDataResponse = Pick<AdminFetchDashboardTodayStatsDataResponse, "todaysTotalPayouts" | "todaysTotalRevenue">;
 
 // Admin fetch revenue report response
 export type AdminFetchRevenueReportRow = Pick<
@@ -90,6 +95,7 @@ export interface SubscriptionCheckoutRequest {
   name: string;
   email: string;
   initialAmount: number;
+  stripeCustomerId?: string;
 };
 
 export interface BookingCheckoutRequest {
@@ -106,6 +112,7 @@ export interface BookingCheckoutRequest {
   userName: string;
   initialAmount: number;
   pushNotification: boolean;
+  stripeCustomerId?: string;
 }
 
 
@@ -125,6 +132,8 @@ export type GetPaymentDetailsResponse = Omit<PaymentDTO, "_id" | "chargeId" | "r
 
 
 export interface StripeAccountLinkRequest {
+  role: Role;
+  userId: string;
   email: string;
 };
 

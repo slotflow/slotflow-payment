@@ -59,8 +59,8 @@ export interface ApiPaginationRequest {
 }
 
 export interface DecodedUser {
-  userOrProviderId?: string;
-  role?: Role;
+  userOrProviderId: string;
+  role: Role;
   googleAccessToken?: string;
   googleRefreshToken?: string;
   googleId?: string;
@@ -71,4 +71,19 @@ export interface DecodedUser {
   exp?: number;
   iat?: number;
   userId?: string;
+};
+
+
+// new 
+// used as the return type of the admin fetch dashboard revenue stats data
+export interface FetchRevenueDataResponse {
+    totalRevenue: number;
+    totalRevenueViaSubscriptions: number;
+    revenueByStripe: number;
+    revenueByRazorpay: number;
+    revenueByPaypal: number;
+    totalRevenueViaAppointments: number;
+    totalRefundsIssued: number;
+    totalFailedPayments: number;
+    totalPayoutsToProviders: number;
 };

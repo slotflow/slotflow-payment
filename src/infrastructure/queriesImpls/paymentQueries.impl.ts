@@ -3,8 +3,8 @@ import { PaymentModel } from "../databse/payment.model";
 import { TableData } from "../../application/dtos/common.dtos";
 import { IPaymentQueries } from "../../application/queries/IPayment.queries";
 import { PaymentFor, PaymentGateway, PaymentStatus } from "../../domain/enums/payment.enum";
-import { endOfDay, startOfDay, startOfMonth, startOfToday, startOfTomorrow } from "../../shared/utils/dateTime";
-import { AdminFetchDashboardRevenueStatsDataResponse, AdminFetchDashboardTodayPaymentStatsDataResponse, GetAdminRevenueReportRequest, GetAdminRevenueReportResponse, ProviderFetchDashboardPaymentStatsDataResponse } from "../../application/dtos/payment.dtos";
+import { endOfDay, getStartAndEndDate, startOfDay, startOfMonth, startOfToday, startOfTomorrow } from "../../shared/utils/dateTime";
+import { AdminFetchDashboardRevenueStatsDataRequest, AdminFetchDashboardRevenueStatsDataResponse, GetAdminRevenueReportRequest, GetAdminRevenueReportResponse, ProviderFetchDashboardPaymentStatsDataResponse } from "../../application/dtos/payment.dtos";
 
 export class PaymentQueriesImpl implements IPaymentQueries {
 
@@ -87,11 +87,16 @@ export class PaymentQueriesImpl implements IPaymentQueries {
         };
     };
 
-    async findStatsDataForAdminDashboard(): Promise<AdminFetchDashboardRevenueStatsDataResponse> {
+    async findStatsDataForAdminDashboard(payload: AdminFetchDashboardRevenueStatsDataRequest): Promise<AdminFetchDashboardRevenueStatsDataResponse> {
+        const { startDate, endDate } = getStartAndEndDate(payload.startDate, payload.endDate);
         const paymentData = await PaymentModel.aggregate([
             {
                 $match: {
                     paymentStatus: PaymentStatus.PAID,
+                    createdAt: {
+                        $gte: startDate,
+                        $lte: endDate,
+                    },
                 }
             },
             {
@@ -308,75 +313,6 @@ export class PaymentQueriesImpl implements IPaymentQueries {
                     todaysEarnings: { $ifNull: [{ $arrayElemAt: ["$todaysEarnings.amount", 0] }, 0] },
                     totalPayoutsMade: { $ifNull: [{ $arrayElemAt: ["$totalPayoutsMade.amount", 0] }, 0] },
                     pendingPayout: { $ifNull: [{ $arrayElemAt: ["$pendingPayout.amount", 0] }, 0] },
-                }
-            }
-        ]);
-
-        const data = result[0];
-        return { ...data };
-    };
-
-    async findTodayStatsDataForAdminDashboard(): Promise<AdminFetchDashboardTodayPaymentStatsDataResponse> {
-        const startOfToday = startOfDay(new Date());
-        const endOfToday = endOfDay(new Date());
-
-        const result = await PaymentModel.aggregate([
-            {
-                $match: {
-                    createdAt: { $gte: startOfToday, $lte: endOfToday },
-                },
-            },
-            {
-                $facet: {
-                    todaysTotalRevenue: [
-                        {
-                            $match: { paymentFor: { $ne: PaymentFor.PROVIDER_PAYOUT } }
-                        },
-                        {
-                            $group: {
-                                _id: null,
-                                totalPaid: {
-                                    $sum: {
-                                        $cond: [{ $eq: ["$paymentStatus", "Paid"] }, "$totalAmount", 0],
-                                    },
-                                },
-                                totalRefunded: {
-                                    $sum: {
-                                        $cond: [{ $eq: ["$paymentStatus", "Refunded"] }, "$refundAmount", 0],
-                                    },
-                                },
-                            },
-                        },
-                        {
-                            $project: {
-                                _id: 0,
-                                amount: { $subtract: ["$totalPaid", "$totalRefunded"] },
-                            },
-                        },
-                    ],
-                    todaysTotalPayouts: [
-                        {
-                            $match: { payoutStatus: "Paid", paymentFor: PaymentFor.PROVIDER_PAYOUT },
-                        },
-                        {
-                            $group: {
-                                _id: null,
-                                amount: { $sum: "$totalAmount" },
-                            },
-                        },
-                        {
-                            $project: {
-                                _id: 0,
-                                amount: 1,
-                            },
-                        },
-                    ]
-                }
-            },
-            {
-                $project: {
-                    todaysTotalRevenue: { $ifNull: [{ $arrayElemAt: ["$todaysTotalRevenue.amount", 0] }, 0] },
-                    todaysTotalPayouts: { $ifNull: [{ $arrayElemAt: ["$todaysTotalPayouts.amount", 0] }, 0] },
                 }
             }
         ]);

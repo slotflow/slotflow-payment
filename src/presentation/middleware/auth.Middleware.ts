@@ -6,12 +6,8 @@ import { DecodedUser } from "../../application/dtos/common.dtos";
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
 
   try {
-    console.log("req.headers : ",req.headers);
     const userId = req.headers["x-user-id"];
     const role = req.headers["x-user-role"];
-
-    console.log("role : ",role);
-    console.log("userId : ",userId);
     
     if (role !== Role.ADMIN && !userId) {
       console.log("Unauthenticated request");
