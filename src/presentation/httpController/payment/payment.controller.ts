@@ -12,7 +12,8 @@ import { StripeAccountLinkUseCase } from "../../../application/useCases/payment/
 import { GetAdminRevenueReportUseCase } from "../../../application/useCases/payment/getRevenueReport.useCase";
 import { SubscriptionCheckoutUseCase } from "../../../application/useCases/payment/subscriptionCheckout.usecase";
 import { bookingCheckoutShcema, getAdminRevenueReportSchema, getPaymentDetailsSchema, getPaymentsSchema, subscipriotonCheckoutSchema } from "../../../shared/zod/payment.zod";
-import { getPaymentsUseCase, getPaymentDetailsUseCase, subscriptionCheckoutUseCase, bookingCheckoutUseCase, getAdminRevenueReportUseCase, stripeAccountLinkUseCase, getAdminRevenueUseCase } from ".";
+import { getPaymentsUseCase, getPaymentDetailsUseCase, subscriptionCheckoutUseCase, bookingCheckoutUseCase, getAdminRevenueReportUseCase, stripeAccountLinkUseCase, getAdminRevenueUseCase, getProviderRevenueUseCase } from ".";
+import { GetProviderRevenueUseCase } from "../../../application/useCases/payment/getProviderRevenue.useCase";
 
 class PaymentController {
 
@@ -24,6 +25,7 @@ class PaymentController {
         private readonly getAdminRevenueReportUseCase: GetAdminRevenueReportUseCase,
         private readonly stripeAccountLinkUseCase: StripeAccountLinkUseCase,
         private readonly getAdminRevenueUseCase: GetAdminRevenueUseCase,
+        private readonly getProviderRevenueUseCase: GetProviderRevenueUseCase,
     ) {
         this.getPayments = this.getPayments.bind(this);
         this.getPaymentDetails = this.getPaymentDetails.bind(this);
@@ -145,11 +147,21 @@ class PaymentController {
 
     async getRevenue(req: Request, res: Response, next: NextFunction) {
         try {
-            console.log("req.query : ",req.query);
+            const user = req.user as DecodedUser;
             const validatedData = startAndEndDateSchema.parse(req.query);
-            console.log("validatedData : ",validatedData);
-            const result = await this.getAdminRevenueUseCase.execute(validatedData);
-            sendResponse(res, result);
+
+            if(user.role === Role.PROVIDER) {
+                const result = await this.getProviderRevenueUseCase.execute({
+                    providerId: user.userOrProviderId,
+                    ...validatedData
+                });
+                sendResponse(res, result);
+            }
+
+            if(user.role === Role.ADMIN) {
+                const result = await this.getAdminRevenueUseCase.execute(validatedData);
+                sendResponse(res, result);
+            }
         } catch (error) {
             log.error("getRevenue failed", error as Error);
             next(error);
@@ -166,4 +178,5 @@ export const paymentController = new PaymentController(
     getAdminRevenueReportUseCase,
     stripeAccountLinkUseCase,
     getAdminRevenueUseCase,
+    getProviderRevenueUseCase
 );

@@ -1,10 +1,10 @@
 import { Types } from "mongoose";
 import { PaymentModel } from "../databse/payment.model";
 import { TableData } from "../../application/dtos/common.dtos";
+import { endOfDay, getStartAndEndDate } from "../../shared/utils/dateTime";
 import { IPaymentQueries } from "../../application/queries/IPayment.queries";
 import { PaymentFor, PaymentGateway, PaymentStatus } from "../../domain/enums/payment.enum";
-import { endOfDay, getStartAndEndDate, startOfDay, startOfMonth, startOfToday, startOfTomorrow } from "../../shared/utils/dateTime";
-import { AdminFetchDashboardRevenueStatsDataRequest, AdminFetchDashboardRevenueStatsDataResponse, GetAdminRevenueReportRequest, GetAdminRevenueReportResponse, ProviderFetchDashboardPaymentStatsDataResponse } from "../../application/dtos/payment.dtos";
+import { GetAdminRevenueReportRequest, GetAdminRevenueReportResponse, GetAdminRevenueStatsDataRequest, GetAdminRevenueStatsDataResponse, GetProviderRevenueRequest, GetProviderRevenueResponse } from "../../application/dtos/payment.dtos";
 
 export class PaymentQueriesImpl implements IPaymentQueries {
 
@@ -87,7 +87,7 @@ export class PaymentQueriesImpl implements IPaymentQueries {
         };
     };
 
-    async findStatsDataForAdminDashboard(payload: AdminFetchDashboardRevenueStatsDataRequest): Promise<AdminFetchDashboardRevenueStatsDataResponse> {
+    async findStatsDataForAdminDashboard(payload: GetAdminRevenueStatsDataRequest): Promise<GetAdminRevenueStatsDataResponse> {
         const { startDate, endDate } = getStartAndEndDate(payload.startDate, payload.endDate);
         const paymentData = await PaymentModel.aggregate([
             {
@@ -203,12 +203,9 @@ export class PaymentQueriesImpl implements IPaymentQueries {
         return { ...data };
     };
 
-    async findStatsDataForProviderDashboard(providerId: string): Promise<ProviderFetchDashboardPaymentStatsDataResponse> {
-        const today = startOfToday();
-        const tomorrow = startOfTomorrow();
-
-        const startOfThisMonth = startOfMonth(new Date());
-        const endOfToday = endOfDay(new Date());
+    async findStatsDataForProviderDashboard(payload: GetProviderRevenueRequest): Promise<GetProviderRevenueResponse> {
+        const { providerId } = payload;
+        const { startDate, endDate } = getStartAndEndDate(payload.startDate, payload.endDate);
 
         const result = await PaymentModel.aggregate([
             {
@@ -249,28 +246,6 @@ export class PaymentQueriesImpl implements IPaymentQueries {
                             }
                         }
                     ],
-                    todaysEarnings: [
-                        {
-                            $match: {
-                                paymentFor: PaymentFor.APPOINTMENT_BOOKING,
-                                createdAt: { $gt: today, $lt: tomorrow },
-                            }
-                        },
-                        {
-                            $group: {
-                                _id: null,
-                                grossEarnings: { $sum: "$totalAmount" },
-                            }
-                        },
-                        {
-                            $project: {
-                                _id: 0,
-                                amount: {
-                                    $multiply: ["$grossEarnings", 0.95],
-                                }
-                            }
-                        }
-                    ],
                     totalPayoutsMade: [
                         {
                             $match: { paymentFor: PaymentFor.PROVIDER_PAYOUT }
@@ -286,7 +261,7 @@ export class PaymentQueriesImpl implements IPaymentQueries {
                         {
                             $match: {
                                 paymentFor: PaymentFor.APPOINTMENT_BOOKING,
-                                createdAt: { $gte: startOfThisMonth, $lte: endOfToday },
+                                createdAt: { $gte: startDate, $lte: endDate },
                             },
                         },
                         {
@@ -310,7 +285,6 @@ export class PaymentQueriesImpl implements IPaymentQueries {
                 $project: {
                     totalSubscriptionPaidAmount: { $ifNull: [{ $arrayElemAt: ["$totalSubscriptionPaidAmount.amount", 0] }, 0] },
                     totalEarnings: { $ifNull: [{ $arrayElemAt: ["$totalEarnings.amount", 0] }, 0] },
-                    todaysEarnings: { $ifNull: [{ $arrayElemAt: ["$todaysEarnings.amount", 0] }, 0] },
                     totalPayoutsMade: { $ifNull: [{ $arrayElemAt: ["$totalPayoutsMade.amount", 0] }, 0] },
                     pendingPayout: { $ifNull: [{ $arrayElemAt: ["$pendingPayout.amount", 0] }, 0] },
                 }

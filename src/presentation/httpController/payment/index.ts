@@ -9,6 +9,7 @@ import { GetPaymentDetailsUseCase } from "../../../application/useCases/payment/
 import { StripeAccountLinkUseCase } from "../../../application/useCases/payment/stripeAccountLink.useCase";
 import { GetAdminRevenueReportUseCase } from "../../../application/useCases/payment/getRevenueReport.useCase";
 import { SubscriptionCheckoutUseCase } from "../../../application/useCases/payment/subscriptionCheckout.usecase";
+import { GetProviderRevenueUseCase } from "../../../application/useCases/payment/getProviderRevenue.useCase";
 
 export const subscriptionCheckoutUseCase = new SubscriptionCheckoutUseCase(paymentGateway, kafkaProducer);
 
@@ -24,3 +25,4 @@ export const stripeAccountLinkUseCase = new StripeAccountLinkUseCase(kafkaProduc
 
 export const getAdminRevenueUseCase = new GetAdminRevenueUseCase(paymentQueries);
 
+export const getProviderRevenueUseCase = new GetProviderRevenueUseCase(paymentQueries);

@@ -13,36 +13,14 @@ export interface findSubscriptionFullDetailsResProps {
   paymentId: PaymentsProps | null,
 }
 
-
-export interface ProviderFetchDashboardPaymentStatsDataResponse {
-  totalSubscriptionPaidAmount: number;
-  totalEarnings: number;
-  todaysEarnings: number;
-  totalPayoutsMade: number;
-  pendingPayout: number;
-};
-
-
-export interface GetAdminRevenueReportRequest extends ApiPaginationRequest {
-  startDate?: Date;
-  endDate: Date;
-};
-
-export interface ProviderFetchDashboardPaymentStatsDataResponse {
-  totalSubscriptionPaidAmount: number;
-  totalEarnings: number;
-  todaysEarnings: number;
-  totalPayoutsMade: number;
-  pendingPayout: number;
-};
-
 // used as the return type of the admin fetch dashboard revenue stats data
-export interface AdminFetchDashboardRevenueStatsDataRequest {
+export interface GetAdminRevenueStatsDataRequest {
   startDate: Date;
   endDate: Date;
 }
 
-export interface AdminFetchDashboardRevenueStatsDataResponse {
+// used as the return type of the admin fetch dashboard revenue stats data
+export interface GetAdminRevenueStatsDataResponse {
   totalRevenue: number;
   totalRevenueViaSubscriptions: number;
   revenueByStripe: number;
@@ -54,18 +32,26 @@ export interface AdminFetchDashboardRevenueStatsDataResponse {
   totalPayoutsToProviders: number;
 };
 
-export interface AdminFetchDashboardTodayStatsDataResponse {
-  newUsers: number;
-  newProviders: number;
+// used as the return type of the provider fetch dashboard revenue stats data
+export interface GetProviderRevenueRequest {
+  providerId: string;
+  startDate: Date;
+  endDate: Date;
+}
 
-  todaysTotalRevenue: number;
-  todaysTotalPayouts: number;
+// used as the return type of the provider fetch dashboard revenue stats data
+export interface GetProviderRevenueResponse {
+  totalSubscriptionPaidAmount: number;
+  totalEarnings: number;
+  totalPayoutsMade: number;
+  pendingPayout: number;
+}
 
-  todaysAppointments: number;
-  todaysCancelledAppointments: number;
-  todaysCompletedAppointments: number;
-};
-
+// used as the return type of the admin fetch revenue report request
+export interface GetAdminRevenueReportRequest extends ApiPaginationRequest {
+  startDate: Date;
+  endDate: Date;
+}
 
 // Admin fetch revenue report response
 export type AdminFetchRevenueReportRow = Pick<
