@@ -1,20 +1,24 @@
-import app from './app';
+import app from './app/app';
 import { appConfig } from './config/env';
+import { initDB } from './app/init/db.init';
 import { log } from './shared/logger/logger';
-import connectDB from './config/databse/mongodb/mongodb';
-import { kafkaConsumer, kafkaProducer } from './infrastructure/messaging';
-import { kafkaConsumerController } from './presentation/kafkaController/kafka.controller';
+import { initOtel } from './app/init/otel.init';
+import { initKafka } from './app/init/kafka.init';
+import { printText } from './shared/utils/printText';
+import { setupGracefulShutdown } from './app/init/shutdown';
 
 const start = async () => {
   try {
-    await connectDB();
-    await kafkaConsumer.connectConsumer();
-    await kafkaProducer.connectProducer();
-    await kafkaConsumerController.startListening();
+    await initOtel();
+    await initDB();
+    await initKafka();
 
-    app.listen(appConfig.port, () =>
-      log.info(`Payment Service is running on http://localhost:${appConfig.port}`)
-    );
+    const server = app.listen(appConfig.port, () => {
+      printText();
+      log.info(`Live on http://localhost:${appConfig.port}`)
+    });
+
+    setupGracefulShutdown(server);
 
   } catch (error) {
     log.error("Startup failed", error as Error);

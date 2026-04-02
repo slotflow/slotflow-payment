@@ -2,7 +2,7 @@ import Stripe from "stripe";
 import { v4 as uuidv4 } from 'uuid';
 import { kafkaConfig } from "../../../config/env";
 import { log } from "../../../shared/logger/logger";
-import { stripe } from "../../../infrastructure/lib/stripe";
+import { stripe } from "../../../infrastructure/payment/stripe.client";
 import { Payment } from "../../../domain/entities/payment.entity";
 import { notificationContentMap } from "../../../shared/utils/constants";
 import { PaymentFor, PaymentGateway, PaymentStatus } from "../../../domain/enums/payment.enum";

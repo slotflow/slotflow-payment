@@ -2,7 +2,7 @@ import Stripe from "stripe";
 import { Request, Response } from "express";
 import { stripeConfig } from "../../../config/env";
 import { log } from "../../../shared/logger/logger";
-import { stripe } from "../../../infrastructure/lib/stripe";
+import { stripe } from "../../../infrastructure/payment/stripe.client";
 import { subscriptionCheckoutCompleteUseCase } from '.';
 import { SubscriptionCheckoutCompleteUseCase } from "../../../application/useCases/payment/subscriptionCheckoutCompleted";
 import { PaymentFor } from "../../../domain/enums/payment.enum";

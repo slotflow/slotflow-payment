@@ -1,7 +1,5 @@
-import { Types } from "mongoose";
-import { PaymentModel } from "../databse/payment.model";
+import { PaymentModel } from "../models/payment.model";
 import { PaymentMapper } from "../mapper/payment.mapper";
-import { PaymentFor } from "../../domain/enums/payment.enum";
 import { Payment } from "../../domain/entities/payment.entity";
 import { IPaymentRepository } from "../../domain/interfaces/repositories/IPayment.repository";
 
@@ -38,16 +36,16 @@ export class PaymentRepositoryImpl implements IPaymentRepository {
         const skip = (page - 1) * limit;
 
         const filter: {
-            userId?: Types.ObjectId;
-            providerId?: Types.ObjectId;
+            userId?: string;
+            providerId?: string;
         } = {};
 
         if (userId) {
-            filter.userId = new Types.ObjectId(userId);
+            filter.userId = userId;
         }
 
         if (providerId) {
-            filter.providerId = new Types.ObjectId(providerId);
+            filter.providerId = providerId;
         }
 
         const [payments, totalCount] = await Promise.all([
@@ -59,7 +57,7 @@ export class PaymentRepositoryImpl implements IPaymentRepository {
                 paymentMethod: 1,
                 paymentStatus: 1,
                 discountAmount: 1,
-            }).skip(skip).limit(limit).sort({ createdAt: 1 }).lean(),
+            }).skip(skip).limit(limit).sort({ createdAt: 1 }),
             PaymentModel.countDocuments(filter),
         ]);
         const totalPages = Math.ceil(totalCount / limit);

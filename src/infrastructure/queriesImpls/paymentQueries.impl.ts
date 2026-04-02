@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
-import { PaymentModel } from "../databse/payment.model";
+import { PaymentModel } from "../models/payment.model";
 import { TableData } from "../../application/dtos/common.dtos";
-import { endOfDay, getStartAndEndDate } from "../../shared/utils/dateTime";
+import { getStartAndEndDate } from "../../shared/utils/dateTime";
 import { IPaymentQueries } from "../../application/queries/IPayment.queries";
 import { PaymentFor, PaymentGateway, PaymentStatus } from "../../domain/enums/payment.enum";
 import { GetAdminRevenueReportRequest, GetAdminRevenueReportResponse, GetAdminRevenueStatsDataRequest, GetAdminRevenueStatsDataResponse, GetProviderRevenueRequest, GetProviderRevenueResponse } from "../../application/dtos/payment.dtos";

@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { kafkaConfig } from "../../../config/env";
 import { log } from "../../../shared/logger/logger";
-import { stripe } from "../../../infrastructure/lib/stripe";
+import { stripe } from "../../../infrastructure/payment/stripe.client";
 import { EventEnvelope, StripeAccountCreatedEvent } from "../../dtos/kafka.dtos";
 import { StripeAccountLinkRequest, StripeAccountLinkResponse } from "../../dtos/payment.dtos";
 import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
