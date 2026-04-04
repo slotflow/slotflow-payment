@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 import app from './app/app';
 import { appConfig } from './config/env';
 import { initDB } from './app/init/db.init';
