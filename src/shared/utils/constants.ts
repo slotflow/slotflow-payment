@@ -16,8 +16,8 @@ export const notificationContentMap: Record<string, {
 };
 
 // payment urls
-export const providerPaymentSuccessUrl = "/provider/payment-success";
-export const providerPaymentFailedUrl = "/provider/payment-failed";
+export const providerPaymentSuccessUrl = "/provider/subscription/confirm?status=success";
+export const providerPaymentFailedUrl = "/provider/subscription/confirm?status=failed";
 
-export const bookingPaymentSuccessUrl = "/user/payment-success";
-export const bookingPaymentFailedUrl = "/user/payment-failed";
+export const bookingPaymentSuccessUrl = "/user/booking/confirm?status=success";
+export const bookingPaymentFailedUrl = "/user/booking/confirm?status=failed";
