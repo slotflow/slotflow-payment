@@ -16,7 +16,7 @@ export class PaymentRepositoryImpl implements IPaymentRepository {
         return doc ? PaymentMapper.toDomain(doc) : null;
     };
 
-    async update(payment: Payment): Promise<Payment> {
+    async update(payment: Payment): Promise<Payment | null> {
         const persistence = PaymentMapper.toPersistence(payment);
 
         const doc = await PaymentModel.findByIdAndUpdate(
@@ -25,11 +25,7 @@ export class PaymentRepositoryImpl implements IPaymentRepository {
             { new: true }
         );
 
-        if (!doc) {
-            throw new Error("Payment not found");
-        }
-
-        return PaymentMapper.toDomain(doc);
+        return doc ? PaymentMapper.toDomain(doc) : null;
     };
 
     async findAll(page: number, limit: number, userId?: string, providerId?: string): Promise<{ data: Array<Payment>, totalPages: number; currentPage: number; totalCount: number; }> {

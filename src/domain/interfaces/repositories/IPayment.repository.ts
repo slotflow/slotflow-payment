@@ -4,7 +4,7 @@ export interface IPaymentRepository {
 
     create(payment: Payment): Promise<Payment>;
 
-    update(payment: Payment): Promise<Payment>;
+    update(payment: Payment): Promise<Payment | null>;
 
     findById(payemtnId: string): Promise<Payment | null>;
 

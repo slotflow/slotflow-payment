@@ -1,5 +1,7 @@
+import Stripe from "stripe";
 import { Role } from "../../enums/common.enum";
 import { PaymentFor } from "../../enums/payment.enum";
+import { RefundReason } from "../../enums/refund.enum";
 
 export interface CreateSubscriptionCheckoutSessionPayload {
     subscriptionId: string;
@@ -55,8 +57,44 @@ export interface CreateStripeCustomerResponse {
     customerId: string;
 }
 
+export interface CreateRefundInput {
+    paymentIntent: string;
+    refundAmount: number;
+    stripeAccount?: string;
+    reason: RefundReason;
+    metadata: {
+        bookingId: string;
+        paymentId: string;
+        reasonInDetail: string;
+        refundFor: string;
+    }
+}
+
+export interface CreateRefundOutput {
+    refundId: string;
+}
+
+export interface RetrievePaymentIntentInput {
+    paymentIntent: string;
+}
+
+export interface RetrievePaymentIntentOutput {
+    paymentIntent: Stripe.PaymentIntent;
+}
+
+export interface RetrieveBalanceInput {
+    balanceTransaction: string;
+}
+
+export interface RetrieveBalanceOutput {
+    balanceTransaction: Stripe.BalanceTransaction;
+}
+
 export interface IPaymentGateway {
     createSubscriptionCheckoutSession(payload: CreateSubscriptionCheckoutSessionPayload): Promise<CreateSubscriptionCheckoutSessionResponse>;
     createBookingCheckoutSession(payload: CreateBookingCheckoutSessionPayload): Promise<CreateBookingCheckoutSessionResponse>;
     createStripeCustomer(payload: CreateStripeCustomerPayload): Promise<CreateStripeCustomerResponse>;
+    createRefund(input: CreateRefundInput): Promise<CreateRefundOutput>;
+    retrievePaymentIntent(input: RetrievePaymentIntentInput): Promise<RetrievePaymentIntentOutput>;
+    retrieveBalance(input: RetrieveBalanceInput): Promise<RetrieveBalanceOutput>;
 };

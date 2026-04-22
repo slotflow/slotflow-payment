@@ -2,46 +2,54 @@ import Stripe from "stripe";
 import { v4 as uuidv4 } from 'uuid';
 import { kafkaConfig } from "../../../config/env";
 import { log } from "../../../shared/logger/logger";
-import { stripe } from "../../../infrastructure/payment/stripe.client";
 import { Payment } from "../../../domain/entities/payment.entity";
 import { notificationContentMap } from "../../../shared/utils/constants";
-import { PaymentFor, PaymentGateway, PaymentStatus } from "../../../domain/enums/payment.enum";
+import { IPaymentGateway } from "../../../domain/interfaces/payment/IPaymentGateway";
 import { IPaymentRepository } from "../../../domain/interfaces/repositories/IPayment.repository";
 import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
+import { PaymentFor, PaymentGateway, PaymentMethod, PaymentStatus } from "../../../domain/enums/payment.enum";
 import { EventEnvelope, ProviderCreatePaymentFailedEvent, ProviderCreatePaymentSuccessEvent } from "../../dtos/kafka.dtos";
 
 export class SubscriptionCheckoutCompleteUseCase {
     constructor(
         private readonly paymentRepository: IPaymentRepository,
         private readonly kafkaProducer: IKafkaProducerAdapter,
+        private readonly paymentGateway: IPaymentGateway,
     ) { };
 
     async execute(payload: Stripe.Checkout.Session): Promise<void> {
 
         log.info(`Payload : ${JSON.stringify(payload)}`);
 
-        let recieptUrl = null;
-        let receiptNumber = null;
-        let receiptEmail = null;
+        let receiptUrl: string | null = null;
+        let receiptNumber: string | null = null;
+        let receiptEmail: string | null = null;
 
-        if (payload.payment_intent) {
-            const paymentIntent = await stripe.paymentIntents.retrieve(payload.payment_intent as string, {
-                expand: ['latest_charge']
-            });
-            const latestCharge = paymentIntent.latest_charge as Stripe.Charge;
-            if (latestCharge) {
-                recieptUrl = latestCharge.receipt_url;
-                receiptNumber = latestCharge.receipt_number;
-                receiptEmail = latestCharge.receipt_email;
-            }
+        if (!payload.payment_intent) {
+            throw new Error();
         }
+
+        const paymentIntentDetail = await this.paymentGateway.retrievePaymentIntent({
+            paymentIntent: payload.payment_intent as string
+        });
+        const latestCharge = paymentIntentDetail.paymentIntent.latest_charge as Stripe.Charge;
+        if (latestCharge) {
+            receiptUrl = latestCharge.receipt_url;
+            receiptNumber = latestCharge.receipt_number;
+            receiptEmail = latestCharge.receipt_email;
+        }
+
+        const balanceTransaction = await this.paymentGateway.retrieveBalance({
+            balanceTransaction: latestCharge.balance_transaction as string
+        });
+        const fee = balanceTransaction.balanceTransaction.fee;
 
         const subscriptionId = payload?.metadata?.subscriptionId;
         const providerId = payload?.metadata?.providerId;
         const planDuration = Number(payload?.metadata?.planDuration);
         const paymentStatus = payload?.payment_status === "paid" ? PaymentStatus.PAID : PaymentStatus.PENDING;
         const paymentIntent = payload?.payment_intent as string;
-        const paymentMethod = payload?.payment_method_types[0];
+        const paymentMethod = payload?.payment_method_types[0] as PaymentMethod;
         const paymentFor = payload?.metadata?.paymentFor as PaymentFor;
         const name = payload?.metadata?.name;
         const email = payload?.metadata?.email;
@@ -63,7 +71,10 @@ export class SubscriptionCheckoutCompleteUseCase {
         try {
 
             const paymentData = Payment.createForSubscription({
-                transactionId: paymentIntent,
+                idempotencyKey: uuidv4(),
+                paymentIntentId: paymentIntent,
+                gatewayFee: fee,
+                transactionId: uuidv4(),
                 paymentStatus,
                 paymentMethod,
                 paymentGateway: PaymentGateway.STRIPE,
@@ -73,7 +84,7 @@ export class SubscriptionCheckoutCompleteUseCase {
                 totalAmount,
                 providerId,
                 chargeId: payload.payment_intent as string,
-                recieptUrl,
+                receiptUrl,
                 receiptNumber,
                 receiptEmail,
                 customerEmail: payload.customer_details?.email || email,
@@ -103,7 +114,7 @@ export class SubscriptionCheckoutCompleteUseCase {
                                 totalAmount,
                                 paymentDate: payment.createdAt,
                                 paymentStatus,
-                                recieptUrl,
+                                receiptUrl,
                                 transactionId: paymentIntent,
                                 paymentFor,
                             },

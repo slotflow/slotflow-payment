@@ -1,6 +1,5 @@
 import { KafkaMessage } from "kafkajs";
 import { PaymentFor, PaymentStatus } from "../../domain/enums/payment.enum";
-import { Role } from "../../domain/enums/common.enum";
 
 // **** COMMON DTOS
 
@@ -57,7 +56,7 @@ export interface ProviderCreatePaymentSuccessEvent {
         paymentStatus: PaymentStatus;
         totalAmount: number;
         transactionId: string;
-        recieptUrl?: string | null;
+        receiptUrl?: string | null;
     };
     notificationData: SendNotificationCommon;
 };
@@ -83,7 +82,7 @@ export interface CreateBookingPaymentSuccessEvent {
         paymentStatus: PaymentStatus;
         totalAmount: number;
         transactionId: string;
-        recieptUrl?: string | null;
+        receiptUrl?: string | null;
     };
     notificationData: SendNotificationCommon;
 }
@@ -97,7 +96,6 @@ export interface CreateBookingPaymentFailedEvent {
 
 export interface StripeAccountCreatedEvent {
     mbsData: {
-        role: Role;
         userId: string;
         stripeAccountId: string;
     };
@@ -105,7 +103,6 @@ export interface StripeAccountCreatedEvent {
 
 export interface StripeCustomerCreatedEvent {
     mbsData: {
-        role: Role;
         userId: string;
         stripeCustomerId: string;
     };

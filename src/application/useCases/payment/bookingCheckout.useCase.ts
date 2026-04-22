@@ -53,7 +53,6 @@ export class BookingCheckoutUseCase {
                         mbsData: {
                             stripeCustomerId: customerId.customerId,
                             userId: payload.userId,
-                            role: Role.USER,
                         },
                     }
                 });

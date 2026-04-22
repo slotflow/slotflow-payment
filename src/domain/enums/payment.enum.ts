@@ -19,3 +19,9 @@ export enum PaymentStatus {
     CANCELLED = "CANCELLED",
     REFUNDED = "REFUNDED",
 };
+
+export enum PaymentMethod {
+    CARD = "card",
+    UPI = "upi",
+    NETBANKING = "netbanking"
+}

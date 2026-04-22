@@ -5,15 +5,16 @@ import { sendResponse } from "../../../shared/utils/response";
 import { DecodedUser } from "../../../application/dtos/common.dtos";
 import { startAndEndDateSchema, validateEmailSchema } from "../../../shared/zod/common.zod";
 import { GetPaymentsUseCase } from "../../../application/useCases/payment/getPayments.useCase";
+import { RefundPaymentUseCase } from "../../../application/useCases/payment/refundPayment.useCase";
 import { BookingCheckoutUseCase } from "../../../application/useCases/payment/bookingCheckout.useCase";
 import { GetAdminRevenueUseCase } from "../../../application/useCases/payment/getAdminRevenue.useCase";
 import { GetPaymentDetailsUseCase } from "../../../application/useCases/payment/getPaymentDetails.useCase";
 import { StripeAccountLinkUseCase } from "../../../application/useCases/payment/stripeAccountLink.useCase";
+import { GetProviderRevenueUseCase } from "../../../application/useCases/payment/getProviderRevenue.useCase";
 import { GetAdminRevenueReportUseCase } from "../../../application/useCases/payment/getRevenueReport.useCase";
 import { SubscriptionCheckoutUseCase } from "../../../application/useCases/payment/subscriptionCheckout.usecase";
-import { bookingCheckoutShcema, getAdminRevenueReportSchema, getPaymentDetailsSchema, getPaymentsSchema, subscipriotonCheckoutSchema } from "../../../shared/zod/payment.zod";
-import { getPaymentsUseCase, getPaymentDetailsUseCase, subscriptionCheckoutUseCase, bookingCheckoutUseCase, getAdminRevenueReportUseCase, stripeAccountLinkUseCase, getAdminRevenueUseCase, getProviderRevenueUseCase } from ".";
-import { GetProviderRevenueUseCase } from "../../../application/useCases/payment/getProviderRevenue.useCase";
+import { bookingCheckoutShcema, getAdminRevenueReportSchema, getPaymentDetailsSchema, getPaymentsSchema, refundSchema, subscipriotonCheckoutSchema } from "../../../shared/zod/payment.zod";
+import { getPaymentsUseCase, getPaymentDetailsUseCase, subscriptionCheckoutUseCase, bookingCheckoutUseCase, getAdminRevenueReportUseCase, stripeAccountLinkUseCase, getAdminRevenueUseCase, getProviderRevenueUseCase, refundPaymentUseCase } from ".";
 
 class PaymentController {
 
@@ -26,6 +27,7 @@ class PaymentController {
         private readonly stripeAccountLinkUseCase: StripeAccountLinkUseCase,
         private readonly getAdminRevenueUseCase: GetAdminRevenueUseCase,
         private readonly getProviderRevenueUseCase: GetProviderRevenueUseCase,
+        private readonly refundPaymentUseCase: RefundPaymentUseCase
     ) {
         this.getPayments = this.getPayments.bind(this);
         this.getPaymentDetails = this.getPaymentDetails.bind(this);
@@ -34,21 +36,18 @@ class PaymentController {
         this.getRevenueReport = this.getRevenueReport.bind(this);
         this.linkStripeAccount = this.linkStripeAccount.bind(this);
         this.getRevenue = this.getRevenue.bind(this);
+        this.refund = this.refund.bind(this);
     };
 
     async getPayments(req: Request, res: Response, next: NextFunction) {
         try {
             const user = req.user as DecodedUser;
-
             const { userId, providerId, page, limit } =
                 getPaymentsSchema.parse(req.query);
-
-
             let filters: {
                 userId?: string;
                 providerId?: string;
             } = {};
-
             if (user.role === Role.ADMIN) {
                 filters.userId = userId;
                 filters.providerId = providerId;
@@ -59,13 +58,11 @@ class PaymentController {
             } else {
                 return res.status(403).json({ message: "Forbidden" });
             }
-
             const result = await this.getPaymentsUseCase.execute({
                 ...filters,
                 page,
                 limit,
             });
-
             sendResponse(res, result);
         } catch (error) {
             log.error("getPayments failed", error as Error);
@@ -76,11 +73,9 @@ class PaymentController {
     async getPaymentDetails(req: Request, res: Response, next: NextFunction) {
         try {
             const { paymentId } = getPaymentDetailsSchema.parse(req.params);
-
             const result = await this.getPaymentDetailsUseCase.execute({
                 paymentId,
             });
-
             sendResponse(res, result);
         } catch (error) {
             log.error("getPaymentDetails failed", error as Error);
@@ -135,7 +130,6 @@ class PaymentController {
             const { email } = validateEmailSchema.parse(req.body);
             const result = await this.stripeAccountLinkUseCase.execute({
                 email,
-                role: user.role,
                 userId: user.userOrProviderId,
             });
             sendResponse(res, result, "Stripe connected");
@@ -149,7 +143,6 @@ class PaymentController {
         try {
             const user = req.user as DecodedUser;
             const validatedData = startAndEndDateSchema.parse(req.query);
-
             if(user.role === Role.PROVIDER) {
                 const result = await this.getProviderRevenueUseCase.execute({
                     providerId: user.userOrProviderId,
@@ -157,7 +150,6 @@ class PaymentController {
                 });
                 sendResponse(res, result);
             }
-
             if(user.role === Role.ADMIN) {
                 const result = await this.getAdminRevenueUseCase.execute(validatedData);
                 sendResponse(res, result);
@@ -167,6 +159,21 @@ class PaymentController {
             next(error);
         };
     };
+
+    async refund(req: Request, res: Response, next: NextFunction) {
+        try {
+            const user = req.user as DecodedUser;
+            const validatedData = refundSchema.parse(req.body);
+            await this.refundPaymentUseCase.execute({
+                ...validatedData,
+                userId: user.userOrProviderId,
+            });
+            sendResponse(res, null);
+        } catch (error) {
+            log.error("refund failed", error as Error);
+            next(error);
+        }
+    }
 
 };
 
@@ -178,5 +185,6 @@ export const paymentController = new PaymentController(
     getAdminRevenueReportUseCase,
     stripeAccountLinkUseCase,
     getAdminRevenueUseCase,
-    getProviderRevenueUseCase
+    getProviderRevenueUseCase,
+    refundPaymentUseCase
 );

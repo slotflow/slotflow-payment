@@ -19,6 +19,11 @@ router.post('/booking/checkout/session',
     paymentController.bookingCheckout
 );
 
+router.post("/refund",
+    authMiddleware,
+    paymentController.refund
+);
+
 router.get('/reports/revenue', 
     authMiddleware, 
     paymentController.getRevenueReport

@@ -1,36 +1,40 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
-import { PaymentFor, PaymentGateway, PaymentStatus } from "../../domain/enums/payment.enum";
+import { PaymentFor, PaymentGateway, PaymentMethod, PaymentStatus } from "../../domain/enums/payment.enum";
 
 export interface IPayment extends Document {
     _id: Types.ObjectId;
-    transactionId: string;
+    idempotencyKey: string;
     paymentStatus: PaymentStatus;
-    paymentMethod: string;
+    paymentMethod: PaymentMethod;
     paymentGateway: PaymentGateway;
     paymentFor: PaymentFor;
     initialAmount: number;
     discountAmount: number;
     totalAmount: number;
+
+    userId?: Types.ObjectId;
+    providerId?: Types.ObjectId;
+
+    paymentIntentId?: string;
+    transactionId: string;
+    chargeId?: string;
+    gatewayFee?: number;
+    receiptUrl?: string;
+    receiptNumber?: string;
+    receiptEmail?: string;
+    customerEmail?: string;
+    description?: string;
+    refundedAmount?: number;
     createdAt: Date;
     updatedAt: Date;
-
-    userId?: Types.ObjectId | null;
-    providerId?: Types.ObjectId | null;
-
-    refundId?: string | null;
-    refundAmount?: number | null;
-    refundStatus?: PaymentStatus | null;
-    refundAt?: Date | null;
-    refundReason?: string | null;
-    chargeId?: string | null;
-    recieptUrl?: string | null;
-    receiptNumber?: string | null;
-    receiptEmail?: string | null;
-    customerEmail?: string | null;
-    description?: string | null;
 };
 
 const PaymentSchema = new Schema<IPayment>({
+    idempotencyKey: {
+        type: String,
+        required: [true, "idempotencyKey is required"],
+        unique: true,
+    },
     transactionId: {
         type: String,
         required: [true, "Transaction ID is required"],
@@ -43,6 +47,7 @@ const PaymentSchema = new Schema<IPayment>({
     },
     paymentMethod: {
         type: String,
+        enum: Object.values(PaymentMethod),
         required: [true, "Payment method is required"],
     },
     paymentGateway: {
@@ -59,70 +64,56 @@ const PaymentSchema = new Schema<IPayment>({
         type: Number,
         required: [true, "Initial amount is required"],
         min: [0, "Initial amount cannot be negative"],
-        max: [1000000, "Inital amount cannot be more than 1000000"],
     },
     discountAmount: {
         type: Number,
         required: [true, "Discount amount is required"],
         min: [0, "Discount amount cannot be negative"],
-        max: [1000000, "Discount amount cannot be more than 1000000"],
     },
     totalAmount: {
         type: Number,
         required: [true, "Total amount is required"],
         min: [0, "Total amount cannot be negative"],
-        max: [1000000, "Total amount cannot be more than 1000000"],
     },
     userId: {
-        type: mongoose.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         required: false,
     },
     providerId: {
-        type: mongoose.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         required: false,
     },
-    refundId: {
+    paymentIntentId: {
         type: String,
-    },
-    refundAmount: {
-        type: Number,
-    },
-    refundStatus: {
-        type: String,
-        enum: Object.values(PaymentStatus),
-    },
-    refundAt: {
-        type: Date
-    },
-    refundReason: {
-        type: String
     },
     chargeId: {
-        type: String
+        type: String,
     },
-    recieptUrl: {
-        type: String
+    gatewayFee: {
+        type: Number,
+        default: 0,
+    },
+    receiptUrl: {
+        type: String,
     },
     receiptNumber: {
-        type: String
+        type: String,
     },
     receiptEmail: {
-        type: String
+        type: String,
     },
     customerEmail: {
-        type: String
+        type: String,
     },
     description: {
-        type: String
+        type: String,
     },
-    createdAt: {
-        type: Date,
-        required: true
+    refundedAmount: {
+        type: Number,
+        default: 0,
     },
-    updatedAt: {
-        type: Date,
-        required: true
-    }
+},{
+    timestamps: true,
 });
 
 export const PaymentModel = mongoose.model<IPayment>("Payment", PaymentSchema);

@@ -1,17 +1,17 @@
 import z from "zod";
 import { objectIdRegex } from "../utils/regex";
 
-// provider id validation schema
+// provider id validation zod schema
 export const validateProviderIdSchema = z.object({
     providerId: z.string().regex(objectIdRegex, "Invalid providerId"),
 });
 
-// user id validation schema
+// user id validation zod schema
 export const validateUserIdSchema = z.object({
     providerId: z.string().regex(objectIdRegex, "Invalid providerId"),
 });
 
-// Date validation schema
+// Date validation zod schema
 export const dateSchema = z.preprocess(
     (val) => {
         if (typeof val === "string" || val instanceof String) {

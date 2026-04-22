@@ -53,7 +53,6 @@ export class SubscriptionCheckoutUseCase {
                         mbsData: {
                             stripeCustomerId: customerId.customerId,
                             userId: providerId,
-                            role: Role.USER,
                         },
                     }
                 });

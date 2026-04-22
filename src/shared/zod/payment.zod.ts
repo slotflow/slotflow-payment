@@ -4,8 +4,9 @@ import { PaymentFor } from "../../domain/enums/payment.enum";
 import { ServiceMode } from "../../domain/enums/service.enums";
 import { dateSchema, paginationSchema, validateProviderIdSchema } from "./base.zod";
 import { descriptionRegex, objectIdRegex, serviceDescriptionRegex, serviceNameRegex, usernameRegex } from "../utils/regex";
+import { RefundFor, RefundReason } from "../../domain/enums/refund.enum";
 
-//
+// subscription checkout zod schrma
 export const subscipriotonCheckoutSchema = z.object({
     subscriptionId: z.string().regex(objectIdRegex, "Invalid subscriptionId"),
     planName: z.nativeEnum(PlanName),
@@ -25,7 +26,7 @@ export const subscipriotonCheckoutSchema = z.object({
         .max(100000, "Initial amount must be at most 100000"),
 }).merge(validateProviderIdSchema);
 
-//
+// booking checkout zod schema
 export const bookingCheckoutShcema = z.object({
     serviceName: z.string()
         .min(4, "Service name must be at least 4 characters")
@@ -59,19 +60,30 @@ export const bookingCheckoutShcema = z.object({
     pushNotification: z.boolean(),
 })
 
-//
+// get payments zod schema
 export const getPaymentsSchema = z.object({
     userId: z.string().regex(objectIdRegex).optional(),
     providerId: z.string().regex(objectIdRegex).optional(),
 }).merge(paginationSchema);
 
-//
+// get payment details zod schema
 export const getPaymentDetailsSchema = z.object({
     paymentId: z.string().regex(objectIdRegex, "Invalid paymentId"),
 });
 
-//
+// get admin revenue report zod schema
 export const getAdminRevenueReportSchema = z.object({
     startDate: dateSchema,
     endDate: dateSchema
 }).merge(paginationSchema);
+
+// refund zod schema
+export const refundSchema = z.object({
+    bookingId: z.string().regex(objectIdRegex, "Invalid bookingId"),
+    paymentId: z.string().regex(objectIdRegex, "Invalid paymentId"),
+    refundFor: z.nativeEnum(RefundFor),
+    refundReason: z.nativeEnum(RefundReason),
+    reasonInDetail: z.string()
+        .min(10, "Reason in detail must be at least 10 characters")
+        .max(500, "Reason in detail cannot exceed 500 characters"),
+});

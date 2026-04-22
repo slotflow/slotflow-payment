@@ -11,9 +11,9 @@ import { setupGracefulShutdown } from './app/init/shutdown';
 
 const start = async () => {
   try {
-    await initOtel();
+    // await initOtel();
     await initDB();
-    await initKafka();
+    // await initKafka();
 
     const server = app.listen(appConfig.port, () => {
       printText();

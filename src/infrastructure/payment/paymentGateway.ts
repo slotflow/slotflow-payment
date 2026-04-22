@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { log } from "../../shared/logger/logger";
-import { IPaymentGateway, CreateSubscriptionCheckoutSessionPayload, CreateSubscriptionCheckoutSessionResponse, CreateBookingCheckoutSessionPayload, CreateBookingCheckoutSessionResponse, CreateStripeCustomerPayload, CreateStripeCustomerResponse } from "../../domain/interfaces/payment/IPaymentGateway";
+import { IPaymentGateway, CreateSubscriptionCheckoutSessionPayload, CreateSubscriptionCheckoutSessionResponse, CreateBookingCheckoutSessionPayload, CreateBookingCheckoutSessionResponse, CreateStripeCustomerPayload, CreateStripeCustomerResponse, CreateRefundInput, CreateRefundOutput, RetrievePaymentIntentInput, RetrievePaymentIntentOutput } from "../../domain/interfaces/payment/IPaymentGateway";
 
 export class PaymentGateway implements IPaymentGateway {
 
@@ -105,6 +105,38 @@ export class PaymentGateway implements IPaymentGateway {
             return { customerId: customer.id };
         } catch (error) {
             log.error("PaymentGateway createStripeCustomer failed : ", error as Error);
+            throw error;
+        }
+    }
+
+    async retrievePaymentIntent(input: RetrievePaymentIntentInput): Promise<RetrievePaymentIntentOutput> {
+        try {
+            const paymentIntent = await this.stripe.paymentIntents.retrieve(
+                input.paymentIntent,
+                {
+                    expand: ['latest_charge']
+                }
+            );
+            return { paymentIntent };
+        } catch (error) {
+            log.error("PaymentGateway retrievePaymentIntent failed : ", error as Error);
+            throw error;
+        }
+    }
+
+    async createRefund(input: CreateRefundInput): Promise<CreateRefundOutput> {
+        try {
+            const refund = await this.stripe.refunds.create({
+                payment_intent: input.paymentIntent,
+                amount: input.refundAmount * 100,
+                currency: "inr",
+                reason: input.reason,
+                metadata: input.metadata,
+            });
+
+            return { refundId: refund.id };
+        } catch (error) {
+            log.error("PaymentGateway createRefund failed : ", error as Error);
             throw error;
         }
     }

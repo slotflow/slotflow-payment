@@ -14,7 +14,7 @@ export class StripeAccountLinkUseCase {
     async execute(payload: StripeAccountLinkRequest): Promise<StripeAccountLinkResponse> {
         try {
 
-            const { email, role, userId } = payload
+            const { email, userId } = payload
 
             const account = await stripe.accounts.create({
                 type: "express",
@@ -31,7 +31,6 @@ export class StripeAccountLinkUseCase {
                 occurredAt: new Date().toString(),
                 payload: {
                     mbsData: {
-                        role: role,
                         userId: userId,
                         stripeAccountId: account.id,
                     },

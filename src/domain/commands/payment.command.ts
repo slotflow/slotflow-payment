@@ -1,7 +1,7 @@
 import { PaymentProps } from "../contracts/payment.contract";
 
-export type CreateForSubscriptionProps = Pick<PaymentProps, "transactionId" | "paymentStatus" | "paymentMethod" | "paymentGateway" | "paymentFor" | "initialAmount" | "discountAmount" | "providerId" | "totalAmount" | "chargeId" | "recieptUrl" | "receiptNumber" | "receiptEmail" | "customerEmail" | "description">;
+export type CreateForSubscriptionProps = Pick<PaymentProps, "idempotencyKey" | "transactionId" | "paymentStatus" | "paymentMethod" | "paymentGateway" | "paymentFor" | "initialAmount" | "discountAmount" | "providerId" | "totalAmount" | "chargeId" | "receiptUrl" | "receiptNumber" | "receiptEmail" | "customerEmail" | "description" | "paymentIntentId" | "gatewayFee">;
 
-export type CreateForBookingProps = Pick<PaymentProps, "transactionId" | "paymentStatus" | "paymentMethod" | "paymentGateway" | "paymentFor" | "initialAmount" | "discountAmount" | "userId" | "totalAmount" | "providerId" | "chargeId" | "recieptUrl" | "receiptNumber" | "receiptEmail" | "customerEmail" | "description">;
+export type CreateForBookingProps = Pick<PaymentProps, "idempotencyKey" | "transactionId" | "paymentStatus" | "paymentMethod" | "paymentGateway" | "paymentFor" | "initialAmount" | "discountAmount" | "userId" | "gatewayFee" | "totalAmount" | "providerId" | "chargeId" | "receiptUrl" | "receiptNumber" | "receiptEmail" | "customerEmail" | "description" | "paymentIntentId">;
 
-export type UpdatePaymentProps = Omit<PaymentProps, "_id" | "userId" | "transactionId" | "providerId" | "createdAt" | "updatedAt">;
+export type PaymentRefundedProps = Pick<PaymentProps, "refundedAmount">;

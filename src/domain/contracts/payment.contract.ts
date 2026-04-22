@@ -1,28 +1,27 @@
-import { PaymentFor, PaymentGateway, PaymentStatus } from "../enums/payment.enum";
+import { PaymentFor, PaymentGateway, PaymentMethod, PaymentStatus } from "../enums/payment.enum";
 
 export interface PaymentProps {
-    _id: string,
-    transactionId: string,
-    paymentStatus: PaymentStatus,
-    paymentMethod: string,
-    paymentGateway: PaymentGateway,
-    paymentFor: PaymentFor,
-    initialAmount: number,
-    discountAmount: number,
-    totalAmount: number,
-    userId?: string | null,
-    providerId?: string | null,
-    refundId?: string | null,
-    refundAmount?: number | null,
-    refundStatus?: PaymentStatus | null,
-    refundAt?: Date | null,
-    refundReason?: string | null,
-    chargeId?: string | null,
-    recieptUrl?: string | null,
-    receiptNumber?: string | null,
-    receiptEmail?: string | null,
-    customerEmail?: string | null,
-    description?: string | null,
-    createdAt: Date,
-    updatedAt: Date,
+    _id: string;
+    idempotencyKey: string;
+    paymentStatus: PaymentStatus;
+    paymentMethod: PaymentMethod;
+    paymentGateway: PaymentGateway;
+    paymentFor: PaymentFor;
+    initialAmount: number;
+    discountAmount: number;
+    totalAmount: number;
+    userId?: string;
+    providerId?: string;
+    paymentIntentId?: string;
+    transactionId: string;
+    chargeId?: string;
+    gatewayFee: number | null;
+    receiptUrl: string | null;
+    receiptNumber: string | null;
+    receiptEmail: string | null;
+    customerEmail: string | null;
+    description?: string;
+    refundedAmount?: number;
+    createdAt: Date;
+    updatedAt: Date;
 }

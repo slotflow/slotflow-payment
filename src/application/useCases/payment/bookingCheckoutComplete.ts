@@ -2,39 +2,48 @@ import Stripe from "stripe";
 import { v4 as uuidv4 } from 'uuid';
 import { kafkaConfig } from "../../../config/env";
 import { log } from "../../../shared/logger/logger";
-import { stripe } from "../../../infrastructure/payment/stripe.client";
 import { Payment } from "../../../domain/entities/payment.entity";
 import { notificationContentMap } from "../../../shared/utils/constants";
-import { PaymentFor, PaymentGateway, PaymentStatus } from "../../../domain/enums/payment.enum";
+import { IPaymentGateway } from "../../../domain/interfaces/payment/IPaymentGateway";
 import { IPaymentRepository } from "../../../domain/interfaces/repositories/IPayment.repository";
 import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
+import { PaymentFor, PaymentGateway, PaymentMethod, PaymentStatus } from "../../../domain/enums/payment.enum";
 import { CreateBookingPaymentFailedEvent, CreateBookingPaymentSuccessEvent, EventEnvelope } from "../../dtos/kafka.dtos";
 
 export class BookingCheckoutCompleteUseCase {
     constructor(
         private readonly paymentRepository: IPaymentRepository,
-        private readonly kafkaProducer: IKafkaProducerAdapter
+        private readonly kafkaProducer: IKafkaProducerAdapter,
+        private readonly paymentGateway: IPaymentGateway
     ) { }
 
     async execute(payload: Stripe.Checkout.Session): Promise<void> {
         try {
             log.info(`Payload : ${JSON.stringify(payload)}`);
 
-            let recieptUrl = null;
-            let receiptNumber = null;
-            let receiptEmail = null;
+            let receiptUrl: string | null = null;
+            let receiptNumber: string | null = null;
+            let receiptEmail: string | null = null;
 
-            if (payload.payment_intent) {
-                const paymentIntent = await stripe.paymentIntents.retrieve(payload.payment_intent as string, {
-                    expand: ['latest_charge']
-                });
-                const latestCharge = paymentIntent.latest_charge as Stripe.Charge;
-                if (latestCharge) {
-                    recieptUrl = latestCharge.receipt_url;
-                    receiptNumber = latestCharge.receipt_number;
-                    receiptEmail = latestCharge.receipt_email;
-                }
+            if (!payload.payment_intent) {
+                throw new Error();
             }
+
+            const paymentIntentDetail = await this.paymentGateway.retrievePaymentIntent({
+                paymentIntent: payload.payment_intent as string
+            });
+            const latestCharge = paymentIntentDetail.paymentIntent.latest_charge as Stripe.Charge;
+            if (latestCharge) {
+                receiptUrl = latestCharge.receipt_url;
+                receiptNumber = latestCharge.receipt_number;
+                receiptEmail = latestCharge.receipt_email;
+            }
+
+            const balanceTransaction = await this.paymentGateway.retrieveBalance({
+                balanceTransaction: latestCharge.balance_transaction as string
+            });
+            const fee = balanceTransaction.balanceTransaction.fee;
+
 
             const userId = payload?.metadata?.userId;
             const bookingId = payload?.metadata?.bookingId;
@@ -47,7 +56,7 @@ export class BookingCheckoutCompleteUseCase {
             const paymentFor = payload?.metadata?.paymentFor as PaymentFor;
             const pushNotification = Boolean(payload?.metadata?.pushNotification);
             const paymentIntent = payload?.payment_intent as string;
-            const paymentMethod = payload?.payment_method_types[0];
+            const paymentMethod = payload?.payment_method_types[0] as PaymentMethod;
             const paymentStatus = payload?.payment_status === "paid" ? PaymentStatus.PAID : PaymentStatus.PENDING;
             const totalAmount = (payload.amount_total || 0) / 100;
             const discountAmount = (payload.total_details?.amount_discount || 0) / 100;
@@ -68,9 +77,11 @@ export class BookingCheckoutCompleteUseCase {
                 throw new Error("Missing required metadata");
             }
 
-
             const paymentData = Payment.createForBooking({
-                transactionId: paymentIntent,
+                idempotencyKey: uuidv4(),
+                paymentIntentId: paymentIntent,
+                gatewayFee: fee,
+                transactionId: uuidv4(),
                 paymentStatus,
                 paymentMethod,
                 paymentGateway: PaymentGateway.STRIPE,
@@ -81,7 +92,7 @@ export class BookingCheckoutCompleteUseCase {
                 providerId,
                 userId,
                 chargeId: payload.payment_intent as string,
-                recieptUrl,
+                receiptUrl,
                 receiptNumber,
                 receiptEmail,
                 customerEmail: payload.customer_details?.email || email,
@@ -109,7 +120,7 @@ export class BookingCheckoutCompleteUseCase {
                                 totalAmount,
                                 paymentDate: payment.createdAt,
                                 paymentStatus,
-                                recieptUrl,
+                                receiptUrl,
                                 transactionId: paymentIntent,
                                 paymentFor,
                             },

@@ -1,10 +1,9 @@
+import Stripe from "stripe";
 import { PlanName } from "../../domain/enums/plan.enum";
 import { PaymentFor } from "../../domain/enums/payment.enum";
 import { ServiceMode } from "../../domain/enums/service.enums";
 import { ApiPaginationRequest, PaymentDTO } from "./common.dtos";
-import Stripe from "stripe";
-import { Role } from "../../domain/enums/common.enum";
-
+import { RefundFor, RefundReason } from '../../domain/enums/refund.enum';
 
 export type FindSubscriptionsByProviderIdResponse = Array<Partial<Pick<PaymentDTO, "totalAmount">>>;
 
@@ -118,9 +117,21 @@ export type GetPaymentDetailsResponse = Omit<PaymentDTO, "_id" | "chargeId" | "r
 
 
 export interface StripeAccountLinkRequest {
-  role: Role;
   userId: string;
   email: string;
 };
 
 export type StripeAccountLinkResponse = Stripe.Response<Stripe.AccountLink>;
+
+// refundPayment usecase input output
+export interface refundPaymentInput {
+  bookingId: string;
+  paymentId: string;
+  refundFor: RefundFor;
+  refundReason: RefundReason;
+  reasonInDetail: string;
+  userId: string;
+}
+export interface refundPaymentOutput {
+
+}

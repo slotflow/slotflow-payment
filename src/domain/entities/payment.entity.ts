@@ -1,6 +1,6 @@
 import { PaymentProps } from "../contracts/payment.contract";
-import { PaymentFor, PaymentGateway, PaymentStatus } from "../enums/payment.enum";
-import { CreateForBookingProps, CreateForSubscriptionProps, UpdatePaymentProps } from "../commands/payment.command";
+import { PaymentFor, PaymentGateway, PaymentMethod, PaymentStatus } from "../enums/payment.enum";
+import { CreateForBookingProps, CreateForSubscriptionProps, PaymentRefundedProps } from "../commands/payment.command";
 
 export class Payment {
 
@@ -17,27 +17,28 @@ export class Payment {
     static createForSubscription(props: CreateForSubscriptionProps) {
         return new Payment({
             _id: "",
-            transactionId: props.transactionId,
+            idempotencyKey: props.idempotencyKey,
             paymentStatus: props.paymentStatus,
             paymentMethod: props.paymentMethod,
             paymentGateway: props.paymentGateway,
             paymentFor: props.paymentFor,
+            
             initialAmount: props.initialAmount,
             discountAmount: props.discountAmount,
-            providerId: props.providerId,
             totalAmount: props.totalAmount,
-            chargeId: props.chargeId ?? null,
-            recieptUrl: props.recieptUrl ?? null,
-            receiptNumber: props.receiptNumber ?? null,
-            receiptEmail: props.receiptEmail ?? null,
-            customerEmail: props.customerEmail ?? null,
-            description: props.description ?? null,
-            refundAmount: null,
-            refundAt: null,
-            refundId: null,
-            refundReason: null,
-            refundStatus: null,
-            userId: null,
+            providerId: props.providerId,
+
+            paymentIntentId: props.paymentIntentId,
+            transactionId: props.transactionId,
+            chargeId: props.chargeId,
+            gatewayFee: props.gatewayFee,
+
+            receiptUrl: props.receiptUrl,
+            receiptNumber: props.receiptNumber,
+            receiptEmail: props.receiptEmail,
+            customerEmail: props.customerEmail,
+            description: props.description,
+
             createdAt: new Date(),
             updatedAt: new Date(),
         })
@@ -46,27 +47,28 @@ export class Payment {
     static createForBooking(props: CreateForBookingProps) {
         return new Payment({
             _id: "",
-            transactionId: props.transactionId,
+            idempotencyKey: props.idempotencyKey,
             paymentStatus: props.paymentStatus,
             paymentMethod: props.paymentMethod,
             paymentGateway: props.paymentGateway,
             paymentFor: props.paymentFor,
+            
             initialAmount: props.initialAmount,
             discountAmount: props.discountAmount,
-            providerId: props.providerId,
             totalAmount: props.totalAmount,
-            chargeId: props.chargeId ?? null,
-            recieptUrl: props.recieptUrl ?? null,
-            receiptNumber: props.receiptNumber ?? null,
-            receiptEmail: props.receiptEmail ?? null,
-            customerEmail: props.customerEmail ?? null,
-            description: props.description ?? null,
-            refundAmount: null,
-            refundAt: null,
-            refundId: null,
-            refundReason: null,
-            refundStatus: null,
             userId: props.userId,
+            
+            paymentIntentId: props.paymentIntentId,
+            transactionId: props.transactionId,
+            chargeId: props.chargeId,
+            gatewayFee: props.gatewayFee,
+
+            receiptUrl: props.receiptUrl,
+            receiptNumber: props.receiptNumber,
+            receiptEmail: props.receiptEmail,
+            customerEmail: props.customerEmail,
+            description: props.description,
+
             createdAt: new Date(),
             updatedAt: new Date(),
         })
@@ -76,6 +78,22 @@ export class Payment {
 
     get _id(): string {
         return this.props._id
+    };
+
+    get idempotencyKey(): string {
+        return this.props.idempotencyKey;
+    };
+
+    get refundedAmount(): number | undefined {
+        return this.props.refundedAmount;
+    };
+
+    get gatewayFee(): number | null {
+        return this.props.gatewayFee;
+    };
+
+    get paymentIntentId(): string | null | undefined {
+        return this.props.paymentIntentId;
     };
 
     get createdAt(): Date {
@@ -94,7 +112,7 @@ export class Payment {
         return this.props.paymentGateway;
     };
 
-    get paymentMethod(): string {
+    get paymentMethod(): PaymentMethod {
         return this.props.paymentMethod;
     };
 
@@ -114,8 +132,8 @@ export class Payment {
         return this.props.initialAmount;
     };
 
-    get recieptUrl(): string | null | undefined {
-        return this.props.recieptUrl;
+    get receiptUrl(): string | null | undefined {
+        return this.props.receiptUrl;
     };
 
     get receiptNumber(): string | null | undefined {
@@ -138,28 +156,8 @@ export class Payment {
         return this.props.userId;
     };
 
-    get refundId(): string | null | undefined {
-        return this.props.refundId;
-    }
-
     get providerId(): string | null | undefined {
         return this.props.providerId;
-    };
-
-    get refundAmount(): number | null | undefined {
-        return this.props.refundAmount;
-    };
-
-    get refundAt(): Date | null | undefined {
-        return this.props.refundAt;
-    };
-
-    get refundReason(): string | null | undefined {
-        return this.props.refundReason;
-    };
-
-    get refundStatus(): PaymentStatus | null | undefined {
-        return this.props.refundStatus;
     };
 
     get updatedAt(): Date {
@@ -172,12 +170,10 @@ export class Payment {
         return { ...this.props }
     };
 
-    update(props: UpdatePaymentProps) {
-        this.props = {
-            ...this.props,
-            ...props,
-        };
-
+    paymentRefunded(props: PaymentRefundedProps) {
+        this.props.refundedAmount = props.refundedAmount;
+        this.props.paymentStatus = PaymentStatus.REFUNDED;
         this.touch();
     };
+
 }
