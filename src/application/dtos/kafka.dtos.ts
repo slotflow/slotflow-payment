@@ -1,5 +1,6 @@
 import { KafkaMessage } from "kafkajs";
 import { PaymentFor, PaymentStatus } from "../../domain/enums/payment.enum";
+import { RefundStatus } from "../../domain/enums/refund.enum";
 
 // **** COMMON DTOS
 
@@ -87,12 +88,6 @@ export interface CreateBookingPaymentSuccessEvent {
     notificationData: SendNotificationCommon;
 }
 
-export interface CreateBookingPaymentFailedEvent {
-    mbsData: {
-        bookingId: string;
-    }
-}
-
 
 export interface StripeAccountCreatedEvent {
     mbsData: {
@@ -106,4 +101,16 @@ export interface StripeCustomerCreatedEvent {
         userId: string;
         stripeCustomerId: string;
     };
+}
+
+export interface RefundPaymentEvent {
+    emailData: {
+        email: string;
+        name: string;
+        refundDate: Date;
+        refundAmount: number;
+        refundStatus: RefundStatus;
+        transactionId: string;
+    };
+    notificationData: SendNotificationCommon;
 }

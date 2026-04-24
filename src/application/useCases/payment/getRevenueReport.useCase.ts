@@ -1,6 +1,6 @@
-import { log } from "../../../shared/logger/logger";
 import { ApiResponse } from "../../dtos/common.dtos";
 import { IPaymentQueries } from "../../queries/IPayment.queries";
+import { toAppError } from "../../../shared/error/handleUnknownError";
 import { GetAdminRevenueReportRequest, GetAdminRevenueReportResponse } from "../../dtos/payment.dtos";
 
 export class GetAdminRevenueReportUseCase {
@@ -18,9 +18,8 @@ export class GetAdminRevenueReportUseCase {
                 currentPage,
                 totalCount
             };
-        } catch (error) {
-            log.error("GetRevenueReportUseCase failed", error as Error);
-            throw error;
+        } catch (error: unknown) {
+            throw toAppError(error, "Failed to get admin revenue report");
         };
     };
 };

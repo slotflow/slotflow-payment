@@ -1,6 +1,9 @@
 import Stripe from "stripe";
 import { log } from "../../shared/logger/logger";
-import { IPaymentGateway, CreateSubscriptionCheckoutSessionPayload, CreateSubscriptionCheckoutSessionResponse, CreateBookingCheckoutSessionPayload, CreateBookingCheckoutSessionResponse, CreateStripeCustomerPayload, CreateStripeCustomerResponse, CreateRefundInput, CreateRefundOutput, RetrievePaymentIntentInput, RetrievePaymentIntentOutput } from "../../domain/interfaces/payment/IPaymentGateway";
+import { ERROR_CODES } from "../../shared/utils/type";
+import { AppError } from "../../shared/error/appError";
+import { IPaymentGateway, CreateSubscriptionCheckoutSessionPayload, CreateSubscriptionCheckoutSessionResponse, CreateBookingCheckoutSessionPayload, CreateBookingCheckoutSessionResponse, CreateStripeCustomerPayload, CreateStripeCustomerResponse, CreateRefundInput, CreateRefundOutput, RetrievePaymentIntentInput, RetrievePaymentIntentOutput, RetrieveBalanceInput, RetrieveBalanceOutput, CreateStripeAccountInput, CreateStripeAccountout, CreateStripeAccountLinkInput, CreateStripeAccountLinkOutput } from "../../domain/interfaces/payment/IPaymentGateway";
+import { serviceConfig } from "../../config/env";
 
 export class PaymentGateway implements IPaymentGateway {
 
@@ -34,18 +37,23 @@ export class PaymentGateway implements IPaymentGateway {
                 metadata: {
                     subscriptionId: payload.subscriptionId,
                     providerId: payload.providerId,
-                    planDuration: payload.planDuration,
+                    planDuration: payload.planDuration.toString(),
                     paymentFor: payload.paymentFor,
                     name: payload.name,
                     email: payload.email,
-                    initialAmount: payload.initialAmount,
+                    initialAmount: payload.initialAmount.toString(),
                 },
             });
 
             return { sessionId: session.id };
-        } catch (error) {
+        } catch (error: unknown) {
             log.error("PaymentGateway createSubscriptionCheckoutSession failed : ", error as Error);
-            throw error;
+            throw new AppError(
+                "Failed to initiate subscription checkout",
+                500,
+                false,
+                ERROR_CODES.CHECKOUT_ERROR
+            );
         }
     };
 
@@ -74,21 +82,26 @@ export class PaymentGateway implements IPaymentGateway {
                 cancel_url: payload.cancelUrl,
                 metadata: {
                     providerId: payload.providerId,
-                    slotDuration: payload.slotDuration,
+                    slotDuration: payload.slotDuration.toString(),
                     selectedServiceMode: payload.selectedServiceMode,
                     bookingId: payload.bookingId,
                     userId: payload.userId,
                     paymentFor: payload.paymentFor,
                     userEmail: payload.userEmail,
                     userName: payload.userName,
-                    initialAmount: payload.initialAmount,
+                    initialAmount: payload.initialAmount.toString(),
                     pushNotification: payload.pushNotification
                 },
             });
             return { sessionId: session.id }
-        } catch (error) {
+        } catch (error: unknown) {
             log.error("PaymentGateway createBookingCheckoutSession failed : ", error as Error);
-            throw error;
+            throw new AppError(
+                "Failed to initiate booking checkout",
+                500,
+                false,
+                ERROR_CODES.CHECKOUT_ERROR
+            );
         }
     }
 
@@ -103,9 +116,14 @@ export class PaymentGateway implements IPaymentGateway {
                 },
             });
             return { customerId: customer.id };
-        } catch (error) {
+        } catch (error: unknown) {
             log.error("PaymentGateway createStripeCustomer failed : ", error as Error);
-            throw error;
+            throw new AppError(
+                "Failed to create stripe customer",
+                500,
+                false,
+                ERROR_CODES.STRIPE_CREATE_CUSTOMER_ERROR
+            );
         }
     }
 
@@ -118,9 +136,14 @@ export class PaymentGateway implements IPaymentGateway {
                 }
             );
             return { paymentIntent };
-        } catch (error) {
+        } catch (error: unknown) {
             log.error("PaymentGateway retrievePaymentIntent failed : ", error as Error);
-            throw error;
+            throw new AppError(
+                "Failed to retrieve payment intent",
+                500,
+                false,
+                ERROR_CODES.STRIPE_RETRIEVE_ERROR
+            );
         }
     }
 
@@ -128,16 +151,77 @@ export class PaymentGateway implements IPaymentGateway {
         try {
             const refund = await this.stripe.refunds.create({
                 payment_intent: input.paymentIntent,
-                amount: input.refundAmount * 100,
-                currency: "inr",
+                amount: Math.round(input.refundAmount * 100),
                 reason: input.reason,
                 metadata: input.metadata,
+            }, {
+                stripeAccount: input.stripeAccount
             });
 
             return { refundId: refund.id };
-        } catch (error) {
+        } catch (error: unknown) {
             log.error("PaymentGateway createRefund failed : ", error as Error);
-            throw error;
+            throw new AppError(
+                "Failed to create refund",
+                500,
+                false,
+                ERROR_CODES.STRIPE_REFUND_ERROR
+            )
+        }
+    }
+
+    async retrieveBalance(input: RetrieveBalanceInput): Promise<RetrieveBalanceOutput> {
+        try {
+            const balanceTransaction = await this.stripe.balanceTransactions.retrieve(
+                input.balanceTransaction
+            );
+            return { balanceTransaction };
+        } catch (error: unknown) {
+            log.error("PaymentGateway retrieveBalance failed : ", error as Error);
+            throw new AppError(
+                "Failed to retrieve balance transaction",
+                500,
+                false,
+                ERROR_CODES.STRIPE_RETRIEVE_ERROR
+            );
+        }
+    }
+
+    async createStripeAccount(input: CreateStripeAccountInput): Promise<CreateStripeAccountout> {
+        try {
+            const account = await this.stripe.accounts.create({
+                type: "express",
+                email: input.email,
+            });
+            return { account };
+        } catch (error: unknown) {
+            log.error("PaymentGateway createStripeAccount failed : ", error as Error);
+            throw new AppError(
+                "Failed to create stripe account",
+                500,
+                false,
+                ERROR_CODES.STRIPE_CREATE_ACCOUNT_ERROR
+            );
+        }
+    }
+
+    async createStripeAccountLink(input: CreateStripeAccountLinkInput): Promise<CreateStripeAccountLinkOutput> {
+        try {
+            const accountLink = await this.stripe.accountLinks.create({
+                account: input.accountId,
+                refresh_url: serviceConfig.frontendUrl+"/stripe/refresh",
+                return_url: serviceConfig.frontendUrl+"/stripe/success",
+                type: "account_onboarding",
+            });
+            return { accountLink }
+        } catch (error: unknown) {
+            log.error("PaymentGateway createStripeAccountLink failed : ", error as Error);
+            throw new AppError(
+                "Failed to create stripe account link",
+                500,
+                false,
+                ERROR_CODES.STRIPE_CREATE_ACCOUNT_LINK_ERROR
+            );
         }
     }
 };

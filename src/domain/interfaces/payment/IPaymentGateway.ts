@@ -90,11 +90,36 @@ export interface RetrieveBalanceOutput {
     balanceTransaction: Stripe.BalanceTransaction;
 }
 
+export interface CreateStripeAccountInput {
+    email: string;
+}
+
+export interface CreateStripeAccountout {
+    account: Stripe.Response<Stripe.Account>;
+}
+
+export interface CreateStripeAccountLinkInput {
+    accountId: string;
+}
+
+export interface CreateStripeAccountLinkOutput {
+    accountLink: Stripe.Response<Stripe.AccountLink>;
+}
+
 export interface IPaymentGateway {
     createSubscriptionCheckoutSession(payload: CreateSubscriptionCheckoutSessionPayload): Promise<CreateSubscriptionCheckoutSessionResponse>;
+
     createBookingCheckoutSession(payload: CreateBookingCheckoutSessionPayload): Promise<CreateBookingCheckoutSessionResponse>;
+
     createStripeCustomer(payload: CreateStripeCustomerPayload): Promise<CreateStripeCustomerResponse>;
+
     createRefund(input: CreateRefundInput): Promise<CreateRefundOutput>;
+
     retrievePaymentIntent(input: RetrievePaymentIntentInput): Promise<RetrievePaymentIntentOutput>;
+
     retrieveBalance(input: RetrieveBalanceInput): Promise<RetrieveBalanceOutput>;
+
+    createStripeAccount(input: CreateStripeAccountInput): Promise<CreateStripeAccountout>;
+
+    createStripeAccountLink(input: CreateStripeAccountLinkInput): Promise<CreateStripeAccountLinkOutput>;
 };

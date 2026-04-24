@@ -1,13 +1,13 @@
 import Stripe from "stripe";
 import { Request, Response } from "express";
+import { bookingCheckoutCompleteUseCase } from ".";
 import { stripeConfig } from "../../../config/env";
 import { log } from "../../../shared/logger/logger";
-import { stripe } from "../../../infrastructure/payment/stripe.client";
 import { subscriptionCheckoutCompleteUseCase } from '.';
-import { SubscriptionCheckoutCompleteUseCase } from "../../../application/useCases/payment/subscriptionCheckoutCompleted";
 import { PaymentFor } from "../../../domain/enums/payment.enum";
-import { bookingCheckoutCompleteUseCase } from ".";
+import { stripe } from "../../../infrastructure/payment/stripe.client";
 import { BookingCheckoutCompleteUseCase } from "../../../application/useCases/payment/bookingCheckoutComplete";
+import { SubscriptionCheckoutCompleteUseCase } from "../../../application/useCases/payment/subscriptionCheckoutCompleted";
 
 class StripeWebhookController {
     constructor(
@@ -18,9 +18,8 @@ class StripeWebhookController {
     };
 
     async handleStripeWebhook(req: Request, res: Response) {
-        const sig = req.headers["stripe-signature"]!;
-
         try {
+            const sig = req.headers["stripe-signature"]!;
 
             const event = stripe.webhooks.constructEvent(
                 req.body,

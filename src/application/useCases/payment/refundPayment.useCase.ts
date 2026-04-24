@@ -1,20 +1,31 @@
+import mongoose from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
+import { kafkaConfig } from '../../../config/env';
+import { ERROR_CODES } from '../../../shared/utils/type';
 import { refundPaymentInput } from "../../dtos/payment.dtos";
 import { Refund } from "../../../domain/entities/refund.entity";
 import { RefundStatus } from "../../../domain/enums/refund.enum";
 import { PaymentStatus } from "../../../domain/enums/payment.enum";
+import { toAppError } from '../../../shared/error/handleUnknownError';
+import { notificationContentMap } from '../../../shared/utils/constants';
+import { EventEnvelope, RefundPaymentEvent } from '../../dtos/kafka.dtos';
+import { BadRequestError, NotFoundError } from '../../../shared/error/appError';
 import { IPaymentGateway } from "../../../domain/interfaces/payment/IPaymentGateway";
 import { IRefundRepository } from "../../../domain/interfaces/repositories/IRefund.repository";
 import { IPaymentRepository } from "../../../domain/interfaces/repositories/IPayment.repository";
+import { IKafkaProducerAdapter } from '../../../domain/interfaces/messaging/IKafkaProducerAdapter';
 
 export class RefundPaymentUseCase {
     constructor(
         private readonly paymentRepository: IPaymentRepository,
         private readonly refundRepository: IRefundRepository,
         private readonly paymentGateway: IPaymentGateway,
+        private readonly kafkaProducer: IKafkaProducerAdapter
     ) { }
 
     async execute(input: refundPaymentInput): Promise<void> {
+        const session = await mongoose.startSession();
+        session.startTransaction();
         try {
             const { bookingId, paymentId, reasonInDetail, refundFor, refundReason, userId } = input;
             if(!bookingId ||
@@ -24,20 +35,25 @@ export class RefundPaymentUseCase {
                 !refundReason ||
                 !userId
             ) {
-                throw new Error("Missing required fields");
+                throw new BadRequestError();
             }
 
             const payment = await this.paymentRepository.findById(paymentId);
             if (!payment) {
-                throw new Error("Payment not found");
+                throw new NotFoundError(
+                    "Payment not found",
+                    ERROR_CODES.PAYMENT_NOT_FOUND);
             }
 
             if(!payment.paymentIntentId) {
-                throw new Error()
+                throw new BadRequestError();
             }
 
             if (payment.paymentStatus === PaymentStatus.REFUNDED) {
-                throw new Error("Payment already refunded");
+                throw new BadRequestError(
+                    "Payment already refunded",
+                    ERROR_CODES.PAYMENT_ALREADY_REFUNDED
+                );
             }
 
             const refundAmount: number = Math.floor(payment.totalAmount / 2);
@@ -70,17 +86,62 @@ export class RefundPaymentUseCase {
                 }
             });
 
-            await this.refundRepository.create(refund);
+            const newRefund = await this.refundRepository.create(refund);
+            if(!newRefund){
+                throw new NotFoundError(
+                    "Refund creation failed",
+                    ERROR_CODES.PAYMENT_SERVICE_ERROR
+                );
+            }
 
             payment.paymentRefunded({
                 refundedAmount: (payment.refundedAmount || 0) + refundAmount
             });
 
-            await this.paymentRepository.update(payment);
+            const updatedPayment = await this.paymentRepository.update(payment);
+            if(!updatedPayment){
+                throw new NotFoundError(
+                    "Payment update failed",
+                    ERROR_CODES.PAYMENT_SERVICE_ERROR
+                );
+            }
 
-        } catch (error) {
+            await session.commitTransaction();
+
+            await this.kafkaProducer.publish<EventEnvelope<RefundPaymentEvent>>(
+                kafkaConfig.topics.pub.refundPayment,
+                {
+                    eventId: uuidv4(),
+                    occurredAt: new Date().toISOString(),
+                    attempt: 1,
+                    maxAttempts: 3,
+                    payload: {
+                        emailData: {
+                            email: "",
+                            name: "",
+                            refundAmount,
+                            refundDate: refund.createdAt,
+                            refundStatus: refund.refundStatus,
+                            transactionId: refundId,
+                        },
+                        notificationData: {
+                            title: notificationContentMap.refundPayment.title,
+                            body: notificationContentMap.refundPayment.body(RefundStatus.SUCCESS),
+                            pushNotification: true,
+                            userId,
+                            data: {
+                                refundAmount: refundAmount.toString()
+                            }
+                        }
+                    }
+                }
+            )
+        } catch (error: unknown) {
+            session.abortTransaction();
             console.error("Refund failed:", error);
-            throw error;
+            throw toAppError(error, "Failed to process refund payment");
+        } finally {
+            session.endSession();
         }
     }
 }

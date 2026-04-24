@@ -1,14 +1,16 @@
 import Stripe from "stripe";
 import { v4 as uuidv4 } from 'uuid';
 import { kafkaConfig } from "../../../config/env";
-import { log } from "../../../shared/logger/logger";
+import { ERROR_CODES } from "../../../shared/utils/type";
 import { Payment } from "../../../domain/entities/payment.entity";
+import { toAppError } from "../../../shared/error/handleUnknownError";
 import { notificationContentMap } from "../../../shared/utils/constants";
+import { AppError, BadRequestError } from "../../../shared/error/appError";
 import { IPaymentGateway } from "../../../domain/interfaces/payment/IPaymentGateway";
+import { CreateBookingPaymentSuccessEvent, EventEnvelope } from "../../dtos/kafka.dtos";
 import { IPaymentRepository } from "../../../domain/interfaces/repositories/IPayment.repository";
 import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
 import { PaymentFor, PaymentGateway, PaymentMethod, PaymentStatus } from "../../../domain/enums/payment.enum";
-import { CreateBookingPaymentFailedEvent, CreateBookingPaymentSuccessEvent, EventEnvelope } from "../../dtos/kafka.dtos";
 
 export class BookingCheckoutCompleteUseCase {
     constructor(
@@ -19,25 +21,30 @@ export class BookingCheckoutCompleteUseCase {
 
     async execute(payload: Stripe.Checkout.Session): Promise<void> {
         try {
-            log.info(`Payload : ${JSON.stringify(payload)}`);
+            if (!payload.payment_intent) {
+                throw new BadRequestError();
+            }
 
             let receiptUrl: string | null = null;
             let receiptNumber: string | null = null;
             let receiptEmail: string | null = null;
 
-            if (!payload.payment_intent) {
-                throw new Error();
-            }
-
             const paymentIntentDetail = await this.paymentGateway.retrievePaymentIntent({
                 paymentIntent: payload.payment_intent as string
             });
             const latestCharge = paymentIntentDetail.paymentIntent.latest_charge as Stripe.Charge;
-            if (latestCharge) {
-                receiptUrl = latestCharge.receipt_url;
-                receiptNumber = latestCharge.receipt_number;
-                receiptEmail = latestCharge.receipt_email;
+            if (!latestCharge || !latestCharge.balance_transaction) {
+                throw new AppError(
+                    "Payment charge or balance transaction details missing",
+                    500,
+                    false,
+                    ERROR_CODES.PAYMENT_INVALID_RESPONSE
+                );
             }
+
+            receiptUrl = latestCharge.receipt_url;
+            receiptNumber = latestCharge.receipt_number;
+            receiptEmail = latestCharge.receipt_email;
 
             const balanceTransaction = await this.paymentGateway.retrieveBalance({
                 balanceTransaction: latestCharge.balance_transaction as string
@@ -74,7 +81,7 @@ export class BookingCheckoutCompleteUseCase {
                 !email ||
                 !name
             ) {
-                throw new Error("Missing required metadata");
+                throw new BadRequestError();
             }
 
             const paymentData = Payment.createForBooking({
@@ -133,26 +140,16 @@ export class BookingCheckoutCompleteUseCase {
                         },
                     }
                 );
-
             } else {
-                await this.kafkaProducer.publish<EventEnvelope<CreateBookingPaymentFailedEvent>>(
-                    kafkaConfig.topics.pub.userBookingPaymentFailed,
-                    {
-                        eventId: uuidv4(),
-                        attempt: 1,
-                        maxAttempts: 1,
-                        occurredAt: new Date().toString(),
-                        payload: {
-                            mbsData: {
-                                bookingId,
-                            },
-                        },
-                    }
-                );
+               throw new AppError(
+                "Failed to create payment",
+                500,
+                false,
+                ERROR_CODES.PAYMENT_SERVICE_ERROR
+               )
             }
-        } catch (error) {
-            log.error("BookingStripeCheckoutCompleteUseCase failed : ", error as Error);
-            throw error;
+        } catch (error: unknown) {
+            throw toAppError(error, "Failed to booking checkout");
         }
     }
 }

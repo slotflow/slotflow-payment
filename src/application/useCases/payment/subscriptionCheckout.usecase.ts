@@ -1,8 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
-import { log } from "../../../shared/logger/logger";
 import { Role } from "../../../domain/enums/common.enum";
+import { BadRequestError } from "../../../shared/error/appError";
 import { kafkaConfig, serviceConfig } from "../../../config/env";
 import { SubscriptionCheckoutRequest } from "../../dtos/payment.dtos";
+import { toAppError } from "../../../shared/error/handleUnknownError";
 import { EventEnvelope, StripeCustomerCreatedEvent } from "../../dtos/kafka.dtos";
 import { IPaymentGateway } from "../../../domain/interfaces/payment/IPaymentGateway";
 import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
@@ -18,22 +19,34 @@ export class SubscriptionCheckoutUseCase {
     async execute(payload: SubscriptionCheckoutRequest): Promise<string> {
         try {
 
-        const {
-            subscriptionId,
-            providerId,
-            planName,
-            description,
-            planDuration,
-            unitAmount,
-            paymentFor,
-            name,
-            email,
-            initialAmount,
-            stripeCustomerId
-        } = payload;
+            const {
+                subscriptionId,
+                providerId,
+                planName,
+                description,
+                planDuration,
+                unitAmount,
+                paymentFor,
+                name,
+                email,
+                initialAmount,
+                stripeCustomerId
+            } = payload;
 
+            if (!subscriptionId ||
+                !providerId ||
+                !planName ||
+                !description ||
+                !planDuration ||
+                !unitAmount ||
+                !paymentFor ||
+                !name ||
+                !email ||
+                !initialAmount) {
+                throw new BadRequestError();
+            }
 
-        let newStripeCstomerId: string | undefined = stripeCustomerId ?? undefined;
+            let newStripeCstomerId: string | undefined = stripeCustomerId ?? undefined;
 
             if (!stripeCustomerId) {
                 const customerId = await this.paymentGateway.createStripeCustomer({
@@ -58,10 +71,6 @@ export class SubscriptionCheckoutUseCase {
                 });
             }
 
-
-            console.log("successUrl : ", serviceConfig.frontendUrl + providerPaymentSuccessUrl);
-            console.log("cancelUrl : ", serviceConfig.frontendUrl + providerPaymentFailedUrl);
-
             const result = await this.paymentGateway.createSubscriptionCheckoutSession({
                 subscriptionId,
                 providerId,
@@ -79,9 +88,8 @@ export class SubscriptionCheckoutUseCase {
             });
 
             return result.sessionId;
-        } catch (error) {
-            log.error("ProviderPaymentCheckoutUseCase failed : ", error as Error);
-            throw error;
+        } catch (error: unknown) {
+            throw toAppError(error, "Failed to create subscription checkout");
         };
     };
 };

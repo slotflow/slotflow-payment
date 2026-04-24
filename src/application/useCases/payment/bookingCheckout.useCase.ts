@@ -1,12 +1,13 @@
 import { v4 as uuidv4 } from "uuid";
-import { log } from "../../../shared/logger/logger";
 import { Role } from "../../../domain/enums/common.enum";
-import { kafkaConfig, serviceConfig } from "../../../config/env";
+import { BadRequestError } from "../../../shared/error/appError";
 import { BookingCheckoutRequest } from "../../dtos/payment.dtos";
+import { kafkaConfig, serviceConfig } from "../../../config/env";
+import { toAppError } from "../../../shared/error/handleUnknownError";
 import { EventEnvelope, StripeCustomerCreatedEvent } from "../../dtos/kafka.dtos";
 import { IPaymentGateway } from "../../../domain/interfaces/payment/IPaymentGateway";
-import { bookingPaymentFailedUrl, bookingPaymentSuccessUrl } from "../../../shared/utils/constants";
 import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
+import { bookingPaymentFailedUrl, bookingPaymentSuccessUrl } from "../../../shared/utils/constants";
 
 export class BookingCheckoutUseCase {
     constructor(
@@ -32,6 +33,23 @@ export class BookingCheckoutUseCase {
                 pushNotification,
                 stripeCustomerId
             } = payload;
+
+            if(!serviceName ||
+               ! description ||
+               ! unitAmount ||
+               ! providerId ||
+               ! slotDuration ||
+               ! selectedServiceMode ||
+               ! bookingId ||
+               ! userId ||
+               ! paymentFor ||
+               ! userEmail ||
+               ! userName ||
+               ! initialAmount ||
+               ! pushNotification
+            ){
+                throw new BadRequestError();
+            }
 
             let newStripeCstomerId: string | undefined = stripeCustomerId ?? undefined;
 
@@ -78,9 +96,8 @@ export class BookingCheckoutUseCase {
             });
 
             return result.sessionId;
-        } catch (error) {
-            log.error("BookingCheckoutUseCase failed : ", error as Error);
-            throw error;
+        } catch (error: unknown) {
+            throw toAppError(error, "Failed to booking checkout");
         }
     }
 }

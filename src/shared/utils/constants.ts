@@ -1,3 +1,5 @@
+import { RefundStatus } from "../../domain/enums/refund.enum";
+
 // notification content
 export const notificationContentMap: Record<string, {
   title: string;
@@ -13,6 +15,19 @@ export const notificationContentMap: Record<string, {
     body: () =>
       `Your payment has been received successfully. Your booking is being confirmed`
   },
+  refundPayment: {
+    title: "Refund Initiated",
+    body: (refundStatus: RefundStatus) => {
+      switch (refundStatus) {
+        case RefundStatus.SUCCESS:
+          return `Your refund has been initiated successfully.`;
+        case RefundStatus.FAILED:
+          return `Your refund has been failed.`;
+        default:
+          return "Your refund has been failed.";
+      }
+    }
+  }
 };
 
 // payment urls
