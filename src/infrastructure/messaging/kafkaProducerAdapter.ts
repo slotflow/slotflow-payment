@@ -1,6 +1,6 @@
 import { Kafka, Producer } from "kafkajs";
 import { log } from "../../shared/logger/logger";
-import { ERROR_CODES } from "../../shared/utils/type";
+import { ERROR_CODES } from "../../shared/utils/types";
 import { AppError } from "../../shared/error/appError";
 import { IKafkaProducerAdapter } from "../../domain/interfaces/messaging/IKafkaProducerAdapter";
 

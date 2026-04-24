@@ -1,6 +1,6 @@
 import { Kafka, Consumer } from "kafkajs";
 import { log } from "../../shared/logger/logger";
-import { ERROR_CODES } from "../../shared/utils/type";
+import { ERROR_CODES } from "../../shared/utils/types";
 import { AppError } from "../../shared/error/appError";
 import { MessageHandler } from "../../application/dtos/kafka.dtos";
 import { IKafkaConsumerAdapter } from "../../domain/interfaces/messaging/IKafkaConsumerAdapter";

@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { log } from "../../shared/logger/logger";
-import { ERROR_CODES } from "../../shared/utils/type";
+import { ERROR_CODES } from "../../shared/utils/types";
 import { AppError } from "../../shared/error/appError";
 import { IPaymentGateway, CreateSubscriptionCheckoutSessionPayload, CreateSubscriptionCheckoutSessionResponse, CreateBookingCheckoutSessionPayload, CreateBookingCheckoutSessionResponse, CreateStripeCustomerPayload, CreateStripeCustomerResponse, CreateRefundInput, CreateRefundOutput, RetrievePaymentIntentInput, RetrievePaymentIntentOutput, RetrieveBalanceInput, RetrieveBalanceOutput, CreateStripeAccountInput, CreateStripeAccountout, CreateStripeAccountLinkInput, CreateStripeAccountLinkOutput } from "../../domain/interfaces/payment/IPaymentGateway";
 import { serviceConfig } from "../../config/env";
@@ -209,8 +209,8 @@ export class PaymentGateway implements IPaymentGateway {
         try {
             const accountLink = await this.stripe.accountLinks.create({
                 account: input.accountId,
-                refresh_url: serviceConfig.frontendUrl+"/stripe/refresh",
-                return_url: serviceConfig.frontendUrl+"/stripe/success",
+                refresh_url: serviceConfig.frontendUrl + "/stripe/refresh",
+                return_url: serviceConfig.frontendUrl + "/stripe/success",
                 type: "account_onboarding",
             });
             return { accountLink }

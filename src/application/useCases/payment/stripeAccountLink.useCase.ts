@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { kafkaConfig } from "../../../config/env";
-import { ERROR_CODES } from '../../../shared/utils/type';
+import { ERROR_CODES } from '../../../shared/utils/types';
 import { toAppError } from '../../../shared/error/handleUnknownError';
 import { AppError, BadRequestError } from '../../../shared/error/appError';
 import { EventEnvelope, StripeAccountCreatedEvent } from "../../dtos/kafka.dtos";

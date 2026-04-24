@@ -1,4 +1,4 @@
-import { ERROR_CODES } from "../../../shared/utils/type";
+import { ERROR_CODES } from "../../../shared/utils/types";
 import { toAppError } from "../../../shared/error/handleUnknownError";
 import { BadRequestError, NotFoundError } from "../../../shared/error/appError";
 import { GetPaymentDetailsRequest, GetPaymentDetailsResponse } from "../../dtos/payment.dtos";
@@ -17,13 +17,13 @@ export class GetPaymentDetailsUseCase {
             }
 
             const payment = await this.paymentRepository.findById(paymentId);
-            if(!payment){
+            if (!payment) {
                 throw new NotFoundError(
                     "Payment not found",
                     ERROR_CODES.PAYMENT_NOT_FOUND
                 );
             }
-            
+
             const data = {
                 transactionId: payment?.transactionId,
                 paymentStatus: payment?.paymentStatus,

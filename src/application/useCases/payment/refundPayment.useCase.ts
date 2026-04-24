@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import { kafkaConfig } from '../../../config/env';
-import { ERROR_CODES } from '../../../shared/utils/type';
+import { ERROR_CODES } from '../../../shared/utils/types';
 import { refundPaymentInput } from "../../dtos/payment.dtos";
 import { Refund } from "../../../domain/entities/refund.entity";
 import { RefundStatus } from "../../../domain/enums/refund.enum";
@@ -28,7 +28,7 @@ export class RefundPaymentUseCase {
         session.startTransaction();
         try {
             const { bookingId, paymentId, reasonInDetail, refundFor, refundReason, userId } = input;
-            if(!bookingId ||
+            if (!bookingId ||
                 !paymentId ||
                 !reasonInDetail ||
                 !refundFor ||
@@ -45,7 +45,7 @@ export class RefundPaymentUseCase {
                     ERROR_CODES.PAYMENT_NOT_FOUND);
             }
 
-            if(!payment.paymentIntentId) {
+            if (!payment.paymentIntentId) {
                 throw new BadRequestError();
             }
 
@@ -87,7 +87,7 @@ export class RefundPaymentUseCase {
             });
 
             const newRefund = await this.refundRepository.create(refund);
-            if(!newRefund){
+            if (!newRefund) {
                 throw new NotFoundError(
                     "Refund creation failed",
                     ERROR_CODES.PAYMENT_SERVICE_ERROR
@@ -99,7 +99,7 @@ export class RefundPaymentUseCase {
             });
 
             const updatedPayment = await this.paymentRepository.update(payment);
-            if(!updatedPayment){
+            if (!updatedPayment) {
                 throw new NotFoundError(
                     "Payment update failed",
                     ERROR_CODES.PAYMENT_SERVICE_ERROR

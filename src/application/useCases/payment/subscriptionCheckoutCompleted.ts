@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { v4 as uuidv4 } from 'uuid';
 import { kafkaConfig } from "../../../config/env";
-import { ERROR_CODES } from "../../../shared/utils/type";
+import { ERROR_CODES } from "../../../shared/utils/types";
 import { Payment } from "../../../domain/entities/payment.entity";
 import { toAppError } from "../../../shared/error/handleUnknownError";
 import { notificationContentMap } from "../../../shared/utils/constants";

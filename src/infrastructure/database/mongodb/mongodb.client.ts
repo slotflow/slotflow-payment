@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { log } from '../../../shared/logger/logger';
 import { mongodbConfig } from '../../../config/env';
-import { ERROR_CODES } from '../../../shared/utils/type';
+import { ERROR_CODES } from '../../../shared/utils/types';
 import { AppError } from '../../../shared/error/appError';
 
 export const connectMongoDB = async () => {
@@ -10,12 +10,12 @@ export const connectMongoDB = async () => {
     log.info("MongoDB Connected...");
   } catch (error) {
     log.error("MongoDB Connection Error : ", error as Error);
-    
+
     throw new AppError(
       "Database connection failed",
       500,
       false,
-      ERROR_CODES .DB_CONNECTION_FAILED
+      ERROR_CODES.DB_CONNECTION_FAILED
     );
   }
 };
@@ -26,7 +26,7 @@ export const disconnectMongoDB = async () => {
     log.info("MongoDB Disconnected...");
   } catch (error) {
     log.error("MongoDB Disconnection Error : ", error as Error);
-    
+
     throw new AppError(
       "Database disconnection failed",
       500,
