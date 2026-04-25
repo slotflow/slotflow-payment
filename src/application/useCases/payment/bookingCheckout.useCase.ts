@@ -1,5 +1,6 @@
-import { v4 as uuidv4 } from "uuid";
+import { IdType } from "../../../shared/utils/types";
 import { Role } from "../../../domain/enums/common.enum";
+import { generateId } from "../../../shared/utils/generateId";
 import { BadRequestError } from "../../../shared/error/appError";
 import { BookingCheckoutRequest } from "../../dtos/payment.dtos";
 import { kafkaConfig, serviceConfig } from "../../../config/env";
@@ -63,7 +64,7 @@ export class BookingCheckoutUseCase {
                 newStripeCstomerId = customerId.customerId;
                 await this.kafkaProducer.publish<EventEnvelope<StripeCustomerCreatedEvent>>(
                     kafkaConfig.topics.pub.stripeCustomerCreated, {
-                    eventId: uuidv4(),
+                    eventId: generateId(IdType.EVENT),
                     attempt: 1,
                     maxAttempts: 1,
                     occurredAt: new Date().toString(),

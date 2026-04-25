@@ -1,4 +1,5 @@
 import { RefundStatus } from "../../domain/enums/refund.enum";
+import { IdType } from "./types";
 
 // notification content
 export const notificationContentMap: Record<string, {
@@ -36,3 +37,11 @@ export const providerPaymentFailedUrl = "/provider/subscription/confirm?status=f
 
 export const bookingPaymentSuccessUrl = "/user/booking/confirm?status=success";
 export const bookingPaymentFailedUrl = "/user/booking/confirm?status=failed";
+
+export const PREFIX_MAP: Record<IdType, string> = {
+  [IdType.EVENT]: "sf_evt_",
+  [IdType.TRANSACTION]: "sf_trx_",
+  [IdType.ROOM]: "sf_room_",
+  [IdType.IDEMPOTENCY]: "sf_idem_",
+  [IdType.FILE]: "sf_file_",
+};

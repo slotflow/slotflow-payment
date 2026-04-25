@@ -1,7 +1,7 @@
 import Stripe from "stripe";
-import { v4 as uuidv4 } from 'uuid';
 import { kafkaConfig } from "../../../config/env";
-import { ERROR_CODES } from "../../../shared/utils/types";
+import { generateId } from "../../../shared/utils/generateId";
+import { ERROR_CODES, IdType } from "../../../shared/utils/types";
 import { Payment } from "../../../domain/entities/payment.entity";
 import { toAppError } from "../../../shared/error/handleUnknownError";
 import { notificationContentMap } from "../../../shared/utils/constants";
@@ -85,10 +85,10 @@ export class BookingCheckoutCompleteUseCase {
             }
 
             const paymentData = Payment.createForBooking({
-                idempotencyKey: uuidv4(),
+                idempotencyKey: generateId(IdType.IDEMPOTENCY),
                 paymentIntentId: paymentIntent,
                 gatewayFee: fee,
-                transactionId: uuidv4(),
+                transactionId: generateId(IdType.TRANSACTION),
                 paymentStatus,
                 paymentMethod,
                 paymentGateway: PaymentGateway.STRIPE,
@@ -112,7 +112,7 @@ export class BookingCheckoutCompleteUseCase {
                 await this.kafkaProducer.publish<EventEnvelope<CreateBookingPaymentSuccessEvent>>(
                     kafkaConfig.topics.pub.userBookingPaymentSuccess,
                     {
-                        eventId: uuidv4(),
+                        eventId: generateId(IdType.EVENT),
                         attempt: 1,
                         maxAttempts: 1,
                         occurredAt: new Date().toString(),

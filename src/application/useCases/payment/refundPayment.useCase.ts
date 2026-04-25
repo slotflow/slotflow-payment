@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
-import { v4 as uuidv4 } from 'uuid';
 import { kafkaConfig } from '../../../config/env';
-import { ERROR_CODES } from '../../../shared/utils/types';
 import { refundPaymentInput } from "../../dtos/payment.dtos";
+import { generateId } from '../../../shared/utils/generateId';
 import { Refund } from "../../../domain/entities/refund.entity";
 import { RefundStatus } from "../../../domain/enums/refund.enum";
+import { ERROR_CODES, IdType } from '../../../shared/utils/types';
 import { PaymentStatus } from "../../../domain/enums/payment.enum";
 import { toAppError } from '../../../shared/error/handleUnknownError';
 import { notificationContentMap } from '../../../shared/utils/constants';
@@ -71,7 +71,7 @@ export class RefundPaymentUseCase {
             });
 
             const refund = Refund.create({
-                idempotencyKey: uuidv4(),
+                idempotencyKey: generateId(IdType.IDEMPOTENCY),
                 paymentId: paymentId,
                 refundId: refundId,
                 amount: refundAmount,
@@ -111,7 +111,7 @@ export class RefundPaymentUseCase {
             await this.kafkaProducer.publish<EventEnvelope<RefundPaymentEvent>>(
                 kafkaConfig.topics.pub.refundPayment,
                 {
-                    eventId: uuidv4(),
+                    eventId: generateId(IdType.EVENT),
                     occurredAt: new Date().toISOString(),
                     attempt: 1,
                     maxAttempts: 3,

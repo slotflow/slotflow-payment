@@ -1,6 +1,6 @@
-import { v4 as uuidv4 } from 'uuid';
 import { kafkaConfig } from "../../../config/env";
-import { ERROR_CODES } from '../../../shared/utils/types';
+import { generateId } from '../../../shared/utils/generateId';
+import { ERROR_CODES, IdType } from '../../../shared/utils/types';
 import { toAppError } from '../../../shared/error/handleUnknownError';
 import { AppError, BadRequestError } from '../../../shared/error/appError';
 import { EventEnvelope, StripeAccountCreatedEvent } from "../../dtos/kafka.dtos";
@@ -25,7 +25,7 @@ export class StripeAccountLinkUseCase {
 
             await this.kafkaProducer.publish<EventEnvelope<StripeAccountCreatedEvent>>(
                 kafkaConfig.topics.pub.stripeAccountCreated, {
-                eventId: uuidv4(),
+                eventId: generateId(IdType.EVENT),
                 attempt: 1,
                 maxAttempts: 1,
                 occurredAt: new Date().toString(),

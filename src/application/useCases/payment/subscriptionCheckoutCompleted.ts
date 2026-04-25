@@ -1,16 +1,16 @@
 import Stripe from "stripe";
-import { v4 as uuidv4 } from 'uuid';
 import { kafkaConfig } from "../../../config/env";
-import { ERROR_CODES } from "../../../shared/utils/types";
+import { generateId } from "../../../shared/utils/generateId";
+import { ERROR_CODES, IdType } from "../../../shared/utils/types";
 import { Payment } from "../../../domain/entities/payment.entity";
 import { toAppError } from "../../../shared/error/handleUnknownError";
 import { notificationContentMap } from "../../../shared/utils/constants";
 import { AppError, BadRequestError } from "../../../shared/error/appError";
 import { IPaymentGateway } from "../../../domain/interfaces/payment/IPaymentGateway";
+import { EventEnvelope, ProviderCreatePaymentSuccessEvent } from "../../dtos/kafka.dtos";
 import { IPaymentRepository } from "../../../domain/interfaces/repositories/IPayment.repository";
 import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
 import { PaymentFor, PaymentGateway, PaymentMethod, PaymentStatus } from "../../../domain/enums/payment.enum";
-import { EventEnvelope, ProviderCreatePaymentSuccessEvent } from "../../dtos/kafka.dtos";
 
 export class SubscriptionCheckoutCompleteUseCase {
     constructor(
@@ -84,10 +84,10 @@ export class SubscriptionCheckoutCompleteUseCase {
             }
 
             const paymentData = Payment.createForSubscription({
-                idempotencyKey: uuidv4(),
+                idempotencyKey: generateId(IdType.IDEMPOTENCY),
                 paymentIntentId: paymentIntent,
                 gatewayFee: fee,
-                transactionId: uuidv4(),
+                transactionId: generateId(IdType.TRANSACTION),
                 paymentStatus,
                 paymentMethod,
                 paymentGateway: PaymentGateway.STRIPE,
@@ -110,7 +110,7 @@ export class SubscriptionCheckoutCompleteUseCase {
                 await this.kafkaProducer.publish<EventEnvelope<ProviderCreatePaymentSuccessEvent>>(
                     kafkaConfig.topics.pub.providerSubscriptionPaymentSuccess,
                     {
-                        eventId: uuidv4(),
+                        eventId: generateId(IdType.EVENT),
                         attempt: 1,
                         maxAttempts: 1,
                         occurredAt: new Date().toString(),
