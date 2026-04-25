@@ -75,7 +75,7 @@ export interface ApiPaginationRequest {
 }
 
 export interface DecodedUser {
-  userOrProviderId: string;
+  id: string;
   role: Role;
   googleAccessToken?: string;
   googleRefreshToken?: string;

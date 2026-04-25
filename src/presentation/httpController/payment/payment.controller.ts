@@ -52,9 +52,9 @@ class PaymentController {
                 filters.userId = userId;
                 filters.providerId = providerId;
             } else if (user.role === Role.PROVIDER) {
-                filters.providerId = user.userOrProviderId;
+                filters.providerId = user.id;
             } else if (user.role === Role.USER) {
-                filters.userId = user.userOrProviderId;
+                filters.userId = user.id;
             } else {
                 return res.status(403).json({ message: "Forbidden" });
             }
@@ -130,7 +130,7 @@ class PaymentController {
             const { email } = validateEmailSchema.parse(req.body);
             const result = await this.stripeAccountLinkUseCase.execute({
                 email,
-                userId: user.userOrProviderId,
+                userId: user.id,
             });
             sendResponse(res, result, "Stripe connected");
         } catch (error) {
@@ -145,7 +145,7 @@ class PaymentController {
             const validatedData = startAndEndDateSchema.parse(req.query);
             if(user.role === Role.PROVIDER) {
                 const result = await this.getProviderRevenueUseCase.execute({
-                    providerId: user.userOrProviderId,
+                    providerId: user.id,
                     ...validatedData
                 });
                 sendResponse(res, result);
@@ -166,7 +166,7 @@ class PaymentController {
             const validatedData = refundSchema.parse(req.body);
             await this.refundPaymentUseCase.execute({
                 ...validatedData,
-                userId: user.userOrProviderId,
+                userId: user.id,
             });
             sendResponse(res, null);
         } catch (error) {

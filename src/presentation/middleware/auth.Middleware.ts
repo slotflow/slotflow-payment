@@ -21,7 +21,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       : (role as Role);
 
     req.user = {
-      userOrProviderId: normalizedUserId,
+      id: normalizedUserId,
       role: normalizedRole,
     } as DecodedUser;
 
