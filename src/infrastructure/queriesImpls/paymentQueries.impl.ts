@@ -4,12 +4,12 @@ import { TableData } from "../../application/dtos/common.dtos";
 import { getStartAndEndDate } from "../../shared/utils/dateTime";
 import { IPaymentQueries } from "../../application/queries/IPayment.queries";
 import { PaymentFor, PaymentGateway, PaymentStatus } from "../../domain/enums/payment.enum";
-import { GetAdminRevenueReportRequest, GetAdminRevenueReportResponse, GetAdminRevenueStatsDataRequest, GetAdminRevenueStatsDataResponse, GetProviderRevenueRequest, GetProviderRevenueResponse } from "../../application/dtos/payment.dtos";
+import { GetAdminRevenueReportQuery, GetAdminRevenueReportView, GetAdminRevenueStatsDataQuery, GetAdminRevenueStatsDataView, GetProviderRevenueQuery, GetProviderRevenueView } from "../../application/dtos/payment.dtos";
 
 export class PaymentQueriesImpl implements IPaymentQueries {
 
-    async findAdminRevenueReport(payload: GetAdminRevenueReportRequest): Promise<TableData<GetAdminRevenueReportResponse>> {
-        const { endDate, limit, page, startDate } = payload;
+    async findAdminRevenueReport(query: GetAdminRevenueReportQuery): Promise<TableData<GetAdminRevenueReportView>> {
+        const { endDate, limit, page, startDate } = query;
         const skip = (page - 1) * limit;
         const match: Record<string, any> = {
             paymentStatus: PaymentStatus.PAID,
@@ -87,8 +87,8 @@ export class PaymentQueriesImpl implements IPaymentQueries {
         };
     };
 
-    async findStatsDataForAdminDashboard(payload: GetAdminRevenueStatsDataRequest): Promise<GetAdminRevenueStatsDataResponse> {
-        const { startDate, endDate } = getStartAndEndDate(payload.startDate, payload.endDate);
+    async findStatsDataForAdminDashboard(query: GetAdminRevenueStatsDataQuery): Promise<GetAdminRevenueStatsDataView> {
+        const { startDate, endDate } = getStartAndEndDate(query.startDate, query.endDate);
         const paymentData = await PaymentModel.aggregate([
             {
                 $match: {
@@ -203,9 +203,9 @@ export class PaymentQueriesImpl implements IPaymentQueries {
         return { ...data };
     };
 
-    async findStatsDataForProviderDashboard(payload: GetProviderRevenueRequest): Promise<GetProviderRevenueResponse> {
-        const { providerId } = payload;
-        const { startDate, endDate } = getStartAndEndDate(payload.startDate, payload.endDate);
+    async findStatsDataForProviderDashboard(query: GetProviderRevenueQuery): Promise<GetProviderRevenueView> {
+        const { providerId } = query;
+        const { startDate, endDate } = getStartAndEndDate(query.startDate, query.endDate);
 
         const result = await PaymentModel.aggregate([
             {

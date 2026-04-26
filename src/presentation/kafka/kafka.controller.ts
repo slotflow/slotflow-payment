@@ -4,7 +4,7 @@ import { handlers, processEventWrapperUseCase } from ".";
 import { kafkaConsumer } from "../../infrastructure/messaging";
 import { PSSubKafkaEventPayload } from "../../application/dtos/kafka.dtos";
 import { IKafkaConsumerAdapter } from "../../domain/interfaces/messaging/IKafkaConsumerAdapter";
-import { ProcessEventWrapperUseCase } from "../../application/useCases/kafkaConsumerUsecases/processEventWrapper.useCase";
+import { ProcessEventWrapperUseCase } from "../../application/useCases/kafka/processEventWrapper.useCase";
 
 class KafkaConsumerController {
   constructor(

@@ -2,7 +2,7 @@ import helmet from 'helmet';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import v1router from '../presentation/router/router.v1';
-import webhookRoutes from '../presentation/httpController/stripeWebhook/stripe.router';
+import webhookRoutes from '../presentation/http/stripeWebhook/stripe.router';
 import { errorHandler } from '../presentation/middleware/error.middleware';
 
 const app = express();

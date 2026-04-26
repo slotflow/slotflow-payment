@@ -1,16 +1,16 @@
 import { ApiResponse } from "../../dtos/common.dtos";
 import { IPaymentQueries } from "../../queries/IPayment.queries";
 import { toAppError } from "../../../shared/error/handleUnknownError";
-import { GetAdminRevenueReportRequest, GetAdminRevenueReportResponse } from "../../dtos/payment.dtos";
+import { GetAdminRevenueReportInput, GetAdminRevenueReportOutput } from "../../dtos/payment.dtos";
 
 export class GetAdminRevenueReportUseCase {
     constructor(
         private paymentQueries: IPaymentQueries,
     ) { };
 
-    async execute(payload: GetAdminRevenueReportRequest): Promise<ApiResponse<GetAdminRevenueReportResponse>> {
+    async execute(input: GetAdminRevenueReportInput): Promise<ApiResponse<GetAdminRevenueReportOutput>> {
         try {
-            const result = await this.paymentQueries.findAdminRevenueReport(payload);
+            const result = await this.paymentQueries.findAdminRevenueReport(input);
             const { data: report, totalPages, currentPage, totalCount } = result;
             return {
                 data: report,

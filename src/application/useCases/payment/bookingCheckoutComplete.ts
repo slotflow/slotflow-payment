@@ -19,9 +19,9 @@ export class BookingCheckoutCompleteUseCase {
         private readonly paymentGateway: IPaymentGateway
     ) { }
 
-    async execute(payload: Stripe.Checkout.Session): Promise<void> {
+    async execute(input: Stripe.Checkout.Session): Promise<void> {
         try {
-            if (!payload.payment_intent) {
+            if (!input.payment_intent) {
                 throw new BadRequestError();
             }
 
@@ -30,7 +30,7 @@ export class BookingCheckoutCompleteUseCase {
             let receiptEmail: string | null = null;
 
             const paymentIntentDetail = await this.paymentGateway.retrievePaymentIntent({
-                paymentIntent: payload.payment_intent as string
+                paymentIntent: input.payment_intent as string
             });
             const latestCharge = paymentIntentDetail.paymentIntent.latest_charge as Stripe.Charge;
             if (!latestCharge || !latestCharge.balance_transaction) {
@@ -52,21 +52,21 @@ export class BookingCheckoutCompleteUseCase {
             const fee = balanceTransaction.balanceTransaction.fee;
 
 
-            const userId = payload?.metadata?.userId;
-            const bookingId = payload?.metadata?.bookingId;
-            const email = payload?.metadata?.userEmail;
-            const slotDuration = payload?.metadata?.slotDuration;
-            const name = payload?.metadata?.userName;
-            const providerId = payload?.metadata?.providerId;
-            const initialAmount = Number(payload?.metadata?.initialAmount);
-            const selectedServiceMode = payload?.metadata?.selectedServiceMode;
-            const paymentFor = payload?.metadata?.paymentFor as PaymentFor;
-            const pushNotification = Boolean(payload?.metadata?.pushNotification);
-            const paymentIntent = payload?.payment_intent as string;
-            const paymentMethod = payload?.payment_method_types[0] as PaymentMethod;
-            const paymentStatus = payload?.payment_status === "paid" ? PaymentStatus.PAID : PaymentStatus.PENDING;
-            const totalAmount = (payload.amount_total || 0) / 100;
-            const discountAmount = (payload.total_details?.amount_discount || 0) / 100;
+            const userId = input?.metadata?.userId;
+            const bookingId = input?.metadata?.bookingId;
+            const email = input?.metadata?.userEmail;
+            const slotDuration = input?.metadata?.slotDuration;
+            const name = input?.metadata?.userName;
+            const providerId = input?.metadata?.providerId;
+            const initialAmount = Number(input?.metadata?.initialAmount);
+            const selectedServiceMode = input?.metadata?.selectedServiceMode;
+            const paymentFor = input?.metadata?.paymentFor as PaymentFor;
+            const pushNotification = Boolean(input?.metadata?.pushNotification);
+            const paymentIntent = input?.payment_intent as string;
+            const paymentMethod = input?.payment_method_types[0] as PaymentMethod;
+            const paymentStatus = input?.payment_status === "paid" ? PaymentStatus.PAID : PaymentStatus.PENDING;
+            const totalAmount = (input.amount_total || 0) / 100;
+            const discountAmount = (input.total_details?.amount_discount || 0) / 100;
 
             if (!providerId ||
                 !userId ||
@@ -98,12 +98,12 @@ export class BookingCheckoutCompleteUseCase {
                 totalAmount,
                 providerId,
                 userId,
-                chargeId: payload.payment_intent as string,
+                chargeId: input.payment_intent as string,
                 receiptUrl,
                 receiptNumber,
                 receiptEmail,
-                customerEmail: payload.customer_details?.email || email,
-                description: payload.metadata?.description,
+                customerEmail: input.customer_details?.email || email,
+                description: input.metadata?.description,
             });
 
             const payment = await this.paymentRepository.create(paymentData);

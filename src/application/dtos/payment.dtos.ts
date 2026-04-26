@@ -2,24 +2,25 @@ import Stripe from "stripe";
 import { PlanName } from "../../domain/enums/plan.enum";
 import { PaymentFor } from "../../domain/enums/payment.enum";
 import { ServiceMode } from "../../domain/enums/service.enums";
-import { ApiPaginationRequest, PaymentDTO } from "./common.dtos";
+import { ApiPaginationRequest, CommonDateInput, PaymentDTO } from "./common.dtos";
 import { RefundFor, RefundReason } from '../../domain/enums/refund.enum';
 
-export type FindSubscriptionsByProviderIdResponse = Array<Partial<Pick<PaymentDTO, "totalAmount">>>;
+//// **** queries dtos ***** ////
 
-type PaymentsProps = Pick<PaymentDTO, "transactionId" | "discountAmount" | "initialAmount" | "paymentFor" | "paymentGateway" | "paymentMethod" | "paymentStatus" | "totalAmount">;
-export interface findSubscriptionFullDetailsResProps {
-  paymentId: PaymentsProps | null,
+// 1. findStatsDataForProviderDashboard method parameter and return
+export interface GetProviderRevenueQuery extends CommonDateInput {
+  providerId: string;
+}
+export interface GetProviderRevenueView {
+  totalSubscriptionPaidAmount: number;
+  totalEarnings: number;
+  totalPayoutsMade: number;
+  pendingPayout: number;
 }
 
-// used as the return type of the admin fetch dashboard revenue stats data
-export interface GetAdminRevenueStatsDataRequest {
-  startDate: Date;
-  endDate: Date;
-}
-
-// used as the return type of the admin fetch dashboard revenue stats data
-export interface GetAdminRevenueStatsDataResponse {
+// 2. findStatsDataForAdminDashboard method parameter and return 
+export interface GetAdminRevenueStatsDataQuery extends CommonDateInput {}
+export interface GetAdminRevenueStatsDataView {
   totalRevenue: number;
   totalRevenueViaSubscriptions: number;
   revenueByStripe: number;
@@ -31,28 +32,11 @@ export interface GetAdminRevenueStatsDataResponse {
   totalPayoutsToProviders: number;
 };
 
-// used as the return type of the provider fetch dashboard revenue stats data
-export interface GetProviderRevenueRequest {
-  providerId: string;
+// 3. findAdminRevenueReport method parameter and return
+export interface GetAdminRevenueReportQuery extends ApiPaginationRequest {
   startDate: Date;
   endDate: Date;
 }
-
-// used as the return type of the provider fetch dashboard revenue stats data
-export interface GetProviderRevenueResponse {
-  totalSubscriptionPaidAmount: number;
-  totalEarnings: number;
-  totalPayoutsMade: number;
-  pendingPayout: number;
-}
-
-// used as the return type of the admin fetch revenue report request
-export interface GetAdminRevenueReportRequest extends ApiPaginationRequest {
-  startDate: Date;
-  endDate: Date;
-}
-
-// Admin fetch revenue report response
 export type AdminFetchRevenueReportRow = Pick<
   PaymentDTO,
   | "createdAt"
@@ -62,14 +46,35 @@ export type AdminFetchRevenueReportRow = Pick<
   | "paymentGateway"
   | "paymentFor"
 >;
-export interface GetAdminRevenueReportResponse {
+export interface GetAdminRevenueReportView {
   rows: AdminFetchRevenueReportRow[];
   grandTotal: number;
   grandDiscount: number;
   grandInitalAmount: number;
 };
 
-export interface SubscriptionCheckoutRequest {
+
+
+
+
+
+
+//// **** usecase dtos ***** ////
+
+// GetAdminRevenue usecase input output
+export type GetAdminRevenueStatsDataInput = GetAdminRevenueStatsDataQuery;
+export type GetAdminRevenueStatsDataOutput = GetAdminRevenueStatsDataView;
+
+// GetProviderRevenue usecase input output
+export type GetProviderRevenueInput = GetProviderRevenueQuery;
+export type GetProviderRevenueOutput = GetProviderRevenueView;
+
+// GetAdminReport usecase input output
+export type GetAdminRevenueReportInput = GetAdminRevenueReportQuery; 
+export type GetAdminRevenueReportOutput = GetAdminRevenueReportView;
+
+// subscription usecase input
+export interface SubscriptionCheckoutInput {
   subscriptionId: string;
   providerId: string;
   planName: PlanName;
@@ -83,7 +88,8 @@ export interface SubscriptionCheckoutRequest {
   stripeCustomerId?: string;
 };
 
-export interface BookingCheckoutRequest {
+// booking checkout usecase input
+export interface BookingCheckoutInput {
   serviceName: string;
   description: string;
   unitAmount: number;
@@ -100,30 +106,29 @@ export interface BookingCheckoutRequest {
   stripeCustomerId?: string;
 }
 
-
-// Used as the payments fetching request and response dto
+// GetPayments usecase input output
 export interface userIdAndProviderIdFilterForFetchPayments {
   userId?: string;
   providerId?: string;
 }
-export interface GetPaymentsRequest extends ApiPaginationRequest, userIdAndProviderIdFilterForFetchPayments { };
-export type GetPaymentsResponse = Array<Pick<PaymentDTO, "_id" | "createdAt" | "totalAmount" | "paymentFor" | "paymentMethod" | "paymentStatus" | "discountAmount">> | null;
+export interface GetPaymentsInput extends ApiPaginationRequest, userIdAndProviderIdFilterForFetchPayments { };
+export type GetPaymentsOutput = Array<Pick<PaymentDTO, "_id" | "createdAt" | "totalAmount" | "paymentFor" | "paymentMethod" | "paymentStatus" | "discountAmount">> | null;
 
-
-export interface GetPaymentDetailsRequest {
+// GetpaymentsDetails usecase input output
+export interface GetPaymentDetailsInput {
   paymentId: string;
 };
-export type GetPaymentDetailsResponse = Omit<PaymentDTO, "_id" | "chargeId" | "receiptEmail" | "receiptNumber" | "updatedAt"> | null;
+export type GetPaymentDetailsOutput = Omit<PaymentDTO, "_id" | "chargeId" | "receiptEmail" | "receiptNumber" | "updatedAt"> | null;
 
-
-export interface StripeAccountLinkRequest {
+// StripeAccountLink usecase input output
+export interface StripeAccountLinkInput {
   userId: string;
   email: string;
 };
+export type StripeAccountLinkOutput = Stripe.Response<Stripe.AccountLink>;
 
-export type StripeAccountLinkResponse = Stripe.Response<Stripe.AccountLink>;
 
-// refundPayment usecase input output
+// refundPayment usecase input
 export interface refundPaymentInput {
   bookingId: string;
   paymentId: string;
@@ -131,7 +136,4 @@ export interface refundPaymentInput {
   refundReason: RefundReason;
   reasonInDetail: string;
   userId: string;
-}
-export interface refundPaymentOutput {
-
 }

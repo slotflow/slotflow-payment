@@ -1,7 +1,7 @@
 import { ApiResponse } from "../../dtos/common.dtos";
 import { BadRequestError } from "../../../shared/error/appError";
 import { toAppError } from "../../../shared/error/handleUnknownError";
-import { GetPaymentsResponse, GetPaymentsRequest } from "../../dtos/payment.dtos";
+import { GetPaymentsOutput, GetPaymentsInput } from "../../dtos/payment.dtos";
 import { IPaymentRepository } from "../../../domain/interfaces/repositories/IPayment.repository";
 
 export class GetPaymentsUseCase {
@@ -9,9 +9,9 @@ export class GetPaymentsUseCase {
         private paymentRepository: IPaymentRepository,
     ) { };
 
-    async execute(payload: GetPaymentsRequest): Promise<ApiResponse<GetPaymentsResponse>> {
+    async execute(input: GetPaymentsInput): Promise<ApiResponse<GetPaymentsOutput>> {
         try {
-            const { providerId, userId, page, limit } = payload;
+            const { providerId, userId, page, limit } = input;
             if (!providerId && !userId) {
                 throw new BadRequestError("Provider ID or User ID must be provided");
             }

@@ -17,7 +17,7 @@ export class ProcessEventWrapperUseCase {
             const { topic, eventData, businessUseCase, payloadExtractor } = input;
             const { eventId, attempt, maxAttempts, payload } = eventData;
 
-            const paymentData = payloadExtractor(payload);
+            const payloadData = payloadExtractor(payload);
             
             let processedEvent = await this.processedEventRepository.findByEventId(eventId);
 
@@ -45,7 +45,7 @@ export class ProcessEventWrapperUseCase {
                 processedEvent = await this.processedEventRepository.create(newProcessedEvent);
             }
 
-            if (!paymentData) {
+            if (!payloadData) {
                 log.error(`Kafka Invalid paymentData for event ${eventId}`);
                 if (processedEvent) {
                     processedEvent.markAsFailed();
@@ -55,7 +55,7 @@ export class ProcessEventWrapperUseCase {
             }
 
             try {
-                await businessUseCase.execute(paymentData);
+                await businessUseCase.execute(payloadData);
                 if (processedEvent) {
                     processedEvent.markAsSuccess();
                     await this.processedEventRepository.update(processedEvent);

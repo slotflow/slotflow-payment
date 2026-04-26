@@ -68,12 +68,13 @@ export interface TableData<T> {
   data?: T
 };
 
-
+// Used for the pagination
 export interface ApiPaginationRequest {
   page: number;
   limit: number;
 }
 
+// Decoded user from jwt token
 export interface DecodedUser {
   id: string;
   role: Role;
@@ -89,17 +90,8 @@ export interface DecodedUser {
   userId?: string;
 };
 
-
-// new 
-// used as the return type of the admin fetch dashboard revenue stats data
-export interface FetchRevenueDataResponse {
-  totalRevenue: number;
-  totalRevenueViaSubscriptions: number;
-  revenueByStripe: number;
-  revenueByRazorpay: number;
-  revenueByPaypal: number;
-  totalRevenueViaAppointments: number;
-  totalRefundsIssued: number;
-  totalFailedPayments: number;
-  totalPayoutsToProviders: number;
-};
+// common date input filters
+export interface CommonDateInput {
+  startDate: Date;
+  endDate: Date
+}

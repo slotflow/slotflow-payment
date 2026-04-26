@@ -19,9 +19,9 @@ export class SubscriptionCheckoutCompleteUseCase {
         private readonly paymentGateway: IPaymentGateway,
     ) { };
 
-    async execute(payload: Stripe.Checkout.Session): Promise<void> {
+    async execute(input: Stripe.Checkout.Session): Promise<void> {
         try {
-            if (!payload.payment_intent) {
+            if (!input.payment_intent) {
                 throw new BadRequestError();
             }
 
@@ -30,7 +30,7 @@ export class SubscriptionCheckoutCompleteUseCase {
             let receiptEmail: string | null = null;
 
             const paymentIntentDetail = await this.paymentGateway.retrievePaymentIntent({
-                paymentIntent: payload.payment_intent as string
+                paymentIntent: input.payment_intent as string
             });
 
             if (!paymentIntentDetail.paymentIntent.latest_charge) {
@@ -56,18 +56,18 @@ export class SubscriptionCheckoutCompleteUseCase {
             });
             const fee = balanceTransaction.balanceTransaction.fee;
 
-            const subscriptionId = payload?.metadata?.subscriptionId;
-            const providerId = payload?.metadata?.providerId;
-            const planDuration = Number(payload?.metadata?.planDuration);
-            const paymentStatus = payload?.payment_status === "paid" ? PaymentStatus.PAID : PaymentStatus.PENDING;
-            const paymentIntent = payload?.payment_intent as string;
-            const paymentMethod = payload?.payment_method_types[0] as PaymentMethod;
-            const paymentFor = payload?.metadata?.paymentFor as PaymentFor;
-            const name = payload?.metadata?.name;
-            const email = payload?.metadata?.email;
-            const initialAmount = Number(payload?.metadata?.initialAmount);
-            const totalAmount = (payload.amount_total || 0) / 100;
-            const discountAmount = (payload.total_details?.amount_discount || 0) / 100;
+            const subscriptionId = input?.metadata?.subscriptionId;
+            const providerId = input?.metadata?.providerId;
+            const planDuration = Number(input?.metadata?.planDuration);
+            const paymentStatus = input?.payment_status === "paid" ? PaymentStatus.PAID : PaymentStatus.PENDING;
+            const paymentIntent = input?.payment_intent as string;
+            const paymentMethod = input?.payment_method_types[0] as PaymentMethod;
+            const paymentFor = input?.metadata?.paymentFor as PaymentFor;
+            const name = input?.metadata?.name;
+            const email = input?.metadata?.email;
+            const initialAmount = Number(input?.metadata?.initialAmount);
+            const totalAmount = (input.amount_total || 0) / 100;
+            const discountAmount = (input.total_details?.amount_discount || 0) / 100;
 
             if (!planDuration ||
                 !email ||
@@ -96,12 +96,12 @@ export class SubscriptionCheckoutCompleteUseCase {
                 discountAmount,
                 totalAmount,
                 providerId: providerId,
-                chargeId: payload.payment_intent as string,
+                chargeId: input.payment_intent as string,
                 receiptUrl,
                 receiptNumber,
                 receiptEmail,
-                customerEmail: payload.customer_details?.email || email,
-                description: payload.metadata?.description || `Subscription for ${name}`,
+                customerEmail: input.customer_details?.email || email,
+                description: input.metadata?.description || `Subscription for ${name}`,
             });
 
             const payment = await this.paymentRepository.create(paymentData);

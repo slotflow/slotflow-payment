@@ -5,7 +5,7 @@ import { toAppError } from '../../../shared/error/handleUnknownError';
 import { AppError, BadRequestError } from '../../../shared/error/appError';
 import { EventEnvelope, StripeAccountCreatedEvent } from "../../dtos/kafka.dtos";
 import { IPaymentGateway } from '../../../domain/interfaces/payment/IPaymentGateway';
-import { StripeAccountLinkRequest, StripeAccountLinkResponse } from "../../dtos/payment.dtos";
+import { StripeAccountLinkInput, StripeAccountLinkOutput } from "../../dtos/payment.dtos";
 import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
 
 export class StripeAccountLinkUseCase {
@@ -14,9 +14,9 @@ export class StripeAccountLinkUseCase {
         private readonly paymentGateway: IPaymentGateway
     ) { };
 
-    async execute(payload: StripeAccountLinkRequest): Promise<StripeAccountLinkResponse> {
+    async execute(input: StripeAccountLinkInput): Promise<StripeAccountLinkOutput> {
         try {
-            const { email, userId } = payload
+            const { email, userId } = input
             if (!userId || !email) {
                 throw new BadRequestError();
             }

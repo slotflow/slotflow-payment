@@ -3,7 +3,7 @@ import { Role } from "../../../domain/enums/common.enum";
 import { generateId } from "../../../shared/utils/generateId";
 import { BadRequestError } from "../../../shared/error/appError";
 import { kafkaConfig, serviceConfig } from "../../../config/env";
-import { SubscriptionCheckoutRequest } from "../../dtos/payment.dtos";
+import { SubscriptionCheckoutInput } from "../../dtos/payment.dtos";
 import { toAppError } from "../../../shared/error/handleUnknownError";
 import { EventEnvelope, StripeCustomerCreatedEvent } from "../../dtos/kafka.dtos";
 import { IPaymentGateway } from "../../../domain/interfaces/payment/IPaymentGateway";
@@ -17,9 +17,8 @@ export class SubscriptionCheckoutUseCase {
         private readonly kafkaProducer: IKafkaProducerAdapter
     ) { };
 
-    async execute(payload: SubscriptionCheckoutRequest): Promise<string> {
+    async execute(input: SubscriptionCheckoutInput): Promise<string> {
         try {
-
             const {
                 subscriptionId,
                 providerId,
@@ -32,7 +31,7 @@ export class SubscriptionCheckoutUseCase {
                 email,
                 initialAmount,
                 stripeCustomerId
-            } = payload;
+            } = input;
 
             if (!subscriptionId ||
                 !providerId ||

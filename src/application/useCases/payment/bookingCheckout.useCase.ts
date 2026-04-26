@@ -2,7 +2,7 @@ import { IdType } from "../../../shared/utils/types";
 import { Role } from "../../../domain/enums/common.enum";
 import { generateId } from "../../../shared/utils/generateId";
 import { BadRequestError } from "../../../shared/error/appError";
-import { BookingCheckoutRequest } from "../../dtos/payment.dtos";
+import { BookingCheckoutInput } from "../../dtos/payment.dtos";
 import { kafkaConfig, serviceConfig } from "../../../config/env";
 import { toAppError } from "../../../shared/error/handleUnknownError";
 import { EventEnvelope, StripeCustomerCreatedEvent } from "../../dtos/kafka.dtos";
@@ -16,7 +16,7 @@ export class BookingCheckoutUseCase {
         private readonly kafkaProducer: IKafkaProducerAdapter
     ) { }
 
-    async execute(payload: BookingCheckoutRequest): Promise<string> {
+    async execute(input: BookingCheckoutInput): Promise<string> {
         try {
             const {
                 serviceName,
@@ -33,22 +33,22 @@ export class BookingCheckoutUseCase {
                 initialAmount,
                 pushNotification,
                 stripeCustomerId
-            } = payload;
+            } = input;
 
-            if(!serviceName ||
-               ! description ||
-               ! unitAmount ||
-               ! providerId ||
-               ! slotDuration ||
-               ! selectedServiceMode ||
-               ! bookingId ||
-               ! userId ||
-               ! paymentFor ||
-               ! userEmail ||
-               ! userName ||
-               ! initialAmount ||
-               ! pushNotification
-            ){
+            if (!serviceName ||
+                !description ||
+                !unitAmount ||
+                !providerId ||
+                !slotDuration ||
+                !selectedServiceMode ||
+                !bookingId ||
+                !userId ||
+                !paymentFor ||
+                !userEmail ||
+                !userName ||
+                !initialAmount ||
+                !pushNotification
+            ) {
                 throw new BadRequestError();
             }
 
@@ -71,7 +71,7 @@ export class BookingCheckoutUseCase {
                     payload: {
                         mbsData: {
                             stripeCustomerId: customerId.customerId,
-                            userId: payload.userId,
+                            userId: input.userId,
                         },
                     }
                 });

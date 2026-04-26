@@ -1,7 +1,7 @@
 import { ERROR_CODES } from "../../../shared/utils/types";
 import { toAppError } from "../../../shared/error/handleUnknownError";
 import { BadRequestError, NotFoundError } from "../../../shared/error/appError";
-import { GetPaymentDetailsRequest, GetPaymentDetailsResponse } from "../../dtos/payment.dtos";
+import { GetPaymentDetailsInput, GetPaymentDetailsOutput } from "../../dtos/payment.dtos";
 import { IPaymentRepository } from "../../../domain/interfaces/repositories/IPayment.repository";
 
 export class GetPaymentDetailsUseCase {
@@ -9,9 +9,9 @@ export class GetPaymentDetailsUseCase {
         private readonly paymentRepository: IPaymentRepository
     ) { };
 
-    async execute(payload: GetPaymentDetailsRequest): Promise<GetPaymentDetailsResponse> {
+    async execute(input: GetPaymentDetailsInput): Promise<GetPaymentDetailsOutput> {
         try {
-            const { paymentId } = payload;
+            const { paymentId } = input;
             if (!paymentId) {
                 throw new BadRequestError("Payment ID is required");
             }
@@ -41,7 +41,7 @@ export class GetPaymentDetailsUseCase {
                 createdAt: payment?.createdAt,
             }
 
-            return data as GetPaymentDetailsResponse;
+            return data as GetPaymentDetailsOutput;
         } catch (error: unknown) {
             throw toAppError(error, "Failed to get payment details");
         }
