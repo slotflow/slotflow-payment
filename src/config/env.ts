@@ -52,9 +52,11 @@ export const kafkaConfig = {
     ],
 
     topics: {
+        dlqTopic: validator.requireEnv("KAFKA_DLQ_TOPIC"),
         sub: {
 
         },
+        
         pub: {
             // PS -> MBS & NS
             providerSubscriptionPaymentSuccess: validator.requireEnv("KAFKA_PROVIDER_SUBSCRIPTION_PAYMENT_SUCCESS"),

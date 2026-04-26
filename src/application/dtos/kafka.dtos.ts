@@ -11,13 +11,28 @@ export interface KafkaClientAdapterProps {
     message: KafkaMessage;
 }
 
+// backend-main service subscribing kafka event payload
+export interface PSSubKafkaEventPayload {
+    paymentData: any;
+}
+
+// dlq metadata
+export interface DqMetaData {
+    service: string;
+    originalTopic: string;
+    error: string;
+    failedAt: Date;
+    retryCount?: number;
+}
+
 // event envelope
-export interface EventEnvelope<T> {
+export interface EventEnvelope<PSSubKafkaEventPayload, M = DqMetaData> {
     eventId: string;
     occurredAt: string;
     attempt: number;
     maxAttempts: number;
-    payload: T;
+    payload: PSSubKafkaEventPayload;
+    metadata?: M;
 }
 
 // send email common
@@ -38,7 +53,13 @@ export interface SendNotificationCommon {
 // kafka client adapter message handler
 export type MessageHandler = (payload: KafkaClientAdapterProps) => Promise<void>;
 
-
+// process event wrapper input
+export interface ProcessEventWrapperInput {
+  topic: string;
+  eventData: EventEnvelope<PSSubKafkaEventPayload>;
+  businessUseCase: { execute: (data: any) => Promise<void> };
+  payloadExtractor: (payload: PSSubKafkaEventPayload) => any;
+}
 
 
 // **** KAFKA EVENTS PAYLOAD

@@ -1,14 +1,18 @@
-import { handlers } from ".";
 import { kafkaConfig } from "../../config/env";
 import { log } from "../../shared/logger/logger";
+import { handlers, processEventWrapperUseCase } from ".";
 import { kafkaConsumer } from "../../infrastructure/messaging";
+import { PSSubKafkaEventPayload } from "../../application/dtos/kafka.dtos";
 import { IKafkaConsumerAdapter } from "../../domain/interfaces/messaging/IKafkaConsumerAdapter";
+import { ProcessEventWrapperUseCase } from "../../application/useCases/kafkaConsumerUsecases/processEventWrapper.useCase";
 
 class KafkaConsumerController {
-
   constructor(
-    private readonly kafkaConsumerAdapter: IKafkaConsumerAdapter
-  ) { };
+    private readonly kafkaConsumer: IKafkaConsumerAdapter,
+    private readonly processEventWrapperUseCase: ProcessEventWrapperUseCase
+  ) {
+    this.startListening = this.startListening.bind(this);
+  };
 
   async startListening(): Promise<void> {
     try {
@@ -18,18 +22,26 @@ class KafkaConsumerController {
         const useCase = handlers[key as keyof typeof handlers];
         if (!useCase) continue;
 
-        await this.kafkaConsumerAdapter.subscribe(topic, async ({ message }) => {
+        await this.kafkaConsumer.subscribe(topic as string, async ({ message }) => {
           if (!message.value) return;
-          const payload = JSON.parse(message.value.toString());
-          await useCase.execute(payload);
+          const eventData = JSON.parse(message.value.toString());
+          await this.processEventWrapperUseCase.execute({
+            businessUseCase: useCase,
+            eventData,
+            topic: topic as string,
+            payloadExtractor: (payload: PSSubKafkaEventPayload) => payload.paymentData
+          });
         });
       };
 
-      await this.kafkaConsumerAdapter.startConsumer();
+      await this.kafkaConsumer.startConsumer();
     } catch (error) {
       log.error("kafka controller startListening failed : ", error as Error);
     };
   };
 };
 
-export const kafkaConsumerController = new KafkaConsumerController(kafkaConsumer);
+export const kafkaConsumerController = new KafkaConsumerController(
+  kafkaConsumer,
+  processEventWrapperUseCase
+);

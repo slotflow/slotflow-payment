@@ -112,8 +112,14 @@ const PaymentSchema = new Schema<IPayment>({
         type: Number,
         default: 0,
     },
-},{
-    timestamps: true,
+    createdAt: {
+        type: Date,
+        required: true,
+    },
+    updatedAt: {
+        type: Date,
+        required: true,
+    }
 });
 
 export const PaymentModel = mongoose.model<IPayment>("Payment", PaymentSchema);
