@@ -18,6 +18,7 @@ export interface IPayment extends Document {
     paymentIntentId?: string;
     transactionId: string;
     chargeId?: string;
+    sessionId: string;
     gatewayFee?: number;
     receiptUrl?: string;
     receiptNumber?: string;
@@ -87,6 +88,9 @@ const PaymentSchema = new Schema<IPayment>({
         type: String,
     },
     chargeId: {
+        type: String,
+    },
+    sessionId: {
         type: String,
     },
     gatewayFee: {

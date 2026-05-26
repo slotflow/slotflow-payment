@@ -1,9 +1,8 @@
-import Stripe from "stripe";
 import { PlanName } from "../../domain/enums/plan.enum";
 import { PaymentFor } from "../../domain/enums/payment.enum";
 import { ServiceMode } from "../../domain/enums/service.enums";
-import { ApiPaginationRequest, CommonDateInput, PaymentDTO } from "./common.dtos";
 import { RefundFor, RefundReason } from '../../domain/enums/refund.enum';
+import { ApiPaginationRequest, CommonDateInput, PaymentDTO } from "./common.dtos";
 
 //// **** queries dtos ***** ////
 
@@ -119,13 +118,6 @@ export interface GetPaymentDetailsInput {
   paymentId: string;
 };
 export type GetPaymentDetailsOutput = Omit<PaymentDTO, "_id" | "chargeId" | "receiptEmail" | "receiptNumber" | "updatedAt"> | null;
-
-// StripeAccountLink usecase input output
-export interface StripeAccountLinkInput {
-  userId: string;
-  email: string;
-};
-export type StripeAccountLinkOutput = Stripe.Response<Stripe.AccountLink>;
 
 
 // refundPayment usecase input

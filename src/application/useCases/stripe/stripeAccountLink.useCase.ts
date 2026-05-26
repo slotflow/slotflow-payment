@@ -2,10 +2,11 @@ import { kafkaConfig } from "../../../config/env";
 import { generateId } from '../../../shared/utils/generateId';
 import { ERROR_CODES, IdType } from '../../../shared/utils/types';
 import { toAppError } from '../../../shared/error/handleUnknownError';
+import { notificationContentMap } from "../../../shared/utils/constants";
 import { AppError, BadRequestError } from '../../../shared/error/appError';
 import { EventEnvelope, StripeAccountCreatedEvent } from "../../dtos/kafka.dtos";
 import { IPaymentGateway } from '../../../domain/interfaces/payment/IPaymentGateway';
-import { StripeAccountLinkInput, StripeAccountLinkOutput } from "../../dtos/payment.dtos";
+import { StripeAccountLinkInput, StripeAccountLinkOutput } from "../../dtos/stripe.dtos";
 import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
 
 export class StripeAccountLinkUseCase {
@@ -22,8 +23,20 @@ export class StripeAccountLinkUseCase {
             }
 
             const { account } = await this.paymentGateway.createStripeAccount({ email });
+            if (!account.id) {
+                throw new AppError(
+                    "Failed to get stripe ccountId",
+                    500,
+                    false,
+                    ERROR_CODES.INTERNAL_ERROR
+                )
+            };
 
-            await this.kafkaProducer.publish<EventEnvelope<StripeAccountCreatedEvent>>(
+            const { accountLink } = await this.paymentGateway.createStripeAccountLink({
+                accountId: account.id
+            });
+
+             await this.kafkaProducer.publish<EventEnvelope<StripeAccountCreatedEvent>>(
                 kafkaConfig.topics.pub.stripeAccountCreated, {
                 eventId: generateId(IdType.EVENT),
                 attempt: 1,
@@ -34,23 +47,19 @@ export class StripeAccountLinkUseCase {
                         userId: userId,
                         stripeAccountId: account.id,
                     },
+                    notificationData: {
+                        userId,
+                        title: notificationContentMap.stripeAccountCreated.title,
+                        body: notificationContentMap.stripeAccountCreated.body(),
+                        pushNotification: false,
+                    }
                 }
             });
 
-            if (!account.id) {
-                throw new AppError(
-                    "Failed to get stripe ccountId",
-                    500,
-                    true,
-                    ERROR_CODES.STRIPE_CREATE_ACCOUNT_ERROR
-                )
-            };
-
-            const { accountLink } = await this.paymentGateway.createStripeAccountLink({
+            return {
+                accountLink,
                 accountId: account.id
-            });
-
-            return accountLink;
+            };
         } catch (error: unknown) {
             throw toAppError(error, "Failed to create stripe account link");
         };

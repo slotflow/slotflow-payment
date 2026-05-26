@@ -1,5 +1,5 @@
 import { KafkaMessage } from "kafkajs";
-import { PaymentFor, PaymentStatus } from "../../domain/enums/payment.enum";
+import { PaymentFor, PaymentStatus, StripeAccountStatus } from "../../domain/enums/payment.enum";
 import { RefundStatus } from "../../domain/enums/refund.enum";
 
 // **** COMMON DTOS
@@ -115,6 +115,15 @@ export interface StripeAccountCreatedEvent {
         userId: string;
         stripeAccountId: string;
     };
+    notificationData: SendNotificationCommon;
+}
+
+export interface StripeAccountStatusUpdatedEvent {
+    mbsData: {
+        userId: string;
+        accountStatus: StripeAccountStatus;
+    };
+    notificationData: SendNotificationCommon;
 }
 
 export interface StripeCustomerCreatedEvent {

@@ -1,20 +1,19 @@
+import { serviceConfig } from "../../../config/env";
 import { IdType } from "../../../shared/utils/types";
 import { Role } from "../../../domain/enums/common.enum";
 import { generateId } from "../../../shared/utils/generateId";
 import { BadRequestError } from "../../../shared/error/appError";
-import { kafkaConfig, serviceConfig } from "../../../config/env";
 import { SubscriptionCheckoutInput } from "../../dtos/payment.dtos";
 import { toAppError } from "../../../shared/error/handleUnknownError";
-import { EventEnvelope, StripeCustomerCreatedEvent } from "../../dtos/kafka.dtos";
 import { IPaymentGateway } from "../../../domain/interfaces/payment/IPaymentGateway";
-import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
+import { CreateStripeCustomerUseCase } from "../stripe/createStripeCustomer.useCase";
 import { providerPaymentFailedUrl, providerPaymentSuccessUrl } from "../../../shared/utils/constants";
 
 export class SubscriptionCheckoutUseCase {
 
     constructor(
         private readonly paymentGateway: IPaymentGateway,
-        private readonly kafkaProducer: IKafkaProducerAdapter
+        private readonly createStripeCustomer: CreateStripeCustomerUseCase
     ) { };
 
     async execute(input: SubscriptionCheckoutInput): Promise<string> {
@@ -46,29 +45,17 @@ export class SubscriptionCheckoutUseCase {
                 throw new BadRequestError();
             }
 
-            let newStripeCstomerId: string | undefined = stripeCustomerId ?? undefined;
+            let customerId: string | undefined = stripeCustomerId;
 
-            if (!stripeCustomerId) {
-                const customerId = await this.paymentGateway.createStripeCustomer({
+            if (!customerId) {
+                const customer = await this.createStripeCustomer.execute({
                     email,
-                    name,
+                    username: name,
                     userId: providerId,
-                    role: Role.PROVIDER,
+                    role: Role.PROVIDER
                 });
-                newStripeCstomerId = customerId.customerId;
-                await this.kafkaProducer.publish<EventEnvelope<StripeCustomerCreatedEvent>>(
-                    kafkaConfig.topics.pub.stripeCustomerCreated, {
-                    eventId: generateId(IdType.EVENT),
-                    attempt: 1,
-                    maxAttempts: 1,
-                    occurredAt: new Date().toString(),
-                    payload: {
-                        mbsData: {
-                            stripeCustomerId: customerId.customerId,
-                            userId: providerId,
-                        },
-                    }
-                });
+
+                customerId = customer.stripeCustomerId;
             }
 
             const result = await this.paymentGateway.createSubscriptionCheckoutSession({
@@ -82,7 +69,7 @@ export class SubscriptionCheckoutUseCase {
                 name,
                 email,
                 initialAmount,
-                stripeCustomerId: newStripeCstomerId,
+                stripeCustomerId: customerId,
                 successUrl: serviceConfig.frontendUrl + providerPaymentSuccessUrl,
                 cancelUrl: serviceConfig.frontendUrl + providerPaymentFailedUrl,
             });

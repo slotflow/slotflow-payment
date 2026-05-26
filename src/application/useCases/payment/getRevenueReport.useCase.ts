@@ -1,4 +1,4 @@
-import { ApiResponse } from "../../dtos/common.dtos";
+import { TableData } from "../../dtos/common.dtos";
 import { IPaymentQueries } from "../../queries/IPayment.queries";
 import { toAppError } from "../../../shared/error/handleUnknownError";
 import { GetAdminRevenueReportInput, GetAdminRevenueReportOutput } from "../../dtos/payment.dtos";
@@ -8,16 +8,9 @@ export class GetAdminRevenueReportUseCase {
         private paymentQueries: IPaymentQueries,
     ) { };
 
-    async execute(input: GetAdminRevenueReportInput): Promise<ApiResponse<GetAdminRevenueReportOutput>> {
+    async execute(input: GetAdminRevenueReportInput): Promise<TableData<GetAdminRevenueReportOutput>> {
         try {
-            const result = await this.paymentQueries.findAdminRevenueReport(input);
-            const { data: report, totalPages, currentPage, totalCount } = result;
-            return {
-                data: report,
-                totalPages,
-                currentPage,
-                totalCount
-            };
+            return await this.paymentQueries.findAdminRevenueReport(input);
         } catch (error: unknown) {
             throw toAppError(error, "Failed to get admin revenue report");
         };

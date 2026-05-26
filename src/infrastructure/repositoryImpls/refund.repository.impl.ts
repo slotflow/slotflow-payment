@@ -1,5 +1,5 @@
 import { RefundModel } from "../models/refund.model";
-import { RefundMapper } from "../mappers/refund.mapper";
+import { RefundMapper } from "../mapper/refund.mapper";
 import { Refund } from "../../domain/entities/refund.entity";
 import { IRefundRepository } from "../../domain/interfaces/repositories/IRefund.repository";
 

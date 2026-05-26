@@ -13,7 +13,7 @@ const start = async () => {
   try {
     // await initOtel();
     await initDB();
-    // await initKafka();
+    await initKafka();
 
     const server = app.listen(appConfig.port, () => {
       printText();

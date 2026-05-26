@@ -1,5 +1,6 @@
 import { IdType } from "./types";
 import { RefundStatus } from "../../domain/enums/refund.enum";
+import { StripeAccountStatus } from "../../domain/enums/payment.enum";
 
 // notification content
 export const notificationContentMap: Record<string, {
@@ -28,6 +29,26 @@ export const notificationContentMap: Record<string, {
           return "Your refund has been failed.";
       }
     }
+  },
+  stripeAccountStatusUpdated: {
+    title: "Stripe Account Status",
+    body: (accountStatus: StripeAccountStatus) => {
+      switch (accountStatus) {
+        case StripeAccountStatus.PENDING:
+          return `Your stripe account is pending.`;
+        case StripeAccountStatus.RESTRICTED:
+          return `Your stripe account is restricted.`;
+        case StripeAccountStatus.ACTIVE:
+          return `Your stripe account is active.`;
+        default:
+          return "Your stripe account status has been updated.";
+      }
+    }
+  },
+  stripeAccountCreated: {
+    title: "Stripeonboarding completed",
+    body: () =>
+      `Your stripe account has been created successfully. You can receive payments once your account status will be activated`
   }
 };
 
@@ -44,4 +65,6 @@ export const PREFIX_MAP: Record<IdType, string> = {
   [IdType.ROOM]: "sf_room_",
   [IdType.IDEMPOTENCY]: "sf_idem_",
   [IdType.FILE]: "sf_file_",
+  [IdType.SUB_IDEMPOTENCY]: "sf_sub_",
+  [IdType.BOOKING_IDEMPOTENCY]: "sf_bo"
 };

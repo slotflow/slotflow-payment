@@ -122,4 +122,8 @@ export interface IPaymentGateway {
     createStripeAccount(input: CreateStripeAccountInput): Promise<CreateStripeAccountout>;
 
     createStripeAccountLink(input: CreateStripeAccountLinkInput): Promise<CreateStripeAccountLinkOutput>;
+
+    findCustomerByUserId(userId: string): Promise<{ customerId: string } | null>;
+
+    getStripeAccount(accountId: string): Promise<Stripe.Account>;
 };

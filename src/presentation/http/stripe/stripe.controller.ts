@@ -1,18 +1,17 @@
 import Stripe from "stripe";
 import { Request, Response } from "express";
-import { bookingCheckoutCompleteUseCase } from ".";
 import { stripeConfig } from "../../../config/env";
 import { log } from "../../../shared/logger/logger";
-import { subscriptionCheckoutCompleteUseCase } from '.';
 import { PaymentFor } from "../../../domain/enums/payment.enum";
 import { stripe } from "../../../infrastructure/payment/stripe.client";
-import { BookingCheckoutCompleteUseCase } from "../../../application/useCases/payment/bookingCheckoutComplete";
-import { SubscriptionCheckoutCompleteUseCase } from "../../../application/useCases/payment/subscriptionCheckoutCompleted";
+import { bookingCheckoutCompleteUseCase, subscriptionCheckoutCompleteUseCase } from '.';
+import { BookingCheckoutCompleteUseCase } from "../../../application/useCases/payment/bookingCheckoutComplete.useCase";
+import { SubscriptionCheckoutCompleteUseCase } from "../../../application/useCases/payment/subscriptionCheckoutCompleted.useCase";
 
 class StripeWebhookController {
     constructor(
         private readonly subscriptionCheckoutCompleteUseCase: SubscriptionCheckoutCompleteUseCase,
-        private readonly bookingCheckoutCompleteUseCase: BookingCheckoutCompleteUseCase
+        private readonly bookingCheckoutCompleteUseCase: BookingCheckoutCompleteUseCase,
     ) {
         this.handleStripeWebhook = this.handleStripeWebhook.bind(this);
     };
@@ -50,5 +49,5 @@ class StripeWebhookController {
 
 export const stripeWebhookController = new StripeWebhookController(
     subscriptionCheckoutCompleteUseCase,
-    bookingCheckoutCompleteUseCase
+    bookingCheckoutCompleteUseCase,
 );

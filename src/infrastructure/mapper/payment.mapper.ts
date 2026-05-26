@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { IPayment } from "../database/payment.model";
+import { IPayment } from "../models/payment.model";
 import { Payment } from "../../domain/entities/payment.entity";
 
 export class PaymentMapper {
@@ -7,34 +7,27 @@ export class PaymentMapper {
     static toDomain(doc: IPayment): Payment {
         return new Payment({
             _id: doc._id.toString(),
-
+            idempotencyKey: doc.idempotencyKey,
             transactionId: doc.transactionId,
             paymentStatus: doc.paymentStatus,
             paymentMethod: doc.paymentMethod,
             paymentGateway: doc.paymentGateway,
             paymentFor: doc.paymentFor,
-
             initialAmount: doc.initialAmount,
             discountAmount: doc.discountAmount,
             totalAmount: doc.totalAmount,
-
-            chargeId: doc.chargeId ?? null,
-
-            userId: doc.userId ? doc.userId.toString() : null,
-            providerId: doc.providerId ? doc.providerId.toString() : null,
-
-            refundId: doc.refundId ?? null,
-            refundAmount: doc.refundAmount ?? null,
-            refundStatus: doc.refundStatus ?? null,
-            refundAt: doc.refundAt ?? null,
-            refundReason: doc.refundReason ?? null,
-
+            userId: doc.userId ? doc.userId.toString() : undefined,
+            providerId: doc.providerId ? doc.providerId.toString() : undefined,
+            paymentIntentId: doc.paymentIntentId ?? undefined,
+            chargeId: doc.chargeId ?? undefined,
+            sessionId: doc.sessionId,
+            gatewayFee: doc.gatewayFee ?? 0,
+            refundedAmount: doc.refundedAmount ?? 0,
             receiptUrl: doc.receiptUrl ?? null,
             receiptNumber: doc.receiptNumber ?? null,
             receiptEmail: doc.receiptEmail ?? null,
             customerEmail: doc.customerEmail ?? null,
-            description: doc.description ?? null,
-
+            description: doc.description ?? undefined,
             createdAt: doc.createdAt,
             updatedAt: doc.updatedAt,
         });
@@ -44,33 +37,27 @@ export class PaymentMapper {
         const props = entity.getProps();
 
         return {
+            idempotencyKey: props.idempotencyKey,
             transactionId: props.transactionId,
             paymentStatus: props.paymentStatus,
             paymentMethod: props.paymentMethod,
             paymentGateway: props.paymentGateway,
             paymentFor: props.paymentFor,
-
             initialAmount: props.initialAmount,
             discountAmount: props.discountAmount,
             totalAmount: props.totalAmount,
-
-            chargeId: props.chargeId ?? null,
-
             userId: props.userId ? new Types.ObjectId(props.userId) : null,
             providerId: props.providerId ? new Types.ObjectId(props.providerId) : null,
-
-            refundId: props.refundId ?? null,
-            refundAmount: props.refundAmount ?? null,
-            refundStatus: props.refundStatus ?? null,
-            refundAt: props.refundAt ?? null,
-            refundReason: props.refundReason ?? null,
-
+            paymentIntentId: props.paymentIntentId ?? null,
+            chargeId: props.chargeId ?? null,
+            sessionId: props.sessionId,
+            gatewayFee: props.gatewayFee ?? 0,
+            refundedAmount: props.refundedAmount ?? 0,
             receiptUrl: props.receiptUrl ?? null,
             receiptNumber: props.receiptNumber ?? null,
             receiptEmail: props.receiptEmail ?? null,
             customerEmail: props.customerEmail ?? null,
             description: props.description ?? null,
-
             createdAt: props.createdAt,
             updatedAt: props.updatedAt,
         };

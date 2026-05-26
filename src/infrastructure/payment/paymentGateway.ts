@@ -1,9 +1,9 @@
 import Stripe from "stripe";
 import { log } from "../../shared/logger/logger";
+import { serviceConfig } from "../../config/env";
 import { ERROR_CODES } from "../../shared/utils/types";
 import { AppError } from "../../shared/error/appError";
 import { IPaymentGateway, CreateSubscriptionCheckoutSessionPayload, CreateSubscriptionCheckoutSessionResponse, CreateBookingCheckoutSessionPayload, CreateBookingCheckoutSessionResponse, CreateStripeCustomerPayload, CreateStripeCustomerResponse, CreateRefundInput, CreateRefundOutput, RetrievePaymentIntentInput, RetrievePaymentIntentOutput, RetrieveBalanceInput, RetrieveBalanceOutput, CreateStripeAccountInput, CreateStripeAccountout, CreateStripeAccountLinkInput, CreateStripeAccountLinkOutput } from "../../domain/interfaces/payment/IPaymentGateway";
-import { serviceConfig } from "../../config/env";
 
 export class PaymentGateway implements IPaymentGateway {
 
@@ -17,7 +17,6 @@ export class PaymentGateway implements IPaymentGateway {
                 mode: "payment",
                 payment_method_types: ["card"],
                 customer: payload.stripeCustomerId,
-                customer_email: payload.email,
                 allow_promotion_codes: true,
                 line_items: [
                     {
@@ -52,7 +51,7 @@ export class PaymentGateway implements IPaymentGateway {
                 "Failed to initiate subscription checkout",
                 500,
                 false,
-                ERROR_CODES.CHECKOUT_ERROR
+                ERROR_CODES.INTERNAL_ERROR
             );
         }
     };
@@ -63,7 +62,6 @@ export class PaymentGateway implements IPaymentGateway {
                 mode: "payment",
                 payment_method_types: ["card"],
                 customer: payload.stripeCustomerId,
-                customer_email: payload.userEmail,
                 allow_promotion_codes: true,
                 line_items: [
                     {
@@ -100,7 +98,7 @@ export class PaymentGateway implements IPaymentGateway {
                 "Failed to initiate booking checkout",
                 500,
                 false,
-                ERROR_CODES.CHECKOUT_ERROR
+                ERROR_CODES.INTERNAL_ERROR
             );
         }
     }
@@ -122,7 +120,7 @@ export class PaymentGateway implements IPaymentGateway {
                 "Failed to create stripe customer",
                 500,
                 false,
-                ERROR_CODES.STRIPE_CREATE_CUSTOMER_ERROR
+                ERROR_CODES.INTERNAL_ERROR
             );
         }
     }
@@ -132,7 +130,7 @@ export class PaymentGateway implements IPaymentGateway {
             const paymentIntent = await this.stripe.paymentIntents.retrieve(
                 input.paymentIntent,
                 {
-                    expand: ['latest_charge']
+                    expand: ['latest_charge', 'latest_charge.balance_transaction']
                 }
             );
             return { paymentIntent };
@@ -142,7 +140,7 @@ export class PaymentGateway implements IPaymentGateway {
                 "Failed to retrieve payment intent",
                 500,
                 false,
-                ERROR_CODES.STRIPE_RETRIEVE_ERROR
+                ERROR_CODES.INTERNAL_ERROR
             );
         }
     }
@@ -165,7 +163,7 @@ export class PaymentGateway implements IPaymentGateway {
                 "Failed to create refund",
                 500,
                 false,
-                ERROR_CODES.STRIPE_REFUND_ERROR
+                ERROR_CODES.INTERNAL_ERROR
             )
         }
     }
@@ -182,7 +180,7 @@ export class PaymentGateway implements IPaymentGateway {
                 "Failed to retrieve balance transaction",
                 500,
                 false,
-                ERROR_CODES.STRIPE_RETRIEVE_ERROR
+                ERROR_CODES.INTERNAL_ERROR
             );
         }
     }
@@ -200,7 +198,7 @@ export class PaymentGateway implements IPaymentGateway {
                 "Failed to create stripe account",
                 500,
                 false,
-                ERROR_CODES.STRIPE_CREATE_ACCOUNT_ERROR
+                ERROR_CODES.INTERNAL_ERROR
             );
         }
     }
@@ -209,8 +207,8 @@ export class PaymentGateway implements IPaymentGateway {
         try {
             const accountLink = await this.stripe.accountLinks.create({
                 account: input.accountId,
-                refresh_url: serviceConfig.frontendUrl + "/stripe/refresh",
-                return_url: serviceConfig.frontendUrl + "/stripe/success",
+                refresh_url: serviceConfig.frontendUrl + "/provider/settings/integrations?stripeOnboardingStatus=failed",
+                return_url: serviceConfig.frontendUrl + "/provider/settings/integrations?stripeOnboardingStatus=success",
                 type: "account_onboarding",
             });
             return { accountLink }
@@ -220,7 +218,36 @@ export class PaymentGateway implements IPaymentGateway {
                 "Failed to create stripe account link",
                 500,
                 false,
-                ERROR_CODES.STRIPE_CREATE_ACCOUNT_LINK_ERROR
+                ERROR_CODES.INTERNAL_ERROR
+            );
+        }
+    }
+
+    async findCustomerByUserId(userId: string) {
+        const customers = await this.stripe.customers.search({
+            query: `metadata['userId']:'${userId}'`
+        });
+
+        if (customers.data.length > 0) {
+            return {
+                customerId: customers.data[0].id
+            };
+        }
+
+        return null;
+    }
+
+    async getStripeAccount(accountId: string): Promise<Stripe.Account> {
+        try {
+            const account = await this.stripe.accounts.retrieve(accountId);
+            return account;
+        } catch (error: unknown) {
+            log.error("PaymentGateway getStripeAccount failed : ", error as Error);
+            throw new AppError(
+                "Failed to retrieve stripe account",
+                500,
+                false,
+                ERROR_CODES.INTERNAL_ERROR
             );
         }
     }

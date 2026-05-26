@@ -1,5 +1,4 @@
-import { ApiResponse } from "../../dtos/common.dtos";
-import { BadRequestError } from "../../../shared/error/appError";
+import { TableData } from "../../dtos/common.dtos";
 import { toAppError } from "../../../shared/error/handleUnknownError";
 import { GetPaymentsOutput, GetPaymentsInput } from "../../dtos/payment.dtos";
 import { IPaymentRepository } from "../../../domain/interfaces/repositories/IPayment.repository";
@@ -9,18 +8,15 @@ export class GetPaymentsUseCase {
         private paymentRepository: IPaymentRepository,
     ) { };
 
-    async execute(input: GetPaymentsInput): Promise<ApiResponse<GetPaymentsOutput>> {
+    async execute(input: GetPaymentsInput): Promise<TableData<GetPaymentsOutput>> {
         try {
             const { providerId, userId, page, limit } = input;
-            if (!providerId && !userId) {
-                throw new BadRequestError("Provider ID or User ID must be provided");
-            }
 
             const result = await this.paymentRepository.findAll(page, limit, userId, providerId);
-            const { data: payments, currentPage, totalCount, totalPages } = result;
+            const { items: payments, currentPage, totalCount, totalPages } = result;
 
             return {
-                data: payments.map(payment => ({
+                items: payments.map(payment => ({
                     _id: payment._id,
                     createdAt: payment.createdAt,
                     totalAmount: payment.totalAmount,

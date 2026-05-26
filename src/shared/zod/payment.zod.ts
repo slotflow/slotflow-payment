@@ -87,3 +87,11 @@ export const refundSchema = z.object({
         .min(10, "Reason in detail must be at least 10 characters")
         .max(500, "Reason in detail cannot exceed 500 characters"),
 });
+
+// stripe account id zod schema
+export const stripeAccountIdSchema = z.object({
+  accountId: z.string()
+    .trim()
+    .min(1, "Account ID is required")
+    .regex(/^acct_[a-zA-Z0-9]{10,}$/, "Invalid Stripe account ID format"),
+});

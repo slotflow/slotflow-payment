@@ -31,6 +31,7 @@ export class Payment {
             paymentIntentId: props.paymentIntentId,
             transactionId: props.transactionId,
             chargeId: props.chargeId,
+            sessionId: props.sessionId,
             gatewayFee: props.gatewayFee,
 
             receiptUrl: props.receiptUrl,
@@ -61,6 +62,7 @@ export class Payment {
             paymentIntentId: props.paymentIntentId,
             transactionId: props.transactionId,
             chargeId: props.chargeId,
+            sessionId: props.sessionId,
             gatewayFee: props.gatewayFee,
 
             receiptUrl: props.receiptUrl,

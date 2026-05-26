@@ -25,3 +25,9 @@ export enum PaymentMethod {
     UPI = "upi",
     NETBANKING = "netbanking"
 }
+
+export enum StripeAccountStatus {
+  PENDING = "pending",
+  ACTIVE = "active",
+  RESTRICTED = "restricted",
+}

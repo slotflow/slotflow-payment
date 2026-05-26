@@ -8,14 +8,6 @@ export interface CommonResponse {
   message?: string;
 };
 
-// **** Used as the response interface for the paginated response
-export interface ApiResponse<T = unknown> extends CommonResponse {
-  totalPages?: number;
-  currentPage?: number;
-  totalCount?: number;
-  data?: T;
-}
-
 // **** PAYMENT INTERFACE
 export interface PaymentDTO {
   _id: string;
@@ -65,7 +57,7 @@ export interface TableData<T> {
   totalPages?: number;
   currentPage?: number;
   totalCount?: number;
-  data?: T
+  items?: T
 };
 
 // Used for the pagination

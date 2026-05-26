@@ -1,19 +1,18 @@
+import { serviceConfig } from "../../../config/env";
 import { IdType } from "../../../shared/utils/types";
 import { Role } from "../../../domain/enums/common.enum";
 import { generateId } from "../../../shared/utils/generateId";
-import { BadRequestError } from "../../../shared/error/appError";
 import { BookingCheckoutInput } from "../../dtos/payment.dtos";
-import { kafkaConfig, serviceConfig } from "../../../config/env";
+import { BadRequestError } from "../../../shared/error/appError";
 import { toAppError } from "../../../shared/error/handleUnknownError";
-import { EventEnvelope, StripeCustomerCreatedEvent } from "../../dtos/kafka.dtos";
 import { IPaymentGateway } from "../../../domain/interfaces/payment/IPaymentGateway";
-import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
+import { CreateStripeCustomerUseCase } from "../stripe/createStripeCustomer.useCase";
 import { bookingPaymentFailedUrl, bookingPaymentSuccessUrl } from "../../../shared/utils/constants";
 
 export class BookingCheckoutUseCase {
     constructor(
         private readonly paymentGateway: IPaymentGateway,
-        private readonly kafkaProducer: IKafkaProducerAdapter
+        private readonly createStripeCustomer: CreateStripeCustomerUseCase
     ) { }
 
     async execute(input: BookingCheckoutInput): Promise<string> {
@@ -46,35 +45,22 @@ export class BookingCheckoutUseCase {
                 !paymentFor ||
                 !userEmail ||
                 !userName ||
-                !initialAmount ||
-                !pushNotification
+                !initialAmount
             ) {
                 throw new BadRequestError();
             }
 
-            let newStripeCstomerId: string | undefined = stripeCustomerId ?? undefined;
+             let customerId: string | undefined = stripeCustomerId;
 
-            if (!stripeCustomerId) {
-                const customerId = await this.paymentGateway.createStripeCustomer({
+            if (!customerId) {
+                const customer = await this.createStripeCustomer.execute({
                     email: userEmail,
-                    name: userName,
-                    userId: userId,
-                    role: Role.USER,
+                    username: userName,
+                    userId: providerId,
+                    role: Role.PROVIDER
                 });
-                newStripeCstomerId = customerId.customerId;
-                await this.kafkaProducer.publish<EventEnvelope<StripeCustomerCreatedEvent>>(
-                    kafkaConfig.topics.pub.stripeCustomerCreated, {
-                    eventId: generateId(IdType.EVENT),
-                    attempt: 1,
-                    maxAttempts: 1,
-                    occurredAt: new Date().toString(),
-                    payload: {
-                        mbsData: {
-                            stripeCustomerId: customerId.customerId,
-                            userId: input.userId,
-                        },
-                    }
-                });
+
+                customerId = customer.stripeCustomerId;
             }
 
             const result = await this.paymentGateway.createBookingCheckoutSession({
@@ -90,10 +76,10 @@ export class BookingCheckoutUseCase {
                 userEmail,
                 userName,
                 initialAmount,
-                stripeCustomerId: newStripeCstomerId,
+                stripeCustomerId: customerId,
                 successUrl: serviceConfig.frontendUrl + bookingPaymentSuccessUrl,
                 cancelUrl: serviceConfig.frontendUrl + bookingPaymentFailedUrl,
-                pushNotification: pushNotification.toString()
+                pushNotification: pushNotification.toString(),
             });
 
             return result.sessionId;

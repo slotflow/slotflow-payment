@@ -19,9 +19,54 @@ export class SubscriptionCheckoutCompleteUseCase {
         private readonly paymentGateway: IPaymentGateway,
     ) { };
 
+    private async sleep(ms: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    private async retrievePaymentIntentWithRetry(
+        paymentIntentId: string,
+        maxRetries: number = 3,
+        initialDelayMs: number = 500
+    ): Promise<Stripe.PaymentIntent> {
+        let lastError: Error | null = null;
+        
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                const paymentIntentDetail = await this.paymentGateway.retrievePaymentIntent({
+                    paymentIntent: paymentIntentId
+                });
+                
+                const latestCharge = paymentIntentDetail.paymentIntent.latest_charge as Stripe.Charge;
+                
+                if (latestCharge && latestCharge.balance_transaction) {
+                    return paymentIntentDetail.paymentIntent;
+                }
+                
+                if (attempt < maxRetries - 1) {
+                    const delayMs = initialDelayMs * Math.pow(2, attempt);
+                    await this.sleep(delayMs);
+                }
+            } catch (error) {
+                lastError = error as Error;
+                if (attempt < maxRetries - 1) {
+                    const delayMs = initialDelayMs * Math.pow(2, attempt);
+                    await this.sleep(delayMs);
+                }
+            }
+        }
+        
+        throw new AppError(
+            "Payment charge or balance transaction details missing after retries",
+            500,
+            false,
+            ERROR_CODES.PAYMENT_INVALID_RESPONSE
+        );
+    }
+
     async execute(input: Stripe.Checkout.Session): Promise<void> {
         try {
-            if (!input.payment_intent) {
+
+            if (!input) {
                 throw new BadRequestError();
             }
 
@@ -29,32 +74,22 @@ export class SubscriptionCheckoutCompleteUseCase {
             let receiptNumber: string | null = null;
             let receiptEmail: string | null = null;
 
-            const paymentIntentDetail = await this.paymentGateway.retrievePaymentIntent({
-                paymentIntent: input.payment_intent as string
-            });
+            const stripePaymentIntent = await this.retrievePaymentIntentWithRetry(
+                input.payment_intent as string
+            );
 
-            if (!paymentIntentDetail.paymentIntent.latest_charge) {
+            if (!stripePaymentIntent.latest_charge) {
                 throw new BadRequestError("Payment charge details missing");
             }
 
-            const latestCharge = paymentIntentDetail.paymentIntent.latest_charge as Stripe.Charge;
-            if (!latestCharge || !latestCharge.balance_transaction) {
-                throw new AppError(
-                    "Payment charge or balance transaction details missing",
-                    500,
-                    false,
-                    ERROR_CODES.PAYMENT_INVALID_RESPONSE
-                );
-            }
+            const latestCharge = stripePaymentIntent.latest_charge as Stripe.Charge;
 
             receiptUrl = latestCharge.receipt_url;
             receiptNumber = latestCharge.receipt_number;
             receiptEmail = latestCharge.receipt_email;
 
-            const balanceTransaction = await this.paymentGateway.retrieveBalance({
-                balanceTransaction: latestCharge.balance_transaction as string
-            });
-            const fee = balanceTransaction.balanceTransaction.fee;
+            const balanceTransaction = latestCharge.balance_transaction as Stripe.BalanceTransaction;
+            const fee = balanceTransaction.fee;
 
             const subscriptionId = input?.metadata?.subscriptionId;
             const providerId = input?.metadata?.providerId;
@@ -96,7 +131,8 @@ export class SubscriptionCheckoutCompleteUseCase {
                 discountAmount,
                 totalAmount,
                 providerId: providerId,
-                chargeId: input.payment_intent as string,
+                chargeId: latestCharge.id,
+                sessionId: input.id,
                 receiptUrl,
                 receiptNumber,
                 receiptEmail,

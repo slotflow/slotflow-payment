@@ -15,6 +15,7 @@ export interface PaymentProps {
     paymentIntentId?: string;
     transactionId: string;
     chargeId?: string;
+    sessionId: string;
     gatewayFee: number | null;
     receiptUrl: string | null;
     receiptNumber: string | null;

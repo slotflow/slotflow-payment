@@ -75,7 +75,7 @@ export class PaymentQueriesImpl implements IPaymentQueries {
         const totalPages = Math.ceil(totalCount / limit);
 
         return {
-            data: {
+            items: {
                 rows: revenueReportData[0].rows,
                 grandTotal: revenueReportData[0].grandTotal,
                 grandDiscount: revenueReportData[0].grandDiscount,

@@ -28,7 +28,7 @@ export class PaymentRepositoryImpl implements IPaymentRepository {
         return doc ? PaymentMapper.toDomain(doc) : null;
     };
 
-    async findAll(page: number, limit: number, userId?: string, providerId?: string): Promise<{ data: Array<Payment>, totalPages: number; currentPage: number; totalCount: number; }> {
+    async findAll(page: number, limit: number, userId?: string, providerId?: string): Promise<{ items: Array<Payment>, totalPages: number; currentPage: number; totalCount: number; }> {
         const skip = (page - 1) * limit;
 
         const filter: {
@@ -59,7 +59,7 @@ export class PaymentRepositoryImpl implements IPaymentRepository {
         const totalPages = Math.ceil(totalCount / limit);
 
         return {
-            data: payments.map(payment => PaymentMapper.toDomain(payment)),
+            items: payments.map(payment => PaymentMapper.toDomain(payment)),
             totalPages,
             currentPage: page,
             totalCount
