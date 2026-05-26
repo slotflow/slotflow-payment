@@ -1,4 +1,4 @@
-import { stripe } from "../lib/stripe";
+import { stripe } from "./stripe.client";
 import { PaymentGateway } from "./paymentGateway";
 import { IPaymentGateway } from "../../domain/interfaces/payment/IPaymentGateway";
 

@@ -1,7 +1,5 @@
-import { Types } from "mongoose";
-import { PaymentModel } from "../databse/payment.model";
+import { PaymentModel } from "../models/payment.model";
 import { PaymentMapper } from "../mapper/payment.mapper";
-import { PaymentFor } from "../../domain/enums/payment.enum";
 import { Payment } from "../../domain/entities/payment.entity";
 import { IPaymentRepository } from "../../domain/interfaces/repositories/IPayment.repository";
 
@@ -18,7 +16,7 @@ export class PaymentRepositoryImpl implements IPaymentRepository {
         return doc ? PaymentMapper.toDomain(doc) : null;
     };
 
-    async update(payment: Payment): Promise<Payment> {
+    async update(payment: Payment): Promise<Payment | null> {
         const persistence = PaymentMapper.toPersistence(payment);
 
         const doc = await PaymentModel.findByIdAndUpdate(
@@ -27,30 +25,23 @@ export class PaymentRepositoryImpl implements IPaymentRepository {
             { new: true }
         );
 
-        if (!doc) {
-            throw new Error("Payment not found");
-        }
-
-        return PaymentMapper.toDomain(doc);
+        return doc ? PaymentMapper.toDomain(doc) : null;
     };
 
-    async findAll(page: number, limit: number, userId?: string, providerId?: string): Promise<{ data: Array<Payment>, totalPages: number; currentPage: number; totalCount: number; }> {
+    async findAll(page: number, limit: number, userId?: string, providerId?: string): Promise<{ items: Array<Payment>, totalPages: number; currentPage: number; totalCount: number; }> {
         const skip = (page - 1) * limit;
 
         const filter: {
-            userId?: Types.ObjectId;
-            providerId?: Types.ObjectId;
-            paymentFor?: PaymentFor | { $in: PaymentFor[] };
+            userId?: string;
+            providerId?: string;
         } = {};
 
         if (userId) {
-            filter.userId = new Types.ObjectId(userId);
-            filter.paymentFor = PaymentFor.AppointmentBooking
+            filter.userId = userId;
         }
 
         if (providerId) {
-            filter.providerId = new Types.ObjectId(providerId);
-            filter.paymentFor = { $in: [PaymentFor.ProviderPayout, PaymentFor.ProviderSubscription] }
+            filter.providerId = providerId;
         }
 
         const [payments, totalCount] = await Promise.all([
@@ -60,16 +51,15 @@ export class PaymentRepositoryImpl implements IPaymentRepository {
                 totalAmount: 1,
                 paymentFor: 1,
                 paymentMethod: 1,
-                paymentGateway: 1,
                 paymentStatus: 1,
                 discountAmount: 1,
-            }).skip(skip).limit(limit).sort({ createdAt: 1 }).lean(),
+            }).skip(skip).limit(limit).sort({ createdAt: 1 }),
             PaymentModel.countDocuments(filter),
         ]);
         const totalPages = Math.ceil(totalCount / limit);
 
         return {
-            data: payments.map(payment => PaymentMapper.toDomain(payment)),
+            items: payments.map(payment => PaymentMapper.toDomain(payment)),
             totalPages,
             currentPage: page,
             totalCount

@@ -1,69 +1,25 @@
-import { PaymentFor } from "../../domain/enums/payment.enum";
 import { PlanName } from "../../domain/enums/plan.enum";
-import { SubscriptionValidity } from "../../domain/enums/subscription.enum";
-import { ApiPaginationRequest, PaymentDTO } from "./common.dtos";
+import { PaymentFor } from "../../domain/enums/payment.enum";
+import { ServiceMode } from "../../domain/enums/service.enums";
+import { RefundFor, RefundReason } from '../../domain/enums/refund.enum';
+import { ApiPaginationRequest, CommonDateInput, PaymentDTO } from "./common.dtos";
 
-// **** subscription queries findByProviderId method response payment data fething model
+//// **** queries dtos ***** ////
 
-// Used as the response type for fetching subscriptions with planName and plan price of a specific provider for the provider side and admin side
-// removing payment dependedcy data from here the data will be requested from payment service from client directly
-// removed data
-
-//   Pick<SubscriptionDTO, "_id" | "startDate" | "endDate" | "subscriptionStatus"> &
-//   Partial<Pick<PlanDTO, "planName">>>
-
-// needed data 
-
-export type FindSubscriptionsByProviderIdResponse = Array<Partial<Pick<PaymentDTO, "totalAmount">>>;
-
-// Omit<SubscriptionDTO, 'subscriptionPlanId' | "paymentId"> & {
-//     subscriptionPlanId: {
-//         planName: PlanDTO["planName"];
-//     },
-// export type PopulatedSubscription = 
-//     paymentId: {
-//       totalAmount: string;
-//     }
-// ;
-
-
-// **** subscription queries findDetails method response payment data fething model
-
-// type SubscriptionProps = Pick<SubscriptionDTO, "startDate" | "endDate" | "subscriptionStatus" | "createdAt">;
-type PaymentsProps = Pick<PaymentDTO, "transactionId" | "discountAmount" | "initialAmount" | "paymentFor" | "paymentGateway" | "paymentMethod" | "paymentStatus" | "totalAmount">;
-// type PlanProps = Pick<PlanDTO, "planName" | "price" | "adVisibility" | "maxBookingPerMonth">;
-export interface findSubscriptionFullDetailsResProps {
-  //  SubscriptionProps
-  //   subscriptionPlanId: PlanProps,
-  paymentId: PaymentsProps | null,
+// 1. findStatsDataForProviderDashboard method parameter and return
+export interface GetProviderRevenueQuery extends CommonDateInput {
+  providerId: string;
+}
+export interface GetProviderRevenueView {
+  totalSubscriptionPaidAmount: number;
+  totalEarnings: number;
+  totalPayoutsMade: number;
+  pendingPayout: number;
 }
 
-
-export interface ProviderFetchDashboardPaymentStatsDataResponse {
-  totalSubscriptionPaidAmount: number;
-  totalEarnings: number;
-  todaysEarnings: number;
-  totalPayoutsMade: number;
-  pendingPayout: number;
-};
-
-
-// Admin fetch revenue report request
-export interface AdminFetchRevenueReportRequest extends ApiPaginationRequest {
-  startDate?: Date;
-  endDate: Date;
-};
-
-export interface ProviderFetchDashboardPaymentStatsDataResponse {
-  totalSubscriptionPaidAmount: number;
-  totalEarnings: number;
-  todaysEarnings: number;
-  totalPayoutsMade: number;
-  pendingPayout: number;
-};
-
-// used as the return type of the admin fetch dashboard revenue stats data
-export interface AdminFetchDashboardRevenueStatsDataResponse {
+// 2. findStatsDataForAdminDashboard method parameter and return 
+export interface GetAdminRevenueStatsDataQuery extends CommonDateInput {}
+export interface GetAdminRevenueStatsDataView {
   totalRevenue: number;
   totalRevenueViaSubscriptions: number;
   revenueByStripe: number;
@@ -75,21 +31,11 @@ export interface AdminFetchDashboardRevenueStatsDataResponse {
   totalPayoutsToProviders: number;
 };
 
-export interface AdminFetchDashboardTodayStatsDataResponse {
-  newUsers: number;
-  newProviders: number;
-
-  todaysTotalRevenue: number;
-  todaysTotalPayouts: number;
-
-  todaysAppointments: number;
-  todaysCancelledAppointments: number;
-  todaysCompletedAppointments: number;
-};
-
-export type AdminFetchDashboardTodayPaymentStatsDataResponse = Pick<AdminFetchDashboardTodayStatsDataResponse, "todaysTotalPayouts" | "todaysTotalRevenue">;
-
-// Admin fetch revenue report response
+// 3. findAdminRevenueReport method parameter and return
+export interface GetAdminRevenueReportQuery extends ApiPaginationRequest {
+  startDate: Date;
+  endDate: Date;
+}
 export type AdminFetchRevenueReportRow = Pick<
   PaymentDTO,
   | "createdAt"
@@ -99,25 +45,87 @@ export type AdminFetchRevenueReportRow = Pick<
   | "paymentGateway"
   | "paymentFor"
 >;
-export interface AdminFetchRevenueReportResponse {
+export interface GetAdminRevenueReportView {
   rows: AdminFetchRevenueReportRow[];
   grandTotal: number;
   grandDiscount: number;
   grandInitalAmount: number;
 };
 
-export interface ProviderPaymentCheckoutRequest {
+
+
+
+
+
+
+//// **** usecase dtos ***** ////
+
+// GetAdminRevenue usecase input output
+export type GetAdminRevenueStatsDataInput = GetAdminRevenueStatsDataQuery;
+export type GetAdminRevenueStatsDataOutput = GetAdminRevenueStatsDataView;
+
+// GetProviderRevenue usecase input output
+export type GetProviderRevenueInput = GetProviderRevenueQuery;
+export type GetProviderRevenueOutput = GetProviderRevenueView;
+
+// GetAdminReport usecase input output
+export type GetAdminRevenueReportInput = GetAdminRevenueReportQuery; 
+export type GetAdminRevenueReportOutput = GetAdminRevenueReportView;
+
+// subscription usecase input
+export interface SubscriptionCheckoutInput {
   subscriptionId: string;
+  providerId: string;
   planName: PlanName;
   description: string;
-  planDuration: SubscriptionValidity;
+  planDuration: number;
   unitAmount: number;
-  providerId: string;
-  totalAmount: number;
   paymentFor: PaymentFor;
-  paymentDate: Date;
   name: string;
   email: string;
   initialAmount: number;
-  discountAmount: number;
+  stripeCustomerId?: string;
 };
+
+// booking checkout usecase input
+export interface BookingCheckoutInput {
+  serviceName: string;
+  description: string;
+  unitAmount: number;
+  providerId: string;
+  slotDuration: number;
+  selectedServiceMode: ServiceMode;
+  bookingId: string;
+  userId: string;
+  paymentFor: PaymentFor;
+  userEmail: string;
+  userName: string;
+  initialAmount: number;
+  pushNotification: boolean;
+  stripeCustomerId?: string;
+}
+
+// GetPayments usecase input output
+export interface userIdAndProviderIdFilterForFetchPayments {
+  userId?: string;
+  providerId?: string;
+}
+export interface GetPaymentsInput extends ApiPaginationRequest, userIdAndProviderIdFilterForFetchPayments { };
+export type GetPaymentsOutput = Array<Pick<PaymentDTO, "_id" | "createdAt" | "totalAmount" | "paymentFor" | "paymentMethod" | "paymentStatus" | "discountAmount">> | null;
+
+// GetpaymentsDetails usecase input output
+export interface GetPaymentDetailsInput {
+  paymentId: string;
+};
+export type GetPaymentDetailsOutput = Omit<PaymentDTO, "_id" | "chargeId" | "receiptEmail" | "receiptNumber" | "updatedAt"> | null;
+
+
+// refundPayment usecase input
+export interface refundPaymentInput {
+  bookingId: string;
+  paymentId: string;
+  refundFor: RefundFor;
+  refundReason: RefundReason;
+  reasonInDetail: string;
+  userId: string;
+}

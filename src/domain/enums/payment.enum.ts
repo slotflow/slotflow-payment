@@ -12,13 +12,6 @@ export enum PaymentGateway {
     PAYPAL = "PAYPAL"
 };
 
-export enum PaymentMethod {
-    CARD = "CARD",
-    UPI = "UPI",
-    WALLET = "WALLET",
-    NET_BANKING = "NET_BANKING",
-};
-
 export enum PaymentStatus {
     PENDING = "PENDING",
     PAID = "PAID",
@@ -26,3 +19,15 @@ export enum PaymentStatus {
     CANCELLED = "CANCELLED",
     REFUNDED = "REFUNDED",
 };
+
+export enum PaymentMethod {
+    CARD = "card",
+    UPI = "upi",
+    NETBANKING = "netbanking"
+}
+
+export enum StripeAccountStatus {
+  PENDING = "pending",
+  ACTIVE = "active",
+  RESTRICTED = "restricted",
+}

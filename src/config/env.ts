@@ -1,6 +1,3 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
 import { Validator } from '../shared/validator/validator';
 
 const validator = new Validator();
@@ -8,30 +5,38 @@ const validator = new Validator();
 export const appConfig = {
     port: validator.requireNumber("PORT"),
     nodeEnv: validator.requireEnv("NODE_ENV"),
+    isDev: validator.requireEnv("NODE_ENV") === "development",
+    serviceName: validator.requireEnv("SERVICE_NAME")
 };
 
 export const mongodbConfig = {
-    mongoUri: appConfig.nodeEnv === "development" ? validator.requireEnv("MONGO_URI_DEV") : validator.requireEnv("MONGO_URI"),
+    mongoUri: appConfig.isDev ? validator.requireEnv("MONGO_URI_DEV") : validator.requireEnv("MONGO_URI"),
 };
 
 export const serviceConfig = {
-    frontendUrl: appConfig.nodeEnv === "development" ? validator.requireEnv("FRONTEND_URL_DEV") : validator.requireEnv("FRONTEND_URL"),
-    apiGatewayUrl: appConfig.nodeEnv === "development" ? validator.requireEnv("API_GATEWAY_URL_DEV") : validator.requireEnv("API_GATEWAY_URL"),
-    mainBackendServiceUrl: appConfig.nodeEnv === "development" ? validator.requireEnv("MAIN_BACKEND_SERVICE_URL_DEV") : validator.requireEnv("MAIN_BACKEND_SERVICE_URL"),
-    realtimeServiceUrl: appConfig.nodeEnv === "development" ? validator.requireEnv("REALTIME_SERVICE_URL_DEV") : validator.requireEnv("REALTIME_SERVICE_URL"),
-    notificationServiceUrl: appConfig.nodeEnv === "development" ? validator.requireEnv("NOTIFICATION_SERVICE_URL_DEV") : validator.requireEnv("NOTIFICATION_SERVICE_URL"),
-    paymentServiceUrl: appConfig.nodeEnv === "development" ? validator.requireEnv("PAYMENT_SERVICE_URL_DEV") : validator.requireEnv("PAYMENT_SERVICE_URL"),
+    frontendUrl: appConfig.isDev ? validator.requireEnv("FRONTEND_URL_DEV") : validator.requireEnv("FRONTEND_URL"),
+    apiGatewayUrl: appConfig.isDev ? validator.requireEnv("API_GATEWAY_URL_DEV") : validator.requireEnv("API_GATEWAY_URL"),
+    mainBackendServiceUrl: appConfig.isDev ? validator.requireEnv("MAIN_BACKEND_SERVICE_URL_DEV") : validator.requireEnv("MAIN_BACKEND_SERVICE_URL"),
+    realtimeServiceUrl: appConfig.isDev ? validator.requireEnv("REALTIME_SERVICE_URL_DEV") : validator.requireEnv("REALTIME_SERVICE_URL"),
+    notificationServiceUrl: appConfig.isDev ? validator.requireEnv("NOTIFICATION_SERVICE_URL_DEV") : validator.requireEnv("NOTIFICATION_SERVICE_URL"),
+    paymentServiceUrl: appConfig.isDev ? validator.requireEnv("PAYMENT_SERVICE_URL_DEV") : validator.requireEnv("PAYMENT_SERVICE_URL"),
 };
 
 export const stripeConfig = {
-    stripeSecretKey: appConfig.nodeEnv === "development" ? validator.requireEnv("STRIPE_SECRET_KEY_DEV") : validator.requireEnv("STRIPE_SECRET_KEY"),
-    stripeWebhookSecret: appConfig.nodeEnv === "development" ? validator.requireEnv("STRIPE_WEBHOOK_SECRET_DEV") : validator.requireEnv("STRIPE_WEBHOOK_SECRET"),
+    stripeSecretKey: appConfig.isDev ? validator.requireEnv("STRIPE_SECRET_KEY_DEV") : validator.requireEnv("STRIPE_SECRET_KEY"),
+    stripeWebhookSecret: appConfig.isDev ? validator.requireEnv("STRIPE_WEBHOOK_SECRET_DEV") : validator.requireEnv("STRIPE_WEBHOOK_SECRET"),
 };
 
 export const redisConfig = {
     redisUrl: validator.requireEnv("REDIS_URL"),
     redisToken: validator.requireEnv("REDIS_TOKEN"),
     redisTtl: validator.requireEnv("REDIS_TTL_SECONDS"),
+};
+
+export const otelConfig = {
+    otelExporterOtlpTracesEndpoint: appConfig.isDev ? validator.requireEnv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT_DEV") : validator.requireEnv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"),
+    otelExporterOtlpMetricsEndpoint: appConfig.isDev ? validator.requireEnv("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT_DEV") : validator.requireEnv("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"),
+    otelExporterOtlpLogsEndpoint: appConfig.isDev ? validator.requireEnv("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT_DEV") : validator.requireEnv("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"),
 };
 
 export const kafkaConfig = {
@@ -42,28 +47,26 @@ export const kafkaConfig = {
 
     brokers: [
         validator.requireEnv("KAFKA_BROKER_1"),
-        validator.requireEnv("KAFKA_BROKER_2"),
-        validator.requireEnv("KAFKA_BROKER_3"),
+        // validator.requireEnv("KAFKA_BROKER_2"),
+        // validator.requireEnv("KAFKA_BROKER_3"),
     ],
 
     topics: {
+        dlqTopic: validator.requireEnv("KAFKA_DLQ_TOPIC"),
         sub: {
-            userBookingPayment: validator.requireEnv("KAFKA_USER_BOOKING_PAYMENT"),
-            providerPayoutPayment: validator.requireEnv("KAFKA_PROVIDER_PAYOUT"),
-            userCancelBooking: validator.requireEnv("KAFKA_USER_CANCEL_BOOKING"),
+
         },
+        
         pub: {
+            // PS -> MBS & NS
             providerSubscriptionPaymentSuccess: validator.requireEnv("KAFKA_PROVIDER_SUBSCRIPTION_PAYMENT_SUCCESS"),
-            providerSubscriptionPaymentFailed: validator.requireEnv("KAFKA_PROVIDER_SUBSCRIPTION_PAYMENT_FAILED"),
-            // added till
-
             userBookingPaymentSuccess: validator.requireEnv("KAFKA_USER_BOOKING_PAYMENT_SUCCESS"),
-            userBookingPaymentFailed: validator.requireEnv("KAFKA_USER_BOOKING_PAYMENT_FAILED"),
-            providerPayoutSuccess: validator.requireEnv("KAFKA_PROVIDER_PAYOUT_SUCCESS"),
-            providerPayoutFailed: validator.requireEnv("KAFKA_PROVIDER_PAYOUT_FAILED"),
-            userCancelBookingSuccess: validator.requireEnv("KAFKA_USER_CANCEL_BOOKING_SUCCESS"),
-            userCancelBookingFailed: validator.requireEnv("KAFKA_USER_CANCEL_BOOKING_FAILED"),
+            refundPayment: validator.requireEnv("KAFKA_REFUND_PAYMENT"),
 
+            // PS -> MBS
+            stripeAccountCreated: validator.requireEnv("KAFKA_STRIPE_ACCOUNT_CREATED"),
+            stripeCustomerCreated: validator.requireEnv("KAFKA_STRIPE_CUSTOMER_CREATED"),
+            stripeAccountUpdateStatus: validator.requireEnv("KAFKA_STRIPE_ACCOUNT_UPDATE_STATUS"),
         },
     },
 };

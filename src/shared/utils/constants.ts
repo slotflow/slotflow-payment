@@ -1,15 +1,70 @@
+import { IdType } from "./types";
+import { RefundStatus } from "../../domain/enums/refund.enum";
+import { StripeAccountStatus } from "../../domain/enums/payment.enum";
+
 // notification content
 export const notificationContentMap: Record<string, {
   title: string;
   body: (...args: any[]) => string;
 }> = {
   providerSubscriptionPayment: {
-    title: "Subscription Payment Success",
-    body: (planDuration: string) =>
-      `Your ${planDuration} subscription payment has been processed successfully.`
+    title: "Payment Received",
+    body: () =>
+      `Your payment has been received successfully. Your subscription is being activated`
   },
+  bookingPaymentSuccess: {
+    title: "Payment Received",
+    body: () =>
+      `Your payment has been received successfully. Your booking is being confirmed`
+  },
+  refundPayment: {
+    title: "Refund Initiated",
+    body: (refundStatus: RefundStatus) => {
+      switch (refundStatus) {
+        case RefundStatus.SUCCESS:
+          return `Your refund has been initiated successfully.`;
+        case RefundStatus.FAILED:
+          return `Your refund has been failed.`;
+        default:
+          return "Your refund has been failed.";
+      }
+    }
+  },
+  stripeAccountStatusUpdated: {
+    title: "Stripe Account Status",
+    body: (accountStatus: StripeAccountStatus) => {
+      switch (accountStatus) {
+        case StripeAccountStatus.PENDING:
+          return `Your stripe account is pending.`;
+        case StripeAccountStatus.RESTRICTED:
+          return `Your stripe account is restricted.`;
+        case StripeAccountStatus.ACTIVE:
+          return `Your stripe account is active.`;
+        default:
+          return "Your stripe account status has been updated.";
+      }
+    }
+  },
+  stripeAccountCreated: {
+    title: "Stripeonboarding completed",
+    body: () =>
+      `Your stripe account has been created successfully. You can receive payments once your account status will be activated`
+  }
 };
 
 // payment urls
-export const providerPaymentSuccessUrl = "/provider/payment-success";
-export const providerPaymentFailedUrl = "/provider/payment-failed";
+export const providerPaymentSuccessUrl = "/provider/subscription/confirm?status=success";
+export const providerPaymentFailedUrl = "/provider/subscription/confirm?status=failed";
+
+export const bookingPaymentSuccessUrl = "/user/booking/confirm?status=success";
+export const bookingPaymentFailedUrl = "/user/booking/confirm?status=failed";
+
+export const PREFIX_MAP: Record<IdType, string> = {
+  [IdType.EVENT]: "sf_evt_",
+  [IdType.TRANSACTION]: "sf_trx_",
+  [IdType.ROOM]: "sf_room_",
+  [IdType.IDEMPOTENCY]: "sf_idem_",
+  [IdType.FILE]: "sf_file_",
+  [IdType.SUB_IDEMPOTENCY]: "sf_sub_",
+  [IdType.BOOKING_IDEMPOTENCY]: "sf_bo"
+};
