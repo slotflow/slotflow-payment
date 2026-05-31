@@ -24,9 +24,8 @@ router.post("/refund",
     paymentController.refund
 );
 
-router.get('/reports/revenue', 
-    authMiddleware, 
-    paymentController.getRevenueReport
+router.get("/stripe/account/status/:accountId",
+    paymentController.getStripeAccountStatus
 );
 
 router.post('/stripe/account-link', 
@@ -34,9 +33,9 @@ router.post('/stripe/account-link',
     paymentController.linkStripeAccount
 );
 
-router.get('/stripe/account-status/:accountId', 
+router.get('/reports/revenue', 
     authMiddleware, 
-    paymentController.getStripeAccountStatus
+    paymentController.getRevenueReport
 );
 
 router.get('/revenue', 

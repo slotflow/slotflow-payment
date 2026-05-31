@@ -103,7 +103,7 @@ export interface CreateStripeAccountLinkInput {
 }
 
 export interface CreateStripeAccountLinkOutput {
-    accountLink: Stripe.Response<Stripe.AccountLink>;
+    accountLinkData: Stripe.Response<Stripe.AccountLink>;
 }
 
 export interface IPaymentGateway {

@@ -8,14 +8,14 @@ import { GetPaymentsUseCase } from "../../../application/useCases/payment/getPay
 import { RefundPaymentUseCase } from "../../../application/useCases/payment/refundPayment.useCase";
 import { BookingCheckoutUseCase } from "../../../application/useCases/payment/bookingCheckout.useCase";
 import { GetAdminRevenueUseCase } from "../../../application/useCases/payment/getAdminRevenue.useCase";
-import { StripeAccountLinkUseCase } from "../../../application/useCases/stripe/stripeAccountLink.useCase";
 import { GetPaymentDetailsUseCase } from "../../../application/useCases/payment/getPaymentDetails.useCase";
 import { GetProviderRevenueUseCase } from "../../../application/useCases/payment/getProviderRevenue.useCase";
 import { GetAdminRevenueReportUseCase } from "../../../application/useCases/payment/getRevenueReport.useCase";
 import { SubscriptionCheckoutUseCase } from "../../../application/useCases/payment/subscriptionCheckout.useCase";
-import { GetStripeAccountStatusUseCase } from "../../../application/useCases/stripe/getStripeAccountStatus.useCase";
 import { bookingCheckoutShcema, getAdminRevenueReportSchema, getPaymentDetailsSchema, getPaymentsSchema, refundSchema, stripeAccountIdSchema, subscipriotonCheckoutSchema } from "../../../shared/zod/payment.zod";
-import { getPaymentsUseCase, getPaymentDetailsUseCase, subscriptionCheckoutUseCase, bookingCheckoutUseCase, getAdminRevenueReportUseCase, stripeAccountLinkUseCase, getAdminRevenueUseCase, getProviderRevenueUseCase, refundPaymentUseCase, getStripeAccountStatusUseCase } from ".";
+import { getPaymentsUseCase, getPaymentDetailsUseCase, subscriptionCheckoutUseCase, bookingCheckoutUseCase, getAdminRevenueReportUseCase, getAdminRevenueUseCase, getProviderRevenueUseCase, refundPaymentUseCase, stripeAccountLinkUseCase, getStripeAccountStatusUseCase } from ".";
+import { StripeAccountLinkUseCase } from "../../../application/useCases/stripe/stripeAccountLink.useCase";
+import { GetStripeAccountStatusUseCase } from "../../../application/useCases/stripe/getStripeAccountStatus.useCase";
 
 class PaymentController {
 
@@ -25,20 +25,20 @@ class PaymentController {
         private readonly subscriptionCheckoutUseCase: SubscriptionCheckoutUseCase,
         private readonly bookingCheckoutUseCase: BookingCheckoutUseCase,
         private readonly getAdminRevenueReportUseCase: GetAdminRevenueReportUseCase,
-        private readonly stripeAccountLinkUseCase: StripeAccountLinkUseCase,
         private readonly getAdminRevenueUseCase: GetAdminRevenueUseCase,
         private readonly getProviderRevenueUseCase: GetProviderRevenueUseCase,
         private readonly refundPaymentUseCase: RefundPaymentUseCase,
-        private readonly getStripeAccountStatusUseCase: GetStripeAccountStatusUseCase
+        private readonly stripeAccountLinkUseCase: StripeAccountLinkUseCase,
+        private readonly getStripeAccountStatusUseCase: GetStripeAccountStatusUseCase,
     ) {
         this.getPayments = this.getPayments.bind(this);
         this.getPaymentDetails = this.getPaymentDetails.bind(this);
         this.subscriptionCheckout = this.subscriptionCheckout.bind(this);
         this.bookingCheckout = this.bookingCheckout.bind(this);
         this.getRevenueReport = this.getRevenueReport.bind(this);
-        this.linkStripeAccount = this.linkStripeAccount.bind(this);
         this.getRevenue = this.getRevenue.bind(this);
         this.refund = this.refund.bind(this);
+        this.linkStripeAccount = this.linkStripeAccount.bind(this);
         this.getStripeAccountStatus = this.getStripeAccountStatus.bind(this);
     };
 
@@ -130,21 +130,6 @@ class PaymentController {
         };
     };
 
-    async linkStripeAccount(req: Request, res: Response, next: NextFunction) {
-        try {
-            const user = req.user as DecodedUser;
-            const { email } = validateEmailSchema.parse(req.body);
-            const result = await this.stripeAccountLinkUseCase.execute({
-                email,
-                userId: user.id,
-            });
-            sendResponse(res, result, "Stripe connected");
-        } catch (error) {
-            log.error("connectStripe failed", error as Error);
-            next(error);
-        };
-    };
-
     async getRevenue(req: Request, res: Response, next: NextFunction) {
         try {
             const user = req.user as DecodedUser;
@@ -168,26 +153,37 @@ class PaymentController {
 
     async refund(req: Request, res: Response, next: NextFunction) {
         try {
-            const user = req.user as DecodedUser;
             const validatedData = refundSchema.parse(req.body);
             await this.refundPaymentUseCase.execute({
                 ...validatedData,
-                userId: user.id,
             });
             sendResponse(res, null);
         } catch (error) {
             log.error("refund failed", error as Error);
             next(error);
         }
-    }
+    }    
+
+     async linkStripeAccount(req: Request, res: Response, next: NextFunction) {
+        try {
+            const user = req.user as DecodedUser;
+            const { email } = validateEmailSchema.parse(req.body);
+            const result = await this.stripeAccountLinkUseCase.execute({
+                email,
+                userId: user.id,
+            });
+            sendResponse(res, result, "Stripe connected");
+        } catch (error) {
+            log.error("connectStripe failed", error as Error);
+            next(error);
+        };
+    };
 
     async getStripeAccountStatus(req: Request, res: Response, next: NextFunction) {
         try {
-            const user = req.user as DecodedUser;
             const { accountId } = stripeAccountIdSchema.parse(req.params);
             const result = await this.getStripeAccountStatusUseCase.execute({
                 accountId,
-                userId: user.id
             });
             sendResponse(res, result);
         } catch (error) {
@@ -204,9 +200,9 @@ export const paymentController = new PaymentController(
     subscriptionCheckoutUseCase,
     bookingCheckoutUseCase,
     getAdminRevenueReportUseCase,
-    stripeAccountLinkUseCase,
     getAdminRevenueUseCase,
     getProviderRevenueUseCase,
     refundPaymentUseCase,
+    stripeAccountLinkUseCase,
     getStripeAccountStatusUseCase
 );

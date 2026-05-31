@@ -27,13 +27,12 @@ export class RefundPaymentUseCase {
         const session = await mongoose.startSession();
         session.startTransaction();
         try {
-            const { bookingId, paymentId, reasonInDetail, refundFor, refundReason, userId } = input;
+            const { bookingId, paymentId, reasonInDetail, refundFor, refundReason } = input;
             if (!bookingId ||
                 !paymentId ||
                 !reasonInDetail ||
                 !refundFor ||
-                !refundReason ||
-                !userId
+                !refundReason
             ) {
                 throw new BadRequestError();
             }
@@ -82,7 +81,7 @@ export class RefundPaymentUseCase {
                 reasonInDetail: reasonInDetail,
                 metadata: {
                     bookingId,
-                    userId
+                    userId: payment.userId as string
                 }
             });
 
@@ -128,7 +127,7 @@ export class RefundPaymentUseCase {
                             title: notificationContentMap.refundPayment.title,
                             body: notificationContentMap.refundPayment.body(RefundStatus.SUCCESS),
                             pushNotification: true,
-                            userId,
+                            userId: payment.userId as string,
                             data: {
                                 refundAmount: refundAmount.toString()
                             }

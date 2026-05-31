@@ -18,16 +18,25 @@ export interface StripeAccountLinkInput {
   userId: string;
   email: string;
 };
-export type StripeAccountLinkOutput = {
-  accountLink: Stripe.Response<Stripe.AccountLink>;
+export interface StripeAccountLinkOutput {
+  accountLink: string;
   accountId: string;
 }
 
 // GetStripeAccountStatus usecase input output
 export interface GetStripeAccountStatusInput {
   accountId: string;
-  userId: string;
 }
 export type GetStripeAccountStatusOutput = {
   accountStatus: StripeAccountStatus;
+}
+
+// UpdateAccountStatus usecase input
+export interface UpdateStripeAccountStatusInput {
+  account: Stripe.Account;
+}
+
+// StripeAccountRevoked usecase input
+export interface StripeAccountRevokedInput {
+  accountId: string;
 }

@@ -205,13 +205,13 @@ export class PaymentGateway implements IPaymentGateway {
 
     async createStripeAccountLink(input: CreateStripeAccountLinkInput): Promise<CreateStripeAccountLinkOutput> {
         try {
-            const accountLink = await this.stripe.accountLinks.create({
+            const accountLinkData = await this.stripe.accountLinks.create({
                 account: input.accountId,
                 refresh_url: serviceConfig.frontendUrl + "/provider/settings/integrations?stripeOnboardingStatus=failed",
                 return_url: serviceConfig.frontendUrl + "/provider/settings/integrations?stripeOnboardingStatus=success",
                 type: "account_onboarding",
             });
-            return { accountLink }
+            return { accountLinkData }
         } catch (error: unknown) {
             log.error("PaymentGateway createStripeAccountLink failed : ", error as Error);
             throw new AppError(

@@ -115,7 +115,6 @@ export interface StripeAccountCreatedEvent {
         userId: string;
         stripeAccountId: string;
     };
-    notificationData: SendNotificationCommon;
 }
 
 export interface StripeAccountStatusUpdatedEvent {
@@ -123,7 +122,6 @@ export interface StripeAccountStatusUpdatedEvent {
         userId: string;
         accountStatus: StripeAccountStatus;
     };
-    notificationData: SendNotificationCommon;
 }
 
 export interface StripeCustomerCreatedEvent {

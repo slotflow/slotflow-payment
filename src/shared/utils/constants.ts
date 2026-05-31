@@ -29,26 +29,6 @@ export const notificationContentMap: Record<string, {
           return "Your refund has been failed.";
       }
     }
-  },
-  stripeAccountStatusUpdated: {
-    title: "Stripe Account Status",
-    body: (accountStatus: StripeAccountStatus) => {
-      switch (accountStatus) {
-        case StripeAccountStatus.PENDING:
-          return `Your stripe account is pending.`;
-        case StripeAccountStatus.RESTRICTED:
-          return `Your stripe account is restricted.`;
-        case StripeAccountStatus.ACTIVE:
-          return `Your stripe account is active.`;
-        default:
-          return "Your stripe account status has been updated.";
-      }
-    }
-  },
-  stripeAccountCreated: {
-    title: "Stripeonboarding completed",
-    body: () =>
-      `Your stripe account has been created successfully. You can receive payments once your account status will be activated`
   }
 };
 

@@ -1,7 +1,7 @@
 import { paymentGateway } from "../../../infrastructure/payment";
 import { kafkaProducer } from "../../../infrastructure/messaging";
 import { paymentQueries } from "../../../infrastructure/queriesImpls";
-import { paymentRepository, refundRepository } from "../../../infrastructure/repositoryImpls";
+import { paymentRepository, refundRepository, stripeAccountRepository } from "../../../infrastructure/repositoryImpls";
 import { GetPaymentsUseCase } from "../../../application/useCases/payment/getPayments.useCase";
 import { RefundPaymentUseCase } from "../../../application/useCases/payment/refundPayment.useCase";
 import { BookingCheckoutUseCase } from "../../../application/useCases/payment/bookingCheckout.useCase";
@@ -24,12 +24,12 @@ export const bookingCheckoutUseCase = new BookingCheckoutUseCase(paymentGateway,
 
 export const getAdminRevenueReportUseCase = new GetAdminRevenueReportUseCase(paymentQueries);
 
-export const stripeAccountLinkUseCase = new StripeAccountLinkUseCase(kafkaProducer, paymentGateway);
-
 export const getAdminRevenueUseCase = new GetAdminRevenueUseCase(paymentQueries);
 
 export const getProviderRevenueUseCase = new GetProviderRevenueUseCase(paymentQueries);
 
 export const refundPaymentUseCase = new RefundPaymentUseCase(paymentRepository, refundRepository, paymentGateway, kafkaProducer);
 
-export const getStripeAccountStatusUseCase = new GetStripeAccountStatusUseCase(paymentGateway, kafkaProducer);
+export const stripeAccountLinkUseCase = new StripeAccountLinkUseCase(kafkaProducer, paymentGateway, stripeAccountRepository);
+
+export const getStripeAccountStatusUseCase = new GetStripeAccountStatusUseCase(paymentGateway, stripeAccountRepository);
