@@ -30,4 +30,5 @@ export enum StripeAccountStatus {
   PENDING = "pending",
   ACTIVE = "active",
   RESTRICTED = "restricted",
+  REVOKED = "revoked",
 }

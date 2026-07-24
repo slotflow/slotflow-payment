@@ -127,5 +127,4 @@ export interface refundPaymentInput {
   refundFor: RefundFor;
   refundReason: RefundReason;
   reasonInDetail: string;
-  userId: string;
 }

@@ -34,6 +34,8 @@ export class RefundMapper {
             refundFor: props.refundFor,
             reasonInDetail: props.reasonInDetail,
             metadata: props.metadata,
+            createdAt: props.createdAt,
+            updatedAt: props.updatedAt,
         };
     }
 }

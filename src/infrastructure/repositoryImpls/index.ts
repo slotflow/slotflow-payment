@@ -4,6 +4,8 @@ import { ProcessedEventRepositoryImpl } from "./processedEvent.repository.impl";
 import { IRefundRepository } from "../../domain/interfaces/repositories/IRefund.repository";
 import { IPaymentRepository } from "../../domain/interfaces/repositories/IPayment.repository";
 import { IProcessedEventRepository } from "../../domain/interfaces/repositories/IProcessedEvent.repository";
+import { IStripeAccountRepository } from "../../domain/interfaces/repositories/IStripeAccount.repository";
+import { StripeAccountRepositoryImpl } from "./stripeAccount.repository.impl";
 
 // payment repository instance
 export const paymentRepository: IPaymentRepository = new PaymentRepositoryImpl();
@@ -13,3 +15,6 @@ export const refundRepository: IRefundRepository = new RefundRepositoryImpl();
 
 // processed event repository instance
 export const processedEventRepository: IProcessedEventRepository = new ProcessedEventRepositoryImpl();
+
+// stripe account repository instance
+export const stripeAccountRepository: IStripeAccountRepository = new StripeAccountRepositoryImpl();
