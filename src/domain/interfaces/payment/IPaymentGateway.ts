@@ -1,13 +1,14 @@
 import Stripe from "stripe";
 import { Role } from "../../enums/common.enum";
 import { PaymentFor } from "../../enums/payment.enum";
-import { RefundReason } from "../../enums/refund.enum";
+import { BillingCycle, RefundReason } from "../../enums/refund.enum";
 
 export interface CreateSubscriptionCheckoutSessionPayload {
     subscriptionId: string;
     providerId: string;
     planName: string;
     description: string;
+    billingCycle: BillingCycle;
     planDuration: number;
     unitAmount: number;
     paymentFor: PaymentFor;

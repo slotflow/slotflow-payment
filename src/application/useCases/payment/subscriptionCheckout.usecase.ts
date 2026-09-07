@@ -23,6 +23,7 @@ export class SubscriptionCheckoutUseCase {
                 providerId,
                 planName,
                 description,
+                billingCycle,
                 planDuration,
                 unitAmount,
                 paymentFor,
@@ -36,6 +37,7 @@ export class SubscriptionCheckoutUseCase {
                 !providerId ||
                 !planName ||
                 !description ||
+                !billingCycle ||
                 !planDuration ||
                 !unitAmount ||
                 !paymentFor ||
@@ -63,6 +65,7 @@ export class SubscriptionCheckoutUseCase {
                 providerId,
                 planName,
                 description,
+                billingCycle,
                 planDuration,
                 unitAmount,
                 paymentFor,

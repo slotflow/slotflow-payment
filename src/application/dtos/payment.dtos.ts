@@ -1,8 +1,8 @@
 import { PlanName } from "../../domain/enums/plan.enum";
 import { PaymentFor } from "../../domain/enums/payment.enum";
 import { ServiceMode } from "../../domain/enums/service.enums";
-import { RefundFor, RefundReason } from '../../domain/enums/refund.enum';
-import { ApiPaginationRequest, CommonDateInput, PaymentDTO } from "./common.dtos";
+import { BillingCycle, RefundFor, RefundReason } from '../../domain/enums/refund.enum';
+import { ApiPaginationRequest, CommonDateInput, PaymentDTO, StatMetric } from "./common.dtos";
 
 //// **** queries dtos ***** ////
 
@@ -19,16 +19,16 @@ export interface GetProviderRevenueView {
 
 // 2. findStatsDataForAdminDashboard method parameter and return 
 export interface GetAdminRevenueStatsDataQuery extends CommonDateInput {}
-export interface GetAdminRevenueStatsDataView {
-  totalRevenue: number;
-  totalRevenueViaSubscriptions: number;
-  revenueByStripe: number;
-  revenueByRazorpay: number;
-  revenueByPaypal: number;
-  totalRevenueViaAppointments: number;
-  totalRefundsIssued: number;
-  totalFailedPayments: number;
-  totalPayoutsToProviders: number;
+export interface GetAdminRevenueStatsDataView extends  Record<string, StatMetric | undefined> {
+  totalRevenue: StatMetric;
+  totalRevenueViaSubscriptions: StatMetric;
+  revenueByStripe: StatMetric;
+  revenueByRazorpay: StatMetric;
+  revenueByPaypal: StatMetric;
+  totalRevenueViaAppointments: StatMetric;
+  totalRefundsIssued: StatMetric;
+  totalFailedPayments: StatMetric;
+  totalPayoutsToProviders: StatMetric;
 };
 
 // 3. findAdminRevenueReport method parameter and return
@@ -78,6 +78,7 @@ export interface SubscriptionCheckoutInput {
   providerId: string;
   planName: PlanName;
   description: string;
+  billingCycle: BillingCycle;
   planDuration: number;
   unitAmount: number;
   paymentFor: PaymentFor;

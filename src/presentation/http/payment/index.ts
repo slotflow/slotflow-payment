@@ -5,7 +5,7 @@ import { paymentRepository, refundRepository, stripeAccountRepository } from "..
 import { GetPaymentsUseCase } from "../../../application/useCases/payment/getPayments.useCase";
 import { RefundPaymentUseCase } from "../../../application/useCases/payment/refundPayment.useCase";
 import { BookingCheckoutUseCase } from "../../../application/useCases/payment/bookingCheckout.useCase";
-import { GetAdminRevenueUseCase } from "../../../application/useCases/payment/getAdminRevenue.useCase";
+import { GetAdminRevenueStatsDataUseCase } from "../../../application/useCases/payment/getAdminRevenueStatsData.useCase";
 import { StripeAccountLinkUseCase } from "../../../application/useCases/stripe/stripeAccountLink.useCase";
 import { GetPaymentDetailsUseCase } from "../../../application/useCases/payment/getPaymentDetails.useCase";
 import { GetProviderRevenueUseCase } from "../../../application/useCases/payment/getProviderRevenue.useCase";
@@ -24,7 +24,7 @@ export const bookingCheckoutUseCase = new BookingCheckoutUseCase(paymentGateway,
 
 export const getAdminRevenueReportUseCase = new GetAdminRevenueReportUseCase(paymentQueries);
 
-export const getAdminRevenueUseCase = new GetAdminRevenueUseCase(paymentQueries);
+export const getAdminRevenueStatsDataUseCase = new GetAdminRevenueStatsDataUseCase(paymentQueries);
 
 export const getProviderRevenueUseCase = new GetProviderRevenueUseCase(paymentQueries);
 

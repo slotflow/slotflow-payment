@@ -7,13 +7,13 @@ import { startAndEndDateSchema, validateEmailSchema } from "../../../shared/zod/
 import { GetPaymentsUseCase } from "../../../application/useCases/payment/getPayments.useCase";
 import { RefundPaymentUseCase } from "../../../application/useCases/payment/refundPayment.useCase";
 import { BookingCheckoutUseCase } from "../../../application/useCases/payment/bookingCheckout.useCase";
-import { GetAdminRevenueUseCase } from "../../../application/useCases/payment/getAdminRevenue.useCase";
+import { GetAdminRevenueStatsDataUseCase } from "../../../application/useCases/payment/getAdminRevenueStatsData.useCase";
 import { GetPaymentDetailsUseCase } from "../../../application/useCases/payment/getPaymentDetails.useCase";
 import { GetProviderRevenueUseCase } from "../../../application/useCases/payment/getProviderRevenue.useCase";
 import { GetAdminRevenueReportUseCase } from "../../../application/useCases/payment/getRevenueReport.useCase";
 import { SubscriptionCheckoutUseCase } from "../../../application/useCases/payment/subscriptionCheckout.useCase";
 import { bookingCheckoutShcema, getAdminRevenueReportSchema, getPaymentDetailsSchema, getPaymentsSchema, refundSchema, stripeAccountIdSchema, subscipriotonCheckoutSchema } from "../../../shared/zod/payment.zod";
-import { getPaymentsUseCase, getPaymentDetailsUseCase, subscriptionCheckoutUseCase, bookingCheckoutUseCase, getAdminRevenueReportUseCase, getAdminRevenueUseCase, getProviderRevenueUseCase, refundPaymentUseCase, stripeAccountLinkUseCase, getStripeAccountStatusUseCase } from ".";
+import { getPaymentsUseCase, getPaymentDetailsUseCase, subscriptionCheckoutUseCase, bookingCheckoutUseCase, getAdminRevenueReportUseCase, getAdminRevenueStatsDataUseCase, getProviderRevenueUseCase, refundPaymentUseCase, stripeAccountLinkUseCase, getStripeAccountStatusUseCase } from ".";
 import { StripeAccountLinkUseCase } from "../../../application/useCases/stripe/stripeAccountLink.useCase";
 import { GetStripeAccountStatusUseCase } from "../../../application/useCases/stripe/getStripeAccountStatus.useCase";
 
@@ -25,7 +25,7 @@ class PaymentController {
         private readonly subscriptionCheckoutUseCase: SubscriptionCheckoutUseCase,
         private readonly bookingCheckoutUseCase: BookingCheckoutUseCase,
         private readonly getAdminRevenueReportUseCase: GetAdminRevenueReportUseCase,
-        private readonly getAdminRevenueUseCase: GetAdminRevenueUseCase,
+        private readonly getAdminRevenueStatsDataUseCase: GetAdminRevenueStatsDataUseCase,
         private readonly getProviderRevenueUseCase: GetProviderRevenueUseCase,
         private readonly refundPaymentUseCase: RefundPaymentUseCase,
         private readonly stripeAccountLinkUseCase: StripeAccountLinkUseCase,
@@ -142,7 +142,7 @@ class PaymentController {
                 sendResponse(res, result);
             }
             if (user.role === Role.ADMIN) {
-                const result = await this.getAdminRevenueUseCase.execute(validatedData);
+                const result = await this.getAdminRevenueStatsDataUseCase.execute(validatedData);
                 sendResponse(res, result);
             }
         } catch (error) {
@@ -200,7 +200,7 @@ export const paymentController = new PaymentController(
     subscriptionCheckoutUseCase,
     bookingCheckoutUseCase,
     getAdminRevenueReportUseCase,
-    getAdminRevenueUseCase,
+    getAdminRevenueStatsDataUseCase,
     getProviderRevenueUseCase,
     refundPaymentUseCase,
     stripeAccountLinkUseCase,

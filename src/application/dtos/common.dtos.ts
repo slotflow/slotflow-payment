@@ -87,3 +87,9 @@ export interface CommonDateInput {
   startDate: Date;
   endDate: Date
 }
+
+//
+export interface StatMetric {
+  value: number;
+  trend: string;
+}

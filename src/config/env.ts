@@ -30,7 +30,6 @@ export const stripeConfig = {
 export const redisConfig = {
     redisUrl: validator.requireEnv("REDIS_URL"),
     redisToken: validator.requireEnv("REDIS_TOKEN"),
-    redisTtl: validator.requireEnv("REDIS_TTL_SECONDS"),
 };
 
 export const otelConfig = {

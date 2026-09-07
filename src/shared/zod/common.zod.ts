@@ -2,7 +2,7 @@ import z from "zod";
 
 // validate email zod schema
 export const validateEmailSchema = z.object({
-    email: z.string().email("Invalid email address"),
+    email: z.string().email("Invalid email"),
 });
 
 // start and end date zod schema

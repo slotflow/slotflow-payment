@@ -5,6 +5,8 @@ import { getStartAndEndDate } from "../../shared/utils/dateTime";
 import { IPaymentQueries } from "../../application/queries/IPayment.queries";
 import { PaymentFor, PaymentGateway, PaymentStatus } from "../../domain/enums/payment.enum";
 import { GetAdminRevenueReportQuery, GetAdminRevenueReportView, GetAdminRevenueStatsDataQuery, GetAdminRevenueStatsDataView, GetProviderRevenueQuery, GetProviderRevenueView } from "../../application/dtos/payment.dtos";
+import { calculatePreviousPeriod } from "../../shared/utils/calculatePreviosPeriod";
+import { formatStatMetric } from "../../shared/utils/formatStatMetric";
 
 export class PaymentQueriesImpl implements IPaymentQueries {
 
@@ -89,119 +91,280 @@ export class PaymentQueriesImpl implements IPaymentQueries {
 
     async findStatsDataForAdminDashboard(query: GetAdminRevenueStatsDataQuery): Promise<GetAdminRevenueStatsDataView> {
         const { startDate, endDate } = getStartAndEndDate(query.startDate, query.endDate);
-        const paymentData = await PaymentModel.aggregate([
+        const { previousStartDate, previousEndDate } = calculatePreviousPeriod(startDate, endDate);
+
+        const [paymentData] = await PaymentModel.aggregate([
             {
                 $match: {
-                    paymentStatus: PaymentStatus.PAID,
                     createdAt: {
-                        $gte: startDate,
+                        $gte: previousStartDate,
                         $lte: endDate,
                     },
-                }
+                },
             },
             {
                 $facet: {
-                    totalRevenue: [
-                        { $match: { paymentFor: { $in: [PaymentFor.PROVIDER_SUBSCRIPTION, PaymentFor.APPOINTMENT_BOOKING] } } },
+                    current: [
+                        { $match: { createdAt: { $gte: startDate, $lte: endDate } } },
                         {
                             $group: {
                                 _id: null,
-                                amount: { $sum: "$totalAmount" }
+                                totalRevenue: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
+                                                    { $in: ["$paymentFor", [PaymentFor.PROVIDER_SUBSCRIPTION, PaymentFor.APPOINTMENT_BOOKING]] }
+                                                ]
+                                            },
+                                            "$totalAmount",
+                                            0
+                                        ]
+                                    }
+                                },
+                                totalRevenueViaSubscriptions: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
+                                                    { $eq: ["$paymentFor", PaymentFor.PROVIDER_SUBSCRIPTION] }
+                                                ]
+                                            },
+                                            "$totalAmount",
+                                            0
+                                        ]
+                                    }
+                                },
+                                totalRevenueViaAppointments: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
+                                                    { $eq: ["$paymentFor", PaymentFor.APPOINTMENT_BOOKING] }
+                                                ]
+                                            },
+                                            "$totalAmount",
+                                            0
+                                        ]
+                                    }
+                                },
+                                revenueByStripe: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
+                                                    { $eq: ["$paymentGateway", PaymentGateway.STRIPE] }
+                                                ]
+                                            },
+                                            "$totalAmount",
+                                            0
+                                        ]
+                                    }
+                                },
+                                revenueByRazorpay: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
+                                                    { $eq: ["$paymentGateway", PaymentGateway.RAZORPAY] }
+                                                ]
+                                            },
+                                            "$totalAmount",
+                                            0
+                                        ]
+                                    }
+                                },
+                                revenueByPaypal: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
+                                                    { $eq: ["$paymentGateway", PaymentGateway.PAYPAL] }
+                                                ]
+                                            },
+                                            "$totalAmount",
+                                            0
+                                        ]
+                                    }
+                                },
+                                totalRefundsIssued: {
+                                    $sum: {
+                                        $cond: [
+                                            { $eq: ["$paymentStatus", PaymentStatus.REFUNDED] },
+                                            { $ifNull: ["$refundedAmount", "$totalAmount"] },
+                                            0
+                                        ]
+                                    }
+                                },
+                                totalFailedPayments: {
+                                    $sum: {
+                                        $cond: [{ $eq: ["$paymentStatus", PaymentStatus.FAILED] }, 1, 0]
+                                    }
+                                },
+                                totalPayoutsToProviders: {
+                                    $sum: {
+                                        $cond: [
+                                            { $eq: ["$paymentFor", PaymentFor.PROVIDER_PAYOUT] },
+                                            "$totalAmount",
+                                            0
+                                        ]
+                                    }
+                                }
                             }
                         }
                     ],
-                    totalRevenueViaSubscriptions: [
-                        { $match: { paymentFor: PaymentFor.PROVIDER_SUBSCRIPTION } },
+                    previous: [
+                        { $match: { createdAt: { $gte: previousStartDate, $lte: previousEndDate } } },
                         {
                             $group: {
                                 _id: null,
-                                amount: { $sum: "$totalAmount" }
-                            }
-                        }
-                    ],
-                    totalRevenueViaAppointments: [
-                        { $match: { paymentFor: PaymentFor.APPOINTMENT_BOOKING } },
-                        {
-                            $group: {
-                                _id: null,
-                                amount: { $sum: "$totalAmount" }
-                            }
-                        }
-                    ],
-                    revenueByStripe: [
-                        { $match: { paymentGateway: PaymentGateway.STRIPE } },
-                        {
-                            $group: {
-                                _id: null,
-                                amount: { $sum: "$totalAmount" }
-                            }
-                        }
-                    ],
-                    revenueByRazorpay: [
-                        { $match: { paymentGateway: PaymentGateway.RAZORPAY } },
-                        {
-                            $group: {
-                                _id: null,
-                                amount: { $sum: "$totalAmount" }
-                            }
-                        }
-                    ],
-                    revenueByPaypal: [
-                        { $match: { paymentGateway: PaymentGateway.PAYPAL } },
-                        {
-                            $group: {
-                                _id: null,
-                                amount: { $sum: "$totalAmount" }
-                            }
-                        }
-                    ],
-                    totalRefundsIssued: [
-                        { $match: { paymentStatus: PaymentStatus.REFUNDED } },
-                        {
-                            $group: {
-                                _id: null,
-                                amount: { $sum: "$totalAmount" }
-                            }
-                        }
-                    ],
-                    totalFailedPayments: [
-                        { $match: { paymentStatus: PaymentStatus.FAILED } },
-                        {
-                            $group: {
-                                _id: null,
-                                count: { $sum: "$Count" }
-                            }
-                        }
-                    ],
-                    totalPayoutsToProviders: [
-                        { $match: { PaymentFor: PaymentFor.PROVIDER_PAYOUT } },
-                        {
-                            $group: {
-                                _id: null,
-                                amount: { $sum: "$totalAmount" }
+                                totalRevenue: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
+                                                    { $in: ["$paymentFor", [PaymentFor.PROVIDER_SUBSCRIPTION, PaymentFor.APPOINTMENT_BOOKING]] }
+                                                ]
+                                            },
+                                            "$totalAmount",
+                                            0
+                                        ]
+                                    }
+                                },
+                                totalRevenueViaSubscriptions: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
+                                                    { $eq: ["$paymentFor", PaymentFor.PROVIDER_SUBSCRIPTION] }
+                                                ]
+                                            },
+                                            "$totalAmount",
+                                            0
+                                        ]
+                                    }
+                                },
+                                totalRevenueViaAppointments: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
+                                                    { $eq: ["$paymentFor", PaymentFor.APPOINTMENT_BOOKING] }
+                                                ]
+                                            },
+                                            "$totalAmount",
+                                            0
+                                        ]
+                                    }
+                                },
+                                revenueByStripe: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
+                                                    { $eq: ["$paymentGateway", PaymentGateway.STRIPE] }
+                                                ]
+                                            },
+                                            "$totalAmount",
+                                            0
+                                        ]
+                                    }
+                                },
+                                revenueByRazorpay: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
+                                                    { $eq: ["$paymentGateway", PaymentGateway.RAZORPAY] }
+                                                ]
+                                            },
+                                            "$totalAmount",
+                                            0
+                                        ]
+                                    }
+                                },
+                                revenueByPaypal: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
+                                                    { $eq: ["$paymentGateway", PaymentGateway.PAYPAL] }
+                                                ]
+                                            },
+                                            "$totalAmount",
+                                            0
+                                        ]
+                                    }
+                                },
+                                totalRefundsIssued: {
+                                    $sum: {
+                                        $cond: [
+                                            { $eq: ["$paymentStatus", PaymentStatus.REFUNDED] },
+                                            { $ifNull: ["$refundedAmount", "$totalAmount"] },
+                                            0
+                                        ]
+                                    }
+                                },
+                                totalFailedPayments: {
+                                    $sum: {
+                                        $cond: [{ $eq: ["$paymentStatus", PaymentStatus.FAILED] }, 1, 0]
+                                    }
+                                },
+                                totalPayoutsToProviders: {
+                                    $sum: {
+                                        $cond: [
+                                            { $eq: ["$paymentFor", PaymentFor.PROVIDER_PAYOUT] },
+                                            "$totalAmount",
+                                            0
+                                        ]
+                                    }
+                                }
                             }
                         }
                     ]
                 }
-            },
-            {
-                $project: {
-                    totalRevenue: { $ifNull: [{ $arrayElemAt: ["$totalRevenue.amount", 0] }, 0] },
-                    totalRevenueViaSubscriptions: { $ifNull: [{ $arrayElemAt: ["$totalRevenueViaSubscriptions.amount", 0] }, 0] },
-                    revenueByStripe: { $ifNull: [{ $arrayElemAt: ["$revenueByStripe.amount", 0] }, 0] },
-                    revenueByRazorpay: { $ifNull: [{ $arrayElemAt: ["$revenueByRazorpay.amount", 0] }, 0] },
-                    revenueByPaypal: { $ifNull: [{ $arrayElemAt: ["$revenueByPaypal.amount", 0] }, 0] },
-                    totalRevenueViaAppointments: { $ifNull: [{ $arrayElemAt: ["$totalRevenueViaAppointments.amount", 0] }, 0] },
-                    totalRefundsIssued: { $ifNull: [{ $arrayElemAt: ["$totalRefundsIssued.amount", 0] }, 0] },
-                    totalFailedPayments: { $ifNull: [{ $arrayElemAt: ["$totalFailedPayments.count", 0] }, 0] },
-                    totalPayoutsToProviders: { $ifNull: [{ $arrayElemAt: ["$totalPayoutsToProviders.amount", 0] }, 0] },
-                }
             }
         ]);
 
-        const data = paymentData[0];
-        return { ...data };
-    };
+        const defaultStats = {
+            totalRevenue: 0,
+            totalRevenueViaSubscriptions: 0,
+            totalRevenueViaAppointments: 0,
+            revenueByStripe: 0,
+            revenueByRazorpay: 0,
+            revenueByPaypal: 0,
+            totalRefundsIssued: 0,
+            totalFailedPayments: 0,
+            totalPayoutsToProviders: 0,
+        };
+
+        const current = paymentData?.current[0] || defaultStats;
+        const previous = paymentData?.previous[0] || defaultStats;
+
+        return {
+            totalRevenue: formatStatMetric(current.totalRevenue, previous.totalRevenue),
+            totalRevenueViaSubscriptions: formatStatMetric(current.totalRevenueViaSubscriptions, previous.totalRevenueViaSubscriptions),
+            totalRevenueViaAppointments: formatStatMetric(current.totalRevenueViaAppointments, previous.totalRevenueViaAppointments),
+            revenueByStripe: formatStatMetric(current.revenueByStripe, previous.revenueByStripe),
+            revenueByRazorpay: formatStatMetric(current.revenueByRazorpay, previous.revenueByRazorpay),
+            revenueByPaypal: formatStatMetric(current.revenueByPaypal, previous.revenueByPaypal),
+            totalRefundsIssued: formatStatMetric(current.totalRefundsIssued, previous.totalRefundsIssued),
+            totalFailedPayments: formatStatMetric(current.totalFailedPayments, previous.totalFailedPayments),
+            totalPayoutsToProviders: formatStatMetric(current.totalPayoutsToProviders, previous.totalPayoutsToProviders),
+        };
+    }
 
     async findStatsDataForProviderDashboard(query: GetProviderRevenueQuery): Promise<GetProviderRevenueView> {
         const { providerId } = query;

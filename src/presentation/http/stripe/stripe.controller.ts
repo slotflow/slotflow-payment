@@ -3,8 +3,7 @@ import { Request, Response } from "express";
 import { stripeConfig } from "../../../config/env";
 import { log } from "../../../shared/logger/logger";
 import { PaymentFor } from "../../../domain/enums/payment.enum";
-import { DecodedUser } from "../../../application/dtos/common.dtos";
-import { stripe } from "../../../infrastructure/payment/stripe.client";
+import { stripeClient } from "../../../infrastructure/payment/stripe.client";
 import { StripeAccountRevokedUseCase } from "../../../application/useCases/stripe/stripeAccountRevoked.useCase";
 import { BookingCheckoutCompleteUseCase } from "../../../application/useCases/payment/bookingCheckoutComplete.useCase";
 import { UpdateStripeAccountStatusUseCase } from "../../../application/useCases/stripe/updateStripeAccountStatus.useCase";
@@ -25,7 +24,7 @@ class StripeWebhookController {
         try {
             const sig = req.headers["stripe-signature"]!;
 
-            const event = stripe.webhooks.constructEvent(
+            const event = stripeClient.webhooks.constructEvent(
                 req.body,
                 sig,
                 stripeConfig.stripeWebhookSecret

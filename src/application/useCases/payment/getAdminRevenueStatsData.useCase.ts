@@ -2,7 +2,7 @@ import { IPaymentQueries } from "../../queries/IPayment.queries";
 import { toAppError } from "../../../shared/error/handleUnknownError";
 import { GetAdminRevenueStatsDataInput, GetAdminRevenueStatsDataOutput } from "../../dtos/payment.dtos";
 
-export class GetAdminRevenueUseCase {
+export class GetAdminRevenueStatsDataUseCase {
     constructor(
         private readonly paymentQueries: IPaymentQueries,
     ) { };
