@@ -1,6 +1,6 @@
 import { IdType } from "./types";
 import { RefundStatus } from "../../domain/enums/refund.enum";
-import { StripeAccountStatus } from "../../domain/enums/payment.enum";
+import { PaymentAccountStatus } from "../../domain/enums/payment.enum";
 
 // notification content
 export const notificationContentMap: Record<string, {
@@ -46,5 +46,7 @@ export const PREFIX_MAP: Record<IdType, string> = {
   [IdType.IDEMPOTENCY]: "sf_idem_",
   [IdType.FILE]: "sf_file_",
   [IdType.SUB_IDEMPOTENCY]: "sf_sub_",
-  [IdType.BOOKING_IDEMPOTENCY]: "sf_bo"
+  [IdType.BOOKING_IDEMPOTENCY]: "sf_bo_",
+  [IdType.PAYMENT_INTENT]: "sf_p_int_",
+  [IdType.PAYMENT_CHARGEID]: "sf_p_cid_"
 };

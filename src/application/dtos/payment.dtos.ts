@@ -2,7 +2,7 @@ import { PlanName } from "../../domain/enums/plan.enum";
 import { PaymentFor } from "../../domain/enums/payment.enum";
 import { ServiceMode } from "../../domain/enums/service.enums";
 import { BillingCycle, RefundFor, RefundReason } from '../../domain/enums/refund.enum';
-import { ApiPaginationRequest, CommonDateInput, PaymentDTO, StatMetric } from "./common.dtos";
+import { ApiPaginationRequest, AuthUser, CommonDateInput, PaymentDTO, StatMetric } from "./common.dtos";
 
 //// **** queries dtos ***** ////
 
@@ -10,26 +10,25 @@ import { ApiPaginationRequest, CommonDateInput, PaymentDTO, StatMetric } from ".
 export interface GetProviderRevenueQuery extends CommonDateInput {
   providerId: string;
 }
-export interface GetProviderRevenueView {
-  totalSubscriptionPaidAmount: number;
-  totalEarnings: number;
-  totalPayoutsMade: number;
-  pendingPayout: number;
+export interface GetProviderRevenueView extends  Record<string, StatMetric | undefined> {
+  totalSubscriptionPaidAmount: StatMetric;
+  totalEarnings: StatMetric;
+  totalPayoutsMade: StatMetric;
+  pendingPayout: StatMetric;
 }
+
 
 // 2. findStatsDataForAdminDashboard method parameter and return 
 export interface GetAdminRevenueStatsDataQuery extends CommonDateInput {}
 export interface GetAdminRevenueStatsDataView extends  Record<string, StatMetric | undefined> {
   totalRevenue: StatMetric;
   totalRevenueViaSubscriptions: StatMetric;
-  revenueByStripe: StatMetric;
-  revenueByRazorpay: StatMetric;
-  revenueByPaypal: StatMetric;
   totalRevenueViaAppointments: StatMetric;
   totalRefundsIssued: StatMetric;
   totalFailedPayments: StatMetric;
   totalPayoutsToProviders: StatMetric;
 };
+
 
 // 3. findAdminRevenueReport method parameter and return
 export interface GetAdminRevenueReportQuery extends ApiPaginationRequest {
@@ -37,13 +36,12 @@ export interface GetAdminRevenueReportQuery extends ApiPaginationRequest {
   endDate: Date;
 }
 export type AdminFetchRevenueReportRow = Pick<
-  PaymentDTO,
-  | "createdAt"
-  | "discountAmount"
-  | "initialAmount"
-  | "totalAmount"
-  | "paymentGateway"
-  | "paymentFor"
+PaymentDTO,
+| "createdAt"
+| "discountAmount"
+| "totalAmount"
+| "paymentGateway"
+| "paymentFor"
 >;
 export interface GetAdminRevenueReportView {
   rows: AdminFetchRevenueReportRow[];
@@ -53,6 +51,18 @@ export interface GetAdminRevenueReportView {
 };
 
 
+// 4. findAnalyticsForAdminDashboard method parameter and return
+export interface GetAdminRevenueAanalyticsQuery extends CommonDateInput {
+  startDate: Date;
+  endDate: Date;
+}
+export type GetAdminRevenueAanalyticsView = Array<{
+  date: string;
+  totalRevenue: number;
+  totalRefunds: number;
+  netRevenue: number;
+}>
+
 
 
 
@@ -61,32 +71,35 @@ export interface GetAdminRevenueReportView {
 //// **** usecase dtos ***** ////
 
 // GetAdminRevenue usecase input output
-export type GetAdminRevenueStatsDataInput = GetAdminRevenueStatsDataQuery;
-export type GetAdminRevenueStatsDataOutput = GetAdminRevenueStatsDataView;
+export type GetAdminRevenueStatsInput = GetAdminRevenueStatsDataQuery;
+export type GetAdminRevenueStatsOutput = GetAdminRevenueStatsDataView;
+
 
 // GetProviderRevenue usecase input output
-export type GetProviderRevenueInput = GetProviderRevenueQuery;
-export type GetProviderRevenueOutput = GetProviderRevenueView;
+export type GetProviderRevenueStatsInput = GetProviderRevenueQuery;
+export type GetProviderRevenueStatsOutput = GetProviderRevenueView;
+
 
 // GetAdminReport usecase input output
 export type GetAdminRevenueReportInput = GetAdminRevenueReportQuery; 
 export type GetAdminRevenueReportOutput = GetAdminRevenueReportView;
 
+
 // subscription usecase input
-export interface SubscriptionCheckoutInput {
-  subscriptionId: string;
-  providerId: string;
-  planName: PlanName;
-  description: string;
-  billingCycle: BillingCycle;
-  planDuration: number;
-  unitAmount: number;
-  paymentFor: PaymentFor;
-  name: string;
-  email: string;
-  initialAmount: number;
-  stripeCustomerId?: string;
+export interface SubscriptionCheckoutInput extends Omit<AuthUser, 'id'> {
+    subscriptionId: string;
+    planName: string;
+    billingCycle: BillingCycle;
+    unitAmount: number;
+    paymentFor: PaymentFor;
+    paymentDate: Date;
+    priceId: string;
+    userId: string;
+    trialPeriodDays: number;
+    alreadyUsedTrial: boolean;
+    isTrial: boolean;
 };
+
 
 // booking checkout usecase input
 export interface BookingCheckoutInput {
@@ -101,10 +114,10 @@ export interface BookingCheckoutInput {
   paymentFor: PaymentFor;
   userEmail: string;
   userName: string;
-  initialAmount: number;
   pushNotification: boolean;
   stripeCustomerId?: string;
 }
+
 
 // GetPayments usecase input output
 export interface userIdAndProviderIdFilterForFetchPayments {
@@ -113,6 +126,7 @@ export interface userIdAndProviderIdFilterForFetchPayments {
 }
 export interface GetPaymentsInput extends ApiPaginationRequest, userIdAndProviderIdFilterForFetchPayments { };
 export type GetPaymentsOutput = Array<Pick<PaymentDTO, "_id" | "createdAt" | "totalAmount" | "paymentFor" | "paymentMethod" | "paymentStatus" | "discountAmount">> | null;
+
 
 // GetpaymentsDetails usecase input output
 export interface GetPaymentDetailsInput {
@@ -129,3 +143,8 @@ export interface refundPaymentInput {
   refundReason: RefundReason;
   reasonInDetail: string;
 }
+
+
+// GetAdminRevenueAnalytics usecase
+export type GetAdminRevenueAnalyticsInput = GetAdminRevenueAanalyticsQuery;
+export type GetAdminRevenueAnalyticsOutput = GetAdminRevenueAanalyticsView;

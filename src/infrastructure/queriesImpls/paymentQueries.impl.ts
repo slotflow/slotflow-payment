@@ -4,7 +4,7 @@ import { TableData } from "../../application/dtos/common.dtos";
 import { getStartAndEndDate } from "../../shared/utils/dateTime";
 import { IPaymentQueries } from "../../application/queries/IPayment.queries";
 import { PaymentFor, PaymentGateway, PaymentStatus } from "../../domain/enums/payment.enum";
-import { GetAdminRevenueReportQuery, GetAdminRevenueReportView, GetAdminRevenueStatsDataQuery, GetAdminRevenueStatsDataView, GetProviderRevenueQuery, GetProviderRevenueView } from "../../application/dtos/payment.dtos";
+import { GetAdminRevenueAanalyticsQuery, GetAdminRevenueAanalyticsView, GetAdminRevenueReportQuery, GetAdminRevenueReportView, GetAdminRevenueStatsDataQuery, GetAdminRevenueStatsDataView, GetProviderRevenueQuery, GetProviderRevenueView } from "../../application/dtos/payment.dtos";
 import { calculatePreviousPeriod } from "../../shared/utils/calculatePreviosPeriod";
 import { formatStatMetric } from "../../shared/utils/formatStatMetric";
 
@@ -38,7 +38,6 @@ export class PaymentQueriesImpl implements IPaymentQueries {
                                 _id: 0,
                                 createdAt: 1,
                                 discountAmount: 1,
-                                initialAmount: 1,
                                 totalAmount: 1,
                                 paymentGateway: 1,
                                 paymentFor: 1,
@@ -56,7 +55,6 @@ export class PaymentQueriesImpl implements IPaymentQueries {
                                 _id: null,
                                 grandTotal: { $sum: "$totalAmount" },
                                 grandDiscount: { $sum: "$discountAmount" },
-                                grandInitalAmount: { $sum: "$initialAmount" },
                             },
                         },
                     ],
@@ -151,48 +149,6 @@ export class PaymentQueriesImpl implements IPaymentQueries {
                                         ]
                                     }
                                 },
-                                revenueByStripe: {
-                                    $sum: {
-                                        $cond: [
-                                            {
-                                                $and: [
-                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
-                                                    { $eq: ["$paymentGateway", PaymentGateway.STRIPE] }
-                                                ]
-                                            },
-                                            "$totalAmount",
-                                            0
-                                        ]
-                                    }
-                                },
-                                revenueByRazorpay: {
-                                    $sum: {
-                                        $cond: [
-                                            {
-                                                $and: [
-                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
-                                                    { $eq: ["$paymentGateway", PaymentGateway.RAZORPAY] }
-                                                ]
-                                            },
-                                            "$totalAmount",
-                                            0
-                                        ]
-                                    }
-                                },
-                                revenueByPaypal: {
-                                    $sum: {
-                                        $cond: [
-                                            {
-                                                $and: [
-                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
-                                                    { $eq: ["$paymentGateway", PaymentGateway.PAYPAL] }
-                                                ]
-                                            },
-                                            "$totalAmount",
-                                            0
-                                        ]
-                                    }
-                                },
                                 totalRefundsIssued: {
                                     $sum: {
                                         $cond: [
@@ -266,48 +222,6 @@ export class PaymentQueriesImpl implements IPaymentQueries {
                                         ]
                                     }
                                 },
-                                revenueByStripe: {
-                                    $sum: {
-                                        $cond: [
-                                            {
-                                                $and: [
-                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
-                                                    { $eq: ["$paymentGateway", PaymentGateway.STRIPE] }
-                                                ]
-                                            },
-                                            "$totalAmount",
-                                            0
-                                        ]
-                                    }
-                                },
-                                revenueByRazorpay: {
-                                    $sum: {
-                                        $cond: [
-                                            {
-                                                $and: [
-                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
-                                                    { $eq: ["$paymentGateway", PaymentGateway.RAZORPAY] }
-                                                ]
-                                            },
-                                            "$totalAmount",
-                                            0
-                                        ]
-                                    }
-                                },
-                                revenueByPaypal: {
-                                    $sum: {
-                                        $cond: [
-                                            {
-                                                $and: [
-                                                    { $eq: ["$paymentStatus", PaymentStatus.PAID] },
-                                                    { $eq: ["$paymentGateway", PaymentGateway.PAYPAL] }
-                                                ]
-                                            },
-                                            "$totalAmount",
-                                            0
-                                        ]
-                                    }
-                                },
                                 totalRefundsIssued: {
                                     $sum: {
                                         $cond: [
@@ -342,9 +256,6 @@ export class PaymentQueriesImpl implements IPaymentQueries {
             totalRevenue: 0,
             totalRevenueViaSubscriptions: 0,
             totalRevenueViaAppointments: 0,
-            revenueByStripe: 0,
-            revenueByRazorpay: 0,
-            revenueByPaypal: 0,
             totalRefundsIssued: 0,
             totalFailedPayments: 0,
             totalPayoutsToProviders: 0,
@@ -357,9 +268,6 @@ export class PaymentQueriesImpl implements IPaymentQueries {
             totalRevenue: formatStatMetric(current.totalRevenue, previous.totalRevenue),
             totalRevenueViaSubscriptions: formatStatMetric(current.totalRevenueViaSubscriptions, previous.totalRevenueViaSubscriptions),
             totalRevenueViaAppointments: formatStatMetric(current.totalRevenueViaAppointments, previous.totalRevenueViaAppointments),
-            revenueByStripe: formatStatMetric(current.revenueByStripe, previous.revenueByStripe),
-            revenueByRazorpay: formatStatMetric(current.revenueByRazorpay, previous.revenueByRazorpay),
-            revenueByPaypal: formatStatMetric(current.revenueByPaypal, previous.revenueByPaypal),
             totalRefundsIssued: formatStatMetric(current.totalRefundsIssued, previous.totalRefundsIssued),
             totalFailedPayments: formatStatMetric(current.totalFailedPayments, previous.totalFailedPayments),
             totalPayoutsToProviders: formatStatMetric(current.totalPayoutsToProviders, previous.totalPayoutsToProviders),
@@ -368,94 +276,298 @@ export class PaymentQueriesImpl implements IPaymentQueries {
 
     async findStatsDataForProviderDashboard(query: GetProviderRevenueQuery): Promise<GetProviderRevenueView> {
         const { providerId } = query;
+
+        const { startDate, endDate } = getStartAndEndDate(
+            query.startDate,
+            query.endDate
+        );
+
+        const { previousStartDate, previousEndDate } = calculatePreviousPeriod(startDate, endDate);
+
+        const [paymentData] = await PaymentModel.aggregate([
+            {
+                $match: {
+                    providerId: new Types.ObjectId(providerId),
+                    createdAt: {
+                        $gte: previousStartDate,
+                        $lte: endDate,
+                    },
+                },
+            },
+            {
+                $facet: {
+                    current: [
+                        {
+                            $match: {
+                                createdAt: {
+                                    $gte: startDate,
+                                    $lte: endDate,
+                                },
+                            },
+                        },
+                        {
+                            $group: {
+                                _id: null,
+
+                                totalSubscriptionPaidAmount: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    {
+                                                        $eq: [
+                                                            "$paymentStatus",
+                                                            PaymentStatus.PAID,
+                                                        ],
+                                                    },
+                                                    {
+                                                        $eq: [
+                                                            "$paymentFor",
+                                                            PaymentFor.PROVIDER_SUBSCRIPTION,
+                                                        ],
+                                                    },
+                                                ],
+                                            },
+                                            "$totalAmount",
+                                            0,
+                                        ],
+                                    },
+                                },
+
+                                grossEarnings: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    {
+                                                        $eq: [
+                                                            "$paymentStatus",
+                                                            PaymentStatus.PAID,
+                                                        ],
+                                                    },
+                                                    {
+                                                        $eq: [
+                                                            "$paymentFor",
+                                                            PaymentFor.APPOINTMENT_BOOKING,
+                                                        ],
+                                                    },
+                                                ],
+                                            },
+                                            "$totalAmount",
+                                            0,
+                                        ],
+                                    },
+                                },
+
+                                totalPayoutsMade: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    {
+                                                        $eq: [
+                                                            "$paymentStatus",
+                                                            PaymentStatus.PAID,
+                                                        ],
+                                                    },
+                                                    {
+                                                        $eq: [
+                                                            "$paymentFor",
+                                                            PaymentFor.PROVIDER_PAYOUT,
+                                                        ],
+                                                    },
+                                                ],
+                                            },
+                                            "$totalAmount",
+                                            0,
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                        {
+                            $project: {
+                                _id: 0,
+
+                                totalSubscriptionPaidAmount: 1,
+
+                                totalEarnings: {
+                                    $multiply: ["$grossEarnings", 0.95],
+                                },
+
+                                totalPayoutsMade: 1,
+
+                                pendingPayout: {
+                                    $subtract: [
+                                        {
+                                            $multiply: ["$grossEarnings", 0.95],
+                                        },
+                                        "$totalPayoutsMade",
+                                    ],
+                                },
+                            },
+                        },
+                    ],
+
+                    previous: [
+                        {
+                            $match: {
+                                createdAt: {
+                                    $gte: previousStartDate,
+                                    $lte: previousEndDate,
+                                },
+                            },
+                        },
+                        {
+                            $group: {
+                                _id: null,
+
+                                totalSubscriptionPaidAmount: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    {
+                                                        $eq: [
+                                                            "$paymentStatus",
+                                                            PaymentStatus.PAID,
+                                                        ],
+                                                    },
+                                                    {
+                                                        $eq: [
+                                                            "$paymentFor",
+                                                            PaymentFor.PROVIDER_SUBSCRIPTION,
+                                                        ],
+                                                    },
+                                                ],
+                                            },
+                                            "$totalAmount",
+                                            0,
+                                        ],
+                                    },
+                                },
+
+                                grossEarnings: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    {
+                                                        $eq: [
+                                                            "$paymentStatus",
+                                                            PaymentStatus.PAID,
+                                                        ],
+                                                    },
+                                                    {
+                                                        $eq: [
+                                                            "$paymentFor",
+                                                            PaymentFor.APPOINTMENT_BOOKING,
+                                                        ],
+                                                    },
+                                                ],
+                                            },
+                                            "$totalAmount",
+                                            0,
+                                        ],
+                                    },
+                                },
+
+                                totalPayoutsMade: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $and: [
+                                                    {
+                                                        $eq: [
+                                                            "$paymentStatus",
+                                                            PaymentStatus.PAID,
+                                                        ],
+                                                    },
+                                                    {
+                                                        $eq: [
+                                                            "$paymentFor",
+                                                            PaymentFor.PROVIDER_PAYOUT,
+                                                        ],
+                                                    },
+                                                ],
+                                            },
+                                            "$totalAmount",
+                                            0,
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                        {
+                            $project: {
+                                _id: 0,
+
+                                totalSubscriptionPaidAmount: 1,
+                                totalEarnings: { $multiply: ["$grossEarnings", 0.95] },
+                                totalPayoutsMade: 1,
+                                pendingPayout: {
+                                    $subtract: [
+                                        {
+                                            $multiply: ["$grossEarnings", 0.95],
+                                        },
+                                        "$totalPayoutsMade",
+                                    ],
+                                },
+                            },
+                        },
+                    ],
+                },
+            },
+        ]);
+
+        const defaultStats = {
+            totalSubscriptionPaidAmount: 0,
+            totalEarnings: 0,
+            totalPayoutsMade: 0,
+            pendingPayout: 0,
+        };
+
+        const current = paymentData?.current?.[0] ?? defaultStats;
+        const previous = paymentData?.previous?.[0] ?? defaultStats;
+
+        return {
+            totalSubscriptionPaidAmount: formatStatMetric(current.totalSubscriptionPaidAmount, previous.totalSubscriptionPaidAmount),
+            totalEarnings: formatStatMetric(current.totalEarnings, previous.totalEarnings),
+            totalPayoutsMade: formatStatMetric(current.totalPayoutsMade, previous.totalPayoutsMade),
+            pendingPayout: formatStatMetric(current.pendingPayout, previous.pendingPayout),
+        };
+    }
+
+    async findAnalyticsForAdminDashboard(query: GetAdminRevenueAanalyticsQuery): Promise<GetAdminRevenueAanalyticsView> {
         const { startDate, endDate } = getStartAndEndDate(query.startDate, query.endDate);
 
         const result = await PaymentModel.aggregate([
             {
                 $match: {
-                    providerId: new Types.ObjectId(providerId),
-                    paymentStatus: PaymentStatus.PAID,
+                    createdAt: { $gte: startDate, $lte: endDate },
+                    paymentStatus: { $in: [PaymentStatus.PAID, PaymentStatus.REFUNDED] }
                 }
             },
             {
-                $facet: {
-                    totalSubscriptionPaidAmount: [
-                        { $match: { paymentFor: PaymentFor.PROVIDER_SUBSCRIPTION } },
-                        {
-                            $group: {
-                                _id: null,
-                                amount: { $sum: "$totalAmount" },
-                            }
-                        }
-                    ],
-                    totalEarnings: [
-                        {
-                            $match: {
-                                paymentFor: PaymentFor.APPOINTMENT_BOOKING
-                            }
-                        },
-                        {
-                            $group: {
-                                _id: null,
-                                grossEarnings: { $sum: "$totalAmount" },
-                            }
-                        },
-                        {
-                            $project: {
-                                _id: 0,
-                                amount: {
-                                    $multiply: ["$grossEarnings", 0.95],
-                                }
-                            }
-                        }
-                    ],
-                    totalPayoutsMade: [
-                        {
-                            $match: { paymentFor: PaymentFor.PROVIDER_PAYOUT }
-                        },
-                        {
-                            $group: {
-                                _id: null,
-                                amount: { $sum: "$totalAmount" },
-                            }
-                        }
-                    ],
-                    pendingPayout: [
-                        {
-                            $match: {
-                                paymentFor: PaymentFor.APPOINTMENT_BOOKING,
-                                createdAt: { $gte: startDate, $lte: endDate },
-                            },
-                        },
-                        {
-                            $group: {
-                                _id: null,
-                                grossEarnings: { $sum: "$totalAmount" },
-                            },
-                        },
-                        {
-                            $project: {
-                                _id: 0,
-                                amount: {
-                                    $multiply: ["$grossEarnings", 0.95],
-                                },
-                            },
-                        },
-                    ]
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                    totalRevenue: { $sum: "$totalAmount" },
+                    totalRefunds: { $sum: "$refundedAmount" },
+                    netRevenue: { $sum: { $subtract: ["$totalAmount", "$refundedAmount"] } },
                 }
             },
+            { $sort: { _id: 1 } },
             {
                 $project: {
-                    totalSubscriptionPaidAmount: { $ifNull: [{ $arrayElemAt: ["$totalSubscriptionPaidAmount.amount", 0] }, 0] },
-                    totalEarnings: { $ifNull: [{ $arrayElemAt: ["$totalEarnings.amount", 0] }, 0] },
-                    totalPayoutsMade: { $ifNull: [{ $arrayElemAt: ["$totalPayoutsMade.amount", 0] }, 0] },
-                    pendingPayout: { $ifNull: [{ $arrayElemAt: ["$pendingPayout.amount", 0] }, 0] },
+                    _id: 0,
+                    date: "$_id",
+                    totalRevenue: 1,
+                    totalRefunds: 1,
+                    netRevenue: 1,
                 }
             }
         ]);
-
-        const data = result[0];
-        return { ...data };
-    };
-
+        console.log("result : ", result);
+        return result;
+    }
 }

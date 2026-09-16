@@ -5,19 +5,20 @@ import { BillingCycle, RefundReason } from "../../enums/refund.enum";
 
 export interface CreateSubscriptionCheckoutSessionPayload {
     subscriptionId: string;
-    providerId: string;
+    userId: string;
     planName: string;
-    description: string;
     billingCycle: BillingCycle;
-    planDuration: number;
-    unitAmount: number;
     paymentFor: PaymentFor;
-    name: string;
-    email: string;
-    initialAmount: number;
+    userName: string;
+    userEmail: string;
+    unitAmount: number;
     successUrl: string;
     cancelUrl: string;
     stripeCustomerId?: string;
+    priceId: string;
+    trialPeriodDays?: number;
+    alreadyUsedTrial: boolean;
+    isTrial: boolean;
 };
 
 export interface CreateSubscriptionCheckoutSessionResponse {
@@ -36,7 +37,6 @@ export interface CreateBookingCheckoutSessionPayload {
     paymentFor: PaymentFor;
     userEmail: string;
     userName: string;
-    initialAmount: number;
     successUrl: string;
     cancelUrl: string;
     pushNotification: string;
@@ -58,7 +58,7 @@ export interface CreateStripeCustomerResponse {
     customerId: string;
 }
 
-export interface CreateRefundInput {
+export interface CreateRefundPayload {
     paymentIntent: string;
     refundAmount: number;
     stripeAccount?: string;
@@ -75,7 +75,7 @@ export interface CreateRefundOutput {
     refundId: string;
 }
 
-export interface RetrievePaymentIntentInput {
+export interface RetrievePaymentIntentPayload {
     paymentIntent: string;
 }
 
@@ -83,7 +83,7 @@ export interface RetrievePaymentIntentOutput {
     paymentIntent: Stripe.PaymentIntent;
 }
 
-export interface RetrieveBalanceInput {
+export interface RetrieveBalancePayload {
     balanceTransaction: string;
 }
 
@@ -91,7 +91,7 @@ export interface RetrieveBalanceOutput {
     balanceTransaction: Stripe.BalanceTransaction;
 }
 
-export interface CreateStripeAccountInput {
+export interface CreateStripeAccountPayload {
     email: string;
 }
 
@@ -99,7 +99,7 @@ export interface CreateStripeAccountout {
     account: Stripe.Response<Stripe.Account>;
 }
 
-export interface CreateStripeAccountLinkInput {
+export interface CreateStripeAccountLinkPayload {
     accountId: string;
 }
 
@@ -114,17 +114,21 @@ export interface IPaymentGateway {
 
     createStripeCustomer(payload: CreateStripeCustomerPayload): Promise<CreateStripeCustomerResponse>;
 
-    createRefund(input: CreateRefundInput): Promise<CreateRefundOutput>;
+    createRefund(payload: CreateRefundPayload): Promise<CreateRefundOutput>;
 
-    retrievePaymentIntent(input: RetrievePaymentIntentInput): Promise<RetrievePaymentIntentOutput>;
+    retrievePaymentIntent(payload: RetrievePaymentIntentPayload): Promise<RetrievePaymentIntentOutput>;
 
-    retrieveBalance(input: RetrieveBalanceInput): Promise<RetrieveBalanceOutput>;
+    retrieveBalance(payload: RetrieveBalancePayload): Promise<RetrieveBalanceOutput>;
 
-    createStripeAccount(input: CreateStripeAccountInput): Promise<CreateStripeAccountout>;
+    createStripeAccount(payload: CreateStripeAccountPayload): Promise<CreateStripeAccountout>;
 
-    createStripeAccountLink(input: CreateStripeAccountLinkInput): Promise<CreateStripeAccountLinkOutput>;
+    createStripeAccountLink(input: CreateStripeAccountLinkPayload): Promise<CreateStripeAccountLinkOutput>;
 
     findCustomerByUserId(userId: string): Promise<{ customerId: string } | null>;
 
     getStripeAccount(accountId: string): Promise<Stripe.Account>;
+
+    getSubscription(subscriptionId: string): Promise<Stripe.Subscription>;
+
+    getInvoice(invoiceId: string): Promise<Stripe.Invoice>;
 };

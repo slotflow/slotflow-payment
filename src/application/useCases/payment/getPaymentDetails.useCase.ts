@@ -30,7 +30,6 @@ export class GetPaymentDetailsUseCase {
                 paymentMethod: payment?.paymentMethod,
                 paymentGateway: payment?.paymentGateway,
                 paymentFor: payment?.paymentFor,
-                initialAmount: payment?.initialAmount,
                 discountAmount: payment?.discountAmount,
                 totalAmount: payment?.totalAmount,
                 userId: payment?.userId,

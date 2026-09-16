@@ -45,9 +45,11 @@ export class CreateStripeCustomerUseCase {
                 maxAttempts: 1,
                 occurredAt: new Date().toString(),
                 payload: {
-                    mbsData: {
-                        stripeCustomerId: customer.customerId,
+                    notificationData: {
                         userId,
+                        body: "",
+                        pushNotification: false,
+                        title: "",
                     },
                 }
             });

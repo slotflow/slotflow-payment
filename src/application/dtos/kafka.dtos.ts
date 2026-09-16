@@ -1,5 +1,5 @@
 import { KafkaMessage } from "kafkajs";
-import { PaymentFor, PaymentStatus, StripeAccountStatus } from "../../domain/enums/payment.enum";
+import { PaymentFor, PaymentStatus, PaymentAccountStatus } from "../../domain/enums/payment.enum";
 import { RefundStatus } from "../../domain/enums/refund.enum";
 
 // **** COMMON DTOS
@@ -69,8 +69,11 @@ export interface ProviderCreatePaymentSuccessEvent {
     mbsData: {
         subscriptionId: string;
         paymentId: string;
-        planDuration: number;
         providerId: string;
+        planName: string;
+        isTrial: string;
+        currentPeriodStart: Date | null;
+        currentPeriodEnd: Date | null;
     };
     emailData: SendEmailCommon & {
         paymentDate: Date;
@@ -109,26 +112,8 @@ export interface CreateBookingPaymentSuccessEvent {
     notificationData: SendNotificationCommon;
 }
 
-
-export interface StripeAccountCreatedEvent {
-    mbsData: {
-        userId: string;
-        stripeAccountId: string;
-    };
-}
-
-export interface StripeAccountStatusUpdatedEvent {
-    mbsData: {
-        userId: string;
-        accountStatus: StripeAccountStatus;
-    };
-}
-
 export interface StripeCustomerCreatedEvent {
-    mbsData: {
-        userId: string;
-        stripeCustomerId: string;
-    };
+    notificationData: SendNotificationCommon
 }
 
 export interface RefundPaymentEvent {

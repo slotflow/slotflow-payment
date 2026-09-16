@@ -26,9 +26,10 @@ export enum PaymentMethod {
     NETBANKING = "netbanking"
 }
 
-export enum StripeAccountStatus {
-  PENDING = "pending",
-  ACTIVE = "active",
-  RESTRICTED = "restricted",
-  REVOKED = "revoked",
+export enum PaymentAccountStatus {
+    PENDING = "pending",
+    ACTIVE = "active",
+    RESTRICTED = "restricted",
+    REVOKED = "revoked",
+    NOT_CONNECTED = "not_connected",
 }

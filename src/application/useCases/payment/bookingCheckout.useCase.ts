@@ -1,7 +1,5 @@
 import { serviceConfig } from "../../../config/env";
-import { IdType } from "../../../shared/utils/types";
 import { Role } from "../../../domain/enums/common.enum";
-import { generateId } from "../../../shared/utils/generateId";
 import { BookingCheckoutInput } from "../../dtos/payment.dtos";
 import { BadRequestError } from "../../../shared/error/appError";
 import { toAppError } from "../../../shared/error/handleUnknownError";
@@ -29,7 +27,6 @@ export class BookingCheckoutUseCase {
                 paymentFor,
                 userEmail,
                 userName,
-                initialAmount,
                 pushNotification,
                 stripeCustomerId
             } = input;
@@ -44,8 +41,7 @@ export class BookingCheckoutUseCase {
                 !userId ||
                 !paymentFor ||
                 !userEmail ||
-                !userName ||
-                !initialAmount
+                !userName
             ) {
                 throw new BadRequestError();
             }
@@ -75,7 +71,6 @@ export class BookingCheckoutUseCase {
                 paymentFor,
                 userEmail,
                 userName,
-                initialAmount,
                 stripeCustomerId: customerId,
                 successUrl: serviceConfig.frontendUrl + bookingPaymentSuccessUrl,
                 cancelUrl: serviceConfig.frontendUrl + bookingPaymentFailedUrl,

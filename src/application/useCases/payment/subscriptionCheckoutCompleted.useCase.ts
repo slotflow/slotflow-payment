@@ -13,55 +13,12 @@ import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKaf
 import { PaymentFor, PaymentGateway, PaymentMethod, PaymentStatus } from "../../../domain/enums/payment.enum";
 
 export class SubscriptionCheckoutCompleteUseCase {
+
     constructor(
         private readonly paymentRepository: IPaymentRepository,
         private readonly kafkaProducer: IKafkaProducerAdapter,
         private readonly paymentGateway: IPaymentGateway,
     ) { };
-
-    private async sleep(ms: number): Promise<void> {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    private async retrievePaymentIntentWithRetry(
-        paymentIntentId: string,
-        maxRetries: number = 3,
-        initialDelayMs: number = 500
-    ): Promise<Stripe.PaymentIntent> {
-        let lastError: Error | null = null;
-        
-        for (let attempt = 0; attempt < maxRetries; attempt++) {
-            try {
-                const paymentIntentDetail = await this.paymentGateway.retrievePaymentIntent({
-                    paymentIntent: paymentIntentId
-                });
-                
-                const latestCharge = paymentIntentDetail.paymentIntent.latest_charge as Stripe.Charge;
-                
-                if (latestCharge && latestCharge.balance_transaction) {
-                    return paymentIntentDetail.paymentIntent;
-                }
-                
-                if (attempt < maxRetries - 1) {
-                    const delayMs = initialDelayMs * Math.pow(2, attempt);
-                    await this.sleep(delayMs);
-                }
-            } catch (error) {
-                lastError = error as Error;
-                if (attempt < maxRetries - 1) {
-                    const delayMs = initialDelayMs * Math.pow(2, attempt);
-                    await this.sleep(delayMs);
-                }
-            }
-        }
-        
-        throw new AppError(
-            "Payment charge or balance transaction details missing after retries",
-            500,
-            false,
-            ERROR_CODES.PAYMENT_INVALID_RESPONSE
-        );
-    }
 
     async execute(input: Stripe.Checkout.Session): Promise<void> {
         try {
@@ -70,72 +27,94 @@ export class SubscriptionCheckoutCompleteUseCase {
                 throw new BadRequestError();
             }
 
-            let receiptUrl: string | null = null;
-            let receiptNumber: string | null = null;
-            let receiptEmail: string | null = null;
-
-            const stripePaymentIntent = await this.retrievePaymentIntentWithRetry(
-                input.payment_intent as string
-            );
-
-            if (!stripePaymentIntent.latest_charge) {
-                throw new BadRequestError("Payment charge details missing");
-            }
-
-            const latestCharge = stripePaymentIntent.latest_charge as Stripe.Charge;
-
-            receiptUrl = latestCharge.receipt_url;
-            receiptNumber = latestCharge.receipt_number;
-            receiptEmail = latestCharge.receipt_email;
-
-            const balanceTransaction = latestCharge.balance_transaction as Stripe.BalanceTransaction;
-            const fee = balanceTransaction.fee;
+            console.log("input : ", input);
 
             const subscriptionId = input?.metadata?.subscriptionId;
-            const providerId = input?.metadata?.providerId;
-            const planDuration = Number(input?.metadata?.planDuration);
-            const paymentStatus = input?.payment_status === "paid" ? PaymentStatus.PAID : PaymentStatus.PENDING;
-            const paymentIntent = input?.payment_intent as string;
-            const paymentMethod = input?.payment_method_types[0] as PaymentMethod;
+            const providerId = input?.metadata?.userId;
             const paymentFor = input?.metadata?.paymentFor as PaymentFor;
-            const name = input?.metadata?.name;
-            const email = input?.metadata?.email;
-            const initialAmount = Number(input?.metadata?.initialAmount);
-            const totalAmount = (input.amount_total || 0) / 100;
-            const discountAmount = (input.total_details?.amount_discount || 0) / 100;
+            const name = input?.metadata?.userName;
+            const email = input?.metadata?.userEmail;
+            const isTrial = input?.metadata?.isTrial === "true";
+            const planName = input?.metadata?.planName;
 
-            if (!planDuration ||
-                !email ||
-                !name ||
-                !paymentIntent ||
-                !paymentFor ||
-                !subscriptionId
-            ) {
-                throw new BadRequestError();
+            if (!email || !name || !paymentFor || !subscriptionId || !planName) {
+                throw new BadRequestError("Missing required subscription metadata");
             }
 
             if (!providerId) {
                 throw new BadRequestError("Provider ID must be provided");
             }
 
+            const paymentStatus = input?.payment_status === "paid" ? PaymentStatus.PAID : PaymentStatus.PENDING;
+            const paymentMethod = (input?.payment_method_types?.[0] as PaymentMethod) || PaymentMethod.CARD;
+            const totalAmount = (input.amount_total || 0) / 100;
+            const discountAmount = (input.total_details?.amount_discount || 0) / 100;
+            const customerId = input.customer as string;
+
+            let fee: number = 0;
+            let receiptUrl: string | null = null;
+            let receiptNumber: string | null = null;
+            let receiptEmail: string | null = null;
+            let paymentIntentId: string | null = null;
+            let invoice: Stripe.Invoice | null = null;
+            let currentPeriodStart: Date | null = null;
+            let currentPeriodEnd: Date | null = null;
+            let stripeSubscription: Stripe.Subscription | null = null;
+            const stripeSubscriptionId = input.subscription as string;
+            let invoiceId: string | null = (input.invoice as string) ?? null;
+
+            if (stripeSubscriptionId) {
+                stripeSubscription = await this.paymentGateway.getSubscription(stripeSubscriptionId);
+            }
+
+            if (!invoiceId) {
+                invoiceId = typeof input.invoice === "string"
+                    ? input.invoice
+                    : (typeof stripeSubscription?.latest_invoice === "string"
+                        ? stripeSubscription.latest_invoice
+                        : (stripeSubscription?.latest_invoice as Stripe.Invoice)?.id);
+            }
+
+            if (invoiceId) {
+                invoice = await this.paymentGateway.getInvoice(invoiceId);
+                console.log("invoice : ", invoice);
+                receiptEmail = invoice.customer_email;
+                receiptNumber = invoice.number;
+                receiptUrl = invoice.hosted_invoice_url || invoice.invoice_pdf as string;
+            }
+
+            if (stripeSubscription) {
+                const primaryItem = stripeSubscription.items.data[0];
+
+                currentPeriodStart = primaryItem?.current_period_start
+                    ? new Date(primaryItem.current_period_start * 1000)
+                    : new Date();
+
+                currentPeriodEnd = primaryItem?.current_period_end
+                    ? new Date(primaryItem.current_period_end * 1000)
+                    : new Date();
+            }
+
             const paymentData = Payment.createForSubscription({
                 idempotencyKey: generateId(IdType.IDEMPOTENCY),
-                paymentIntentId: paymentIntent,
+                paymentIntentId: paymentIntentId || generateId(IdType.PAYMENT_INTENT, input.id),
                 gatewayFee: fee,
                 transactionId: generateId(IdType.TRANSACTION),
                 paymentStatus,
                 paymentMethod,
                 paymentGateway: PaymentGateway.STRIPE,
                 paymentFor,
-                initialAmount,
                 discountAmount,
                 totalAmount,
                 providerId: providerId,
-                chargeId: latestCharge.id,
+                chargeId: generateId(IdType.PAYMENT_CHARGEID, input.id),
                 sessionId: input.id,
                 receiptUrl,
                 receiptNumber,
                 receiptEmail,
+                stripeCustomerId: customerId,
+                stripeInvoiceId: invoiceId,
+                stripeSubscriptionId: subscriptionId,
                 customerEmail: input.customer_details?.email || email,
                 description: input.metadata?.description || `Subscription for ${name}`,
             });
@@ -154,8 +133,11 @@ export class SubscriptionCheckoutCompleteUseCase {
                             mbsData: {
                                 subscriptionId,
                                 paymentId: payment._id,
-                                planDuration,
-                                providerId: providerId
+                                providerId: providerId,
+                                isTrial: String(isTrial),
+                                planName: planName,
+                                currentPeriodStart,
+                                currentPeriodEnd
                             },
                             emailData: {
                                 email,
@@ -164,7 +146,7 @@ export class SubscriptionCheckoutCompleteUseCase {
                                 paymentDate: payment.createdAt,
                                 paymentStatus,
                                 receiptUrl,
-                                transactionId: paymentIntent,
+                                transactionId: paymentIntentId || input.id,
                                 paymentFor,
                             },
                             notificationData: {

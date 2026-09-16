@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { Role } from "../../domain/enums/common.enum";
-import { StripeAccountStatus } from "../../domain/enums/payment.enum";
+import { PaymentAccountStatus } from "../../domain/enums/payment.enum";
 
 // createStripeCustomer usecase input output
 export interface CreateStripeCustomerInput {
@@ -28,7 +28,7 @@ export interface GetStripeAccountStatusInput {
   accountId: string;
 }
 export type GetStripeAccountStatusOutput = {
-  accountStatus: StripeAccountStatus;
+  accountStatus: PaymentAccountStatus;
 }
 
 // UpdateAccountStatus usecase input

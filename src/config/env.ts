@@ -63,9 +63,7 @@ export const kafkaConfig = {
             refundPayment: validator.requireEnv("KAFKA_REFUND_PAYMENT"),
 
             // PS -> MBS
-            stripeAccountCreated: validator.requireEnv("KAFKA_STRIPE_ACCOUNT_CREATED"),
             stripeCustomerCreated: validator.requireEnv("KAFKA_STRIPE_CUSTOMER_CREATED"),
-            stripeAccountUpdateStatus: validator.requireEnv("KAFKA_STRIPE_ACCOUNT_UPDATE_STATUS"),
         },
     },
 };

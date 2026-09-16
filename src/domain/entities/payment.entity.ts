@@ -23,7 +23,6 @@ export class Payment {
             paymentGateway: props.paymentGateway,
             paymentFor: props.paymentFor,
             
-            initialAmount: props.initialAmount,
             discountAmount: props.discountAmount,
             totalAmount: props.totalAmount,
             providerId: props.providerId,
@@ -33,6 +32,10 @@ export class Payment {
             chargeId: props.chargeId,
             sessionId: props.sessionId,
             gatewayFee: props.gatewayFee,
+
+            stripeCustomerId: props.stripeCustomerId,
+            stripeSubscriptionId: props.stripeSubscriptionId,
+            stripeInvoiceId: props.stripeInvoiceId,
 
             receiptUrl: props.receiptUrl,
             receiptNumber: props.receiptNumber,
@@ -54,7 +57,6 @@ export class Payment {
             paymentGateway: props.paymentGateway,
             paymentFor: props.paymentFor,
             
-            initialAmount: props.initialAmount,
             discountAmount: props.discountAmount,
             totalAmount: props.totalAmount,
             userId: props.userId,
@@ -64,6 +66,9 @@ export class Payment {
             chargeId: props.chargeId,
             sessionId: props.sessionId,
             gatewayFee: props.gatewayFee,
+
+            stripeCustomerId: props.stripeCustomerId,
+            stripeInvoiceId: props.stripeInvoiceId,
 
             receiptUrl: props.receiptUrl,
             receiptNumber: props.receiptNumber,
@@ -128,10 +133,6 @@ export class Payment {
 
     get transactionId(): string {
         return this.props.transactionId;
-    };
-
-    get initialAmount(): number {
-        return this.props.initialAmount;
     };
 
     get receiptUrl(): string | null | undefined {

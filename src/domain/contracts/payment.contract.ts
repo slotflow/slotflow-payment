@@ -7,7 +7,6 @@ export interface PaymentProps {
     paymentMethod: PaymentMethod;
     paymentGateway: PaymentGateway;
     paymentFor: PaymentFor;
-    initialAmount: number;
     discountAmount: number;
     totalAmount: number;
     userId?: string;
@@ -16,6 +15,9 @@ export interface PaymentProps {
     transactionId: string;
     chargeId?: string;
     sessionId: string;
+    stripeCustomerId: string;
+    stripeSubscriptionId?: string | null;
+    stripeInvoiceId: string;
     gatewayFee: number | null;
     receiptUrl: string | null;
     receiptNumber: string | null;

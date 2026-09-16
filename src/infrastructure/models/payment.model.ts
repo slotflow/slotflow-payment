@@ -8,7 +8,6 @@ export interface IPayment extends Document {
     paymentMethod: PaymentMethod;
     paymentGateway: PaymentGateway;
     paymentFor: PaymentFor;
-    initialAmount: number;
     discountAmount: number;
     totalAmount: number;
 
@@ -20,6 +19,11 @@ export interface IPayment extends Document {
     chargeId?: string;
     sessionId: string;
     gatewayFee?: number;
+
+    stripeCustomerId: string;
+    stripeSubscriptionId?: string | null;
+    stripeInvoiceId: string;
+
     receiptUrl?: string;
     receiptNumber?: string;
     receiptEmail?: string;
@@ -61,11 +65,6 @@ const PaymentSchema = new Schema<IPayment>({
         enum: Object.values(PaymentFor),
         required: [true, "Payment purpose is required"],
     },
-    initialAmount: {
-        type: Number,
-        required: [true, "Initial amount is required"],
-        min: [0, "Initial amount cannot be negative"],
-    },
     discountAmount: {
         type: Number,
         required: [true, "Discount amount is required"],
@@ -86,28 +85,46 @@ const PaymentSchema = new Schema<IPayment>({
     },
     paymentIntentId: {
         type: String,
+        required: true,
     },
     chargeId: {
         type: String,
+        required: true,
     },
     sessionId: {
         type: String,
+        required: true,
     },
     gatewayFee: {
         type: Number,
         default: 0,
     },
+    stripeCustomerId: {
+        type: String,
+        required: true,
+    },
+    stripeSubscriptionId: {
+        type: String,
+    },
+    stripeInvoiceId: {
+        type: String,
+        required: true,
+    },
     receiptUrl: {
         type: String,
+        required: true,
     },
     receiptNumber: {
         type: String,
+        required: true,
     },
     receiptEmail: {
         type: String,
+        required: true,
     },
     customerEmail: {
         type: String,
+        required: true,
     },
     description: {
         type: String,

@@ -2,8 +2,8 @@ import Stripe from "stripe";
 import { log } from "../../shared/logger/logger";
 import { serviceConfig } from "../../config/env";
 import { ERROR_CODES } from "../../shared/utils/types";
-import { AppError } from "../../shared/error/appError";
-import { IPaymentGateway, CreateSubscriptionCheckoutSessionPayload, CreateSubscriptionCheckoutSessionResponse, CreateBookingCheckoutSessionPayload, CreateBookingCheckoutSessionResponse, CreateStripeCustomerPayload, CreateStripeCustomerResponse, CreateRefundInput, CreateRefundOutput, RetrievePaymentIntentInput, RetrievePaymentIntentOutput, RetrieveBalanceInput, RetrieveBalanceOutput, CreateStripeAccountInput, CreateStripeAccountout, CreateStripeAccountLinkInput, CreateStripeAccountLinkOutput } from "../../domain/interfaces/payment/IPaymentGateway";
+import { AppError, NotFoundError } from "../../shared/error/appError";
+import { IPaymentGateway, CreateSubscriptionCheckoutSessionPayload, CreateSubscriptionCheckoutSessionResponse, CreateBookingCheckoutSessionPayload, CreateBookingCheckoutSessionResponse, CreateStripeCustomerPayload, CreateStripeCustomerResponse, CreateRefundPayload, CreateRefundOutput, RetrievePaymentIntentPayload, RetrievePaymentIntentOutput, RetrieveBalancePayload, RetrieveBalanceOutput, CreateStripeAccountPayload, CreateStripeAccountout, CreateStripeAccountLinkPayload, CreateStripeAccountLinkOutput } from "../../domain/interfaces/payment/IPaymentGateway";
 
 export class PaymentGateway implements IPaymentGateway {
 
@@ -14,37 +14,55 @@ export class PaymentGateway implements IPaymentGateway {
     async createSubscriptionCheckoutSession(payload: CreateSubscriptionCheckoutSessionPayload): Promise<CreateSubscriptionCheckoutSessionResponse> {
         try {
             const session = await this.stripe.checkout.sessions.create({
-                mode: "payment",
-                payment_method_types: ["card"],
+                mode: "subscription",
+                payment_method_types: ['card', 'link'],
                 customer: payload.stripeCustomerId,
-                allow_promotion_codes: true,
+                customer_update: {
+                    address: "auto",
+                    name: "auto",
+                },
                 line_items: [
                     {
-                        price_data: {
-                            currency: "inr",
-                            product_data: {
-                                name: payload.planName,
-                                description: payload.description,
-                            },
-                            unit_amount: payload.unitAmount * 100,
-                        },
-                        quantity: payload.planDuration,
+                        price: payload.priceId,
+                        quantity: 1,
                     },
                 ],
                 success_url: payload.successUrl,
                 cancel_url: payload.cancelUrl,
                 metadata: {
+                    planName: payload.planName,
+                    userName: payload.userName,
+                    userEmail: payload.userEmail,
+                    billingCycle: payload.billingCycle,
                     subscriptionId: payload.subscriptionId,
-                    providerId: payload.providerId,
-                    planDuration: payload.planDuration.toString(),
+                    userId: payload.userId,
                     paymentFor: payload.paymentFor,
-                    name: payload.name,
-                    email: payload.email,
-                    initialAmount: payload.initialAmount.toString(),
+                    isTrial: String(payload.isTrial)
+                },
+                subscription_data: {
+                    trial_period_days: payload.alreadyUsedTrial ? undefined : payload.trialPeriodDays,
+                    trial_settings: {
+                        end_behavior: {
+                            missing_payment_method: "pause",
+                        },
+                    },
+                    metadata: {
+                        subscriptionId: payload.subscriptionId,
+                        userId: payload.userId,
+                        paymentFor: payload.paymentFor,
+                    },
+                },
+                payment_method_collection: "always",
+                expires_at: Math.floor(Date.now() / 1000) + 3600,
+                billing_address_collection: "required",
+                saved_payment_method_options: {
+                    payment_method_save: "enabled",
                 },
             });
 
-            return { sessionId: session.id };
+            return {
+                sessionId: session.id,
+            };
         } catch (error: unknown) {
             log.error("PaymentGateway createSubscriptionCheckoutSession failed : ", error as Error);
             throw new AppError(
@@ -60,7 +78,7 @@ export class PaymentGateway implements IPaymentGateway {
         try {
             const session = await this.stripe.checkout.sessions.create({
                 mode: "payment",
-                payment_method_types: ["card"],
+                payment_method_types: ['card', 'link'],
                 customer: payload.stripeCustomerId,
                 allow_promotion_codes: true,
                 line_items: [
@@ -87,7 +105,6 @@ export class PaymentGateway implements IPaymentGateway {
                     paymentFor: payload.paymentFor,
                     userEmail: payload.userEmail,
                     userName: payload.userName,
-                    initialAmount: payload.initialAmount.toString(),
                     pushNotification: payload.pushNotification
                 },
             });
@@ -125,7 +142,7 @@ export class PaymentGateway implements IPaymentGateway {
         }
     }
 
-    async retrievePaymentIntent(input: RetrievePaymentIntentInput): Promise<RetrievePaymentIntentOutput> {
+    async retrievePaymentIntent(input: RetrievePaymentIntentPayload): Promise<RetrievePaymentIntentOutput> {
         try {
             const paymentIntent = await this.stripe.paymentIntents.retrieve(
                 input.paymentIntent,
@@ -145,7 +162,7 @@ export class PaymentGateway implements IPaymentGateway {
         }
     }
 
-    async createRefund(input: CreateRefundInput): Promise<CreateRefundOutput> {
+    async createRefund(input: CreateRefundPayload): Promise<CreateRefundOutput> {
         try {
             const refund = await this.stripe.refunds.create({
                 payment_intent: input.paymentIntent,
@@ -168,7 +185,7 @@ export class PaymentGateway implements IPaymentGateway {
         }
     }
 
-    async retrieveBalance(input: RetrieveBalanceInput): Promise<RetrieveBalanceOutput> {
+    async retrieveBalance(input: RetrieveBalancePayload): Promise<RetrieveBalanceOutput> {
         try {
             const balanceTransaction = await this.stripe.balanceTransactions.retrieve(
                 input.balanceTransaction
@@ -185,7 +202,7 @@ export class PaymentGateway implements IPaymentGateway {
         }
     }
 
-    async createStripeAccount(input: CreateStripeAccountInput): Promise<CreateStripeAccountout> {
+    async createStripeAccount(input: CreateStripeAccountPayload): Promise<CreateStripeAccountout> {
         try {
             const account = await this.stripe.accounts.create({
                 type: "express",
@@ -203,7 +220,7 @@ export class PaymentGateway implements IPaymentGateway {
         }
     }
 
-    async createStripeAccountLink(input: CreateStripeAccountLinkInput): Promise<CreateStripeAccountLinkOutput> {
+    async createStripeAccountLink(input: CreateStripeAccountLinkPayload): Promise<CreateStripeAccountLinkOutput> {
         try {
             const accountLinkData = await this.stripe.accountLinks.create({
                 account: input.accountId,
@@ -248,6 +265,65 @@ export class PaymentGateway implements IPaymentGateway {
                 500,
                 false,
                 ERROR_CODES.INTERNAL_ERROR
+            );
+        }
+    }
+
+    async getSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
+        try {
+            if (!subscriptionId) {
+                throw new AppError(
+                    "Subscription ID is required",
+                    400,
+                    false,
+                    ERROR_CODES.INVALID_REQUEST
+                );
+            }
+
+            const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+            return subscription;
+        } catch (error: unknown) {
+            log.error("PaymentGateway getSubscription failed: ", error as Error);
+            throw new AppError(
+                "Failed to retrieve subscription details",
+                500,
+                false,
+                ERROR_CODES.INTERNAL_ERROR
+            );
+        }
+    }
+
+    async getInvoice(invoiceId: string): Promise<Stripe.Invoice> {
+        try {
+            if (!invoiceId) {
+                throw new AppError(
+                    "Invoice ID is required",
+                    400,
+                    false,
+                    ERROR_CODES.INVALID_REQUEST
+                );
+            }
+
+            const invoice = await this.stripe.invoices.retrieve(invoiceId, {
+                expand: ["payment_intent", 'payment_intent.latest_charge', 'charge'],
+            });
+
+            if (!invoice) {
+                throw new NotFoundError("Stripe invoice not found");
+            }
+
+            return invoice;
+        } catch (error: unknown) {
+            if (error instanceof AppError) {
+                throw error;
+            }
+
+            const stripeError = error as Stripe.errors.StripeError;
+            throw new AppError(
+                stripeError.message || "Failed to retrieve Stripe invoice",
+                stripeError.statusCode || 500,
+                false,
+                ERROR_CODES.PAYMENT_SERVICE_ERROR
             );
         }
     }

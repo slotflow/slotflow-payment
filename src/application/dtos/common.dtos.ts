@@ -16,7 +16,6 @@ export interface PaymentDTO {
   paymentMethod: PaymentMethod;
   paymentGateway: PaymentGateway;
   paymentFor: PaymentFor;
-  initialAmount: number;
   discountAmount: number;
   totalAmount: number;
   userId?: string;
@@ -67,19 +66,11 @@ export interface ApiPaginationRequest {
 }
 
 // Decoded user from jwt token
-export interface DecodedUser {
+export interface AuthUser {
   id: string;
   role: Role;
-  googleAccessToken?: string;
-  googleRefreshToken?: string;
-  googleId?: string;
-  email?: string;
-  name?: string;
-  image: string | null;
-  connectOnly?: boolean;
-  exp?: number;
-  iat?: number;
-  userId?: string;
+  email: string;
+  name: string;
 };
 
 // common date input filters

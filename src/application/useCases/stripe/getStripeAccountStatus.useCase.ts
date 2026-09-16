@@ -1,51 +1,76 @@
-import { BadRequestError } from "../../../shared/error/appError";
+import { ERROR_CODES } from "../../../shared/utils/types";
 import { toAppError } from "../../../shared/error/handleUnknownError";
-import { StripeAccountStatus } from "../../../domain/enums/payment.enum";
+import { AppError, BadRequestError } from "../../../shared/error/appError";
+import { PaymentAccountStatus } from "../../../domain/enums/payment.enum";
 import { IPaymentGateway } from "../../../domain/interfaces/payment/IPaymentGateway";
 import { GetStripeAccountStatusInput, GetStripeAccountStatusOutput } from "../../dtos/stripe.dtos";
-import { IStripeAccountRepository } from "../../../domain/interfaces/repositories/IStripeAccount.repository";
+import { IPaymentAccountRepository } from "../../../domain/interfaces/repositories/IPaymentAccount.repository";
 
 export class GetStripeAccountStatusUseCase {
+  constructor(
+    private readonly paymentGateway: IPaymentGateway,
+    private readonly paymentAccountRepository: IPaymentAccountRepository
+  ) {}
 
-    constructor(
-        private readonly paymentGateway: IPaymentGateway,
-        private readonly stripeAccountRepository: IStripeAccountRepository
-    ) { }
+  async execute(input: GetStripeAccountStatusInput): Promise<GetStripeAccountStatusOutput> {
+    try {
+      const { accountId } = input;
+      if (!accountId) {
+        throw new BadRequestError("Stripe account ID is required");
+      }
 
-    async execute(input: GetStripeAccountStatusInput): Promise<GetStripeAccountStatusOutput> {
-        try {
-            const { accountId } = input;
-            if (!accountId) {
-                throw new BadRequestError();
-            }
-            console.log("accountId : ",accountId);
-            const stripeAccount = await this.stripeAccountRepository.findByStripeAccountId({stripeAccountId: accountId});
-            console.log("stripeAccount : ",stripeAccount);
-            if (stripeAccount && stripeAccount.stripeAccountStatus === StripeAccountStatus.PENDING) {
-                const account = await this.paymentGateway.getStripeAccount(accountId);
-                console.log("account : ",account);
-                let accountStatus: StripeAccountStatus = StripeAccountStatus.PENDING;
-                if (!account.details_submitted) {
-                    accountStatus = StripeAccountStatus.PENDING;
-                } else if (!account.charges_enabled) {
-                    accountStatus = StripeAccountStatus.RESTRICTED;
-                } else if (account.charges_enabled && account.payouts_enabled) {
-                    accountStatus = StripeAccountStatus.ACTIVE;
-                }
+      const paymentAccount = await this.paymentAccountRepository.findByStripeAccountId({
+        stripeAccountId: accountId
+      });
 
-                console.log("accountStatus : ",accountStatus);
+      if (!paymentAccount) {
+        throw new AppError(
+          "Payment account not found",
+          404,
+          false,
+          ERROR_CODES.INTERNAL_ERROR
+        );
+      }
 
-                return {
-                    accountStatus
-                };
-            }
+      const stripeAccount = await this.paymentGateway.getStripeAccount(accountId);
 
-            console.log("stripeAccount?.stripeAccountStatus : ",stripeAccount?.stripeAccountStatus);
-            return {
-                accountStatus: stripeAccount?.stripeAccountStatus || StripeAccountStatus.PENDING
-            }
-        } catch (error: unknown) {
-            throw toAppError(error, "Failed to get stripe account status")
+      let currentStatus: PaymentAccountStatus = PaymentAccountStatus.PENDING;
+
+      if (!stripeAccount.details_submitted) {
+        currentStatus = PaymentAccountStatus.PENDING;
+      } else if (!stripeAccount.charges_enabled || !stripeAccount.payouts_enabled) {
+        currentStatus = PaymentAccountStatus.RESTRICTED;
+      } else if (stripeAccount.charges_enabled && stripeAccount.payouts_enabled) {
+        currentStatus = PaymentAccountStatus.ACTIVE;
+      }
+
+      if (paymentAccount.stripeData?.accountStatus !== currentStatus) {
+        paymentAccount.updateStripeData({
+          ...paymentAccount.stripeData,
+          accountStatus: currentStatus
+        });
+
+        const updatedPaymentAccount = await this.paymentAccountRepository.update(paymentAccount);
+        if (!updatedPaymentAccount) {
+          throw new AppError(
+            "Failed to update payment account status",
+            500,
+            false,
+            ERROR_CODES.INTERNAL_ERROR
+          );
         }
+
+        return {
+          accountStatus: updatedPaymentAccount.stripeData?.accountStatus ?? PaymentAccountStatus.PENDING
+        };
+      }
+
+      return {
+        accountStatus: paymentAccount.stripeData?.accountStatus ?? PaymentAccountStatus.PENDING
+      };
+
+    } catch (error: unknown) {
+      throw toAppError(error, "Failed to get stripe account status");
     }
+  }
 }

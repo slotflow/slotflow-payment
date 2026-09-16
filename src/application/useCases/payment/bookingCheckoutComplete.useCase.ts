@@ -91,7 +91,6 @@ export class BookingCheckoutCompleteUseCase {
             const slotDuration = input?.metadata?.slotDuration;
             const name = input?.metadata?.userName;
             const providerId = input?.metadata?.providerId;
-            const initialAmount = Number(input?.metadata?.initialAmount);
             const selectedServiceMode = input?.metadata?.selectedServiceMode;
             const paymentFor = input?.metadata?.paymentFor as PaymentFor;
             const pushNotification = Boolean(input?.metadata?.pushNotification);
@@ -104,7 +103,6 @@ export class BookingCheckoutCompleteUseCase {
             if (!providerId ||
                 !userId ||
                 !selectedServiceMode ||
-                !initialAmount ||
                 !totalAmount ||
                 !paymentStatus ||
                 !paymentMethod ||
@@ -126,7 +124,6 @@ export class BookingCheckoutCompleteUseCase {
                 paymentMethod,
                 paymentGateway: PaymentGateway.STRIPE,
                 paymentFor,
-                initialAmount,
                 discountAmount,
                 totalAmount,
                 providerId,
