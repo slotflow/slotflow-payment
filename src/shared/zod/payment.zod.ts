@@ -1,15 +1,12 @@
 import { z } from "zod";
-import { PlanName } from "../../domain/enums/plan.enum";
-import { dateSchema, paginationSchema } from "./base.zod";
-import { PaymentFor } from "../../domain/enums/payment.enum";
-import { ServiceMode } from "../../domain/enums/service.enums";
-import { BillingCycle, RefundFor, RefundReason } from "../../domain/enums/refund.enum";
-import { descriptionRegex, objectIdRegex, serviceDescriptionRegex, serviceNameRegex, usernameRegex } from "../utils/regex";
+import { dateOnlySchema, paginationSchema } from "./base.zod";
+import { RefundFor, RefundReason } from "../../domain/enums/refund.enum";
+import { BillingCycle, PaymentFor } from "../../domain/enums/payment.enum";
+import { objectIdRegex, serviceDescriptionRegex, serviceNameRegex } from "../utils/constants/regex";
 
 // subscription checkout zod schrma
 export const subscipriotonCheckoutSchema = z.object({
     subscriptionId: z.string().regex(objectIdRegex, "Invalid subscriptionId"),
-    planName: z.enum(PlanName),
     billingCycle: z.enum(BillingCycle),
     unitAmount: z.number()
         .min(0, "Plan price must be at least 0")
@@ -41,18 +38,8 @@ export const bookingCheckoutShcema = z.object({
         ),
     unitAmount: z.number().min(1).max(1000000),
     providerId: z.string().regex(objectIdRegex, "Invalid providerId"),
-    slotDuration: z.number().min(10).max(480),
-    selectedServiceMode: z.enum(ServiceMode),
     bookingId: z.string().regex(objectIdRegex, "Invalid bookingId"),
-    userId: z.string().regex(objectIdRegex, "Invalid userId"),
     paymentFor: z.enum(PaymentFor),
-    userEmail: z.string().email("Invalid email"),
-    userName: z
-        .string()
-        .min(4, "Username must be at least 4 characters")
-        .max(30, "Username cannot exceed 30 characters")
-        .regex(usernameRegex, "Invalid Username format"),
-    pushNotification: z.boolean(),
 })
 
 // get payments zod schema
@@ -68,8 +55,8 @@ export const getPaymentDetailsSchema = z.object({
 
 // get admin revenue report zod schema
 export const getAdminRevenueReportSchema = z.object({
-    startDate: dateSchema,
-    endDate: dateSchema
+    startDate: dateOnlySchema,
+    endDate: dateOnlySchema
 }).merge(paginationSchema);
 
 // refund zod schema

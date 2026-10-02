@@ -1,8 +1,10 @@
 import { KafkaMessage } from "kafkajs";
-import { PaymentFor, PaymentStatus, PaymentAccountStatus } from "../../domain/enums/payment.enum";
-import { RefundStatus } from "../../domain/enums/refund.enum";
+import { NotificationType } from "./common.dtos";
+import { PaymentAccountStatus } from "../../domain/enums/payment.enum";
 
-// **** COMMON DTOS
+/**
+ * Kafka common dtos
+ */
 
 // kafka client adapter props
 export interface KafkaClientAdapterProps {
@@ -41,59 +43,65 @@ export interface SendEmailCommon {
     name: string;
 }
 
-// send notification common
-export interface SendNotificationCommon {
-    userId: string;
-    body: string;
-    pushNotification: boolean;
-    title: string;
-    data?: Record<string, string>;
-}
-
 // kafka client adapter message handler
 export type MessageHandler = (payload: KafkaClientAdapterProps) => Promise<void>;
 
 // process event wrapper input
 export interface ProcessEventWrapperInput {
-  topic: string;
-  eventData: EventEnvelope<PSSubKafkaEventPayload>;
-  businessUseCase: { execute: (data: any) => Promise<void> };
-  payloadExtractor: (payload: PSSubKafkaEventPayload) => any;
+    topic: string;
+    eventData: EventEnvelope<PSSubKafkaEventPayload>;
+    businessUseCase: { execute: (data: any) => Promise<void> };
+    payloadExtractor: (payload: PSSubKafkaEventPayload) => any;
+}
+
+// Notification data common event input
+interface CommonNotificationEventInput {
+    userId: string;
+    notificationType: NotificationType;
 }
 
 
-// **** KAFKA EVENTS PAYLOAD
+
+
+
+/**
+ * Kafka events payload
+ */
 
 // provider create payment success event
-export interface ProviderCreatePaymentSuccessEvent {
+export interface ProviderSubscriptionPaymentSuccessEvent {
     mbsData: {
         subscriptionId: string;
         paymentId: string;
         providerId: string;
-        planName: string;
         isTrial: string;
-        currentPeriodStart: Date | null;
-        currentPeriodEnd: Date | null;
+        currentPeriodStart: Date;
+        currentPeriodEnd: Date;
+        cancelAtPeriodEnd: boolean;
+        cancelAt: Date | null;
+        lastEventAt: Date;
     };
     emailData: SendEmailCommon & {
-        paymentDate: Date;
-        paymentFor: PaymentFor;
-        paymentStatus: PaymentStatus;
+        paymentDate: string;
         totalAmount: number;
         transactionId: string;
         receiptUrl?: string | null;
     };
-    notificationData: SendNotificationCommon;
+    notificationData: CommonNotificationEventInput & {
+        transactionId: string;
+    };
 };
 
 // provider create payment failed event
-export interface ProviderCreatePaymentFailedEvent {
+export interface ProviderSubscriptionPaymentFailedEvent {
     mbsData: {
         subscriptionId: string;
-    }
+    },
+    notificationData: CommonNotificationEventInput & {
+    };
 };
 
-
+// Booking payment success event
 export interface CreateBookingPaymentSuccessEvent {
     mbsData: {
         bookingId: string;
@@ -102,28 +110,56 @@ export interface CreateBookingPaymentSuccessEvent {
     emailData: {
         email: string;
         name: string;
-        paymentDate: Date;
-        paymentFor: PaymentFor;
-        paymentStatus: PaymentStatus;
+        paymentDate: string;
         totalAmount: number;
         transactionId: string;
         receiptUrl?: string | null;
     };
-    notificationData: SendNotificationCommon;
+    notificationData: CommonNotificationEventInput & {
+        transactionId: string;
+    }
 }
 
+// Stripe customer create event
 export interface StripeCustomerCreatedEvent {
-    notificationData: SendNotificationCommon
+    notificationData: CommonNotificationEventInput & {
+    }
 }
 
-export interface RefundPaymentEvent {
+// Refund payment success event
+export interface RefundPaymentSuccessEvent {
     emailData: {
         email: string;
         name: string;
         refundDate: Date;
         refundAmount: number;
-        refundStatus: RefundStatus;
         transactionId: string;
     };
-    notificationData: SendNotificationCommon;
+    notificationData: CommonNotificationEventInput & {
+        refundAmount: number;
+        transactionId: string;
+    };
+}
+
+// Stripe account status updated event
+export interface StripeAccountStatusUpdatedEvent {
+    notificationData: CommonNotificationEventInput & {
+        accountStatus: PaymentAccountStatus;
+    };
+}
+
+// Booking payment event
+export interface BookingPaymentFailedEvent {
+    mbsData: {
+        bookingId: string;
+    },
+    notificationData: CommonNotificationEventInput;
+}
+
+// Booking payment event
+export interface SubscriptionPaymentFailedEvent {
+    mbsData: {
+        subscriptionId: string;
+    },
+    notificationData: CommonNotificationEventInput;
 }

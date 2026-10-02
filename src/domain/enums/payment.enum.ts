@@ -20,16 +20,15 @@ export enum PaymentStatus {
     REFUNDED = "REFUNDED",
 };
 
-export enum PaymentMethod {
-    CARD = "card",
-    UPI = "upi",
-    NETBANKING = "netbanking"
+export enum PaymentAccountStatus {
+    PENDING = "PENDING",
+    ACTIVE = "ACTIVE",
+    RESTRICTED = "RESTRICTED",
+    REVOKED = "REVOKED",
+    NOT_CONNECTED = "NOT_CONNECTED",
 }
 
-export enum PaymentAccountStatus {
-    PENDING = "pending",
-    ACTIVE = "active",
-    RESTRICTED = "restricted",
-    REVOKED = "revoked",
-    NOT_CONNECTED = "not_connected",
+export enum BillingCycle {
+    MONTHLY = 'MONTHLY',
+    YEARLY = 'YEARLY',
 }

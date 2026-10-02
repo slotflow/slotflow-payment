@@ -38,4 +38,6 @@ temp/
 .cache/
 .eslintcache
 .stylelintcache
-ref.md
+subscriptionref.md
+bookingref.md
+suggestions.md

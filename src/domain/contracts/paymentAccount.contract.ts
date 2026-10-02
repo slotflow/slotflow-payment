@@ -1,22 +1,4 @@
-import { PaymentAccountStatus } from "../enums/payment.enum";
-
-export interface StripeDetails {
-    customerId?: string | null;
-    accountId?: string | null;
-    accountStatus: PaymentAccountStatus;
-}
-
-export interface PaypalDetails {
-    payerId?: string | null;
-    merchantId?: string | null;
-    accountStatus: PaymentAccountStatus;
-}
-
-export interface RazorpayDetails {
-    customerId?: string | null;
-    accountId?: string | null;
-    accountStatus: PaymentAccountStatus;
-}
+import { PaypalDetails, RazorpayDetails, StripeDetails } from "../commands/paymentAccount.command";
 
 export interface PaymentAccountProps {
     _id: string;

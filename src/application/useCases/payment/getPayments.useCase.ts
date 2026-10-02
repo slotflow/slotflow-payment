@@ -22,7 +22,6 @@ export class GetPaymentsUseCase {
                     totalAmount: payment.totalAmount,
                     paymentFor: payment.paymentFor,
                     paymentStatus: payment.paymentStatus,
-                    paymentMethod: payment.paymentMethod,
                     discountAmount: payment.discountAmount,
                 })),
                 totalPages,

@@ -64,15 +64,11 @@ const refundSchema = new Schema<IRefund>({
     metadata: {
         type: Object,
         default: {}
-    },
-    createdAt: {
-        type: Date,
-        required: true,
-    },
-    updatedAt: {
-        type: Date,
-        required: true,
     }
-});
+},
+    {
+        timestamps: true,
+    }
+);
 
 export const RefundModel = mongoose.model<IRefund>("Refund", refundSchema);

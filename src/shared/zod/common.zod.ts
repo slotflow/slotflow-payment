@@ -1,4 +1,5 @@
 import z from "zod";
+import { dateOnlySchema } from "./base.zod";
 
 // validate email zod schema
 export const validateEmailSchema = z.object({
@@ -6,7 +7,12 @@ export const validateEmailSchema = z.object({
 });
 
 // start and end date zod schema
-export const startAndEndDateSchema = z.object({
-    startDate: z.coerce.date(),
-    endDate: z.coerce.date(),
+export const getRevenueStatsSchema = z.object({
+    startDate: dateOnlySchema,
+    endDate: dateOnlySchema,
+});
+
+export const getRevenueAnalyticsSchema = z.object({
+    startDate: dateOnlySchema,
+    endDate: dateOnlySchema,
 });

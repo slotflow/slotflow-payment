@@ -1,7 +1,77 @@
 import { PaymentProps } from "../contracts/payment.contract";
 
-export type CreateForSubscriptionProps = Pick<PaymentProps, "idempotencyKey" | "transactionId" | "paymentStatus" | "paymentMethod" | "paymentGateway" | "paymentFor" | "discountAmount" | "providerId" | "totalAmount" | "chargeId" | "sessionId" | "receiptUrl" | "receiptNumber" | "receiptEmail" | "customerEmail" | "description" | "paymentIntentId" | "gatewayFee" | 'stripeCustomerId' | 'stripeInvoiceId' | 'stripeSubscriptionId'>;
+export type CreateForSubscriptionProps = Pick<
+    PaymentProps,
+    | "idempotencyKey"
+    | "transactionId"
+    | "stripeInvoiceId"
+    | "paymentStatus"
+    | "paymentGateway"
+    | "paymentFor"
+    | "slotflowSubscriptionId"
+    | "subtotalAmount"
+    | "discountAmount"
+    | "totalAmount"
+    | "currency"
+    | "billingCycle"
+    | "userId"
+    | "stripeCustomerId"
+    | "stripeSubscriptionId"
+    | "gatewayFee"
+    | "receiptUrl"
+    | "receiptPdf"
+    | "customerEmail"
+    | "customerName"
+    | "description"
+    | "paidAt"
+>;
 
-export type CreateForBookingProps = Pick<PaymentProps, "idempotencyKey" | "transactionId" | "paymentStatus" | "paymentMethod" | "paymentGateway" | "paymentFor" | "discountAmount" | "userId" | "gatewayFee" | "totalAmount" | "providerId" | "chargeId" | "sessionId" | "receiptUrl" | "receiptNumber" | "receiptEmail" | "customerEmail" | "description" | "paymentIntentId" | 'stripeCustomerId' | 'stripeInvoiceId'>;
+export type CreateForBookingProps = Pick<
+    PaymentProps,
+    | "idempotencyKey"
+    | "transactionId"
+    | "stripeInvoiceId"
+    | "paymentStatus"
+    | "paymentGateway"
+    | "paymentFor"
+    | "subtotalAmount"
+    | "discountAmount"
+    | "totalAmount"
+    | "currency"
+    | "userId"
+    | "providerId"
+    | "stripeCustomerId"
+    | "gatewayFee"
+    | "receiptUrl"
+    | "receiptPdf"
+    | "customerEmail"
+    | "customerName"
+    | "description"
+    | "slotflowBookingId"
+    | "paidAt"
+>;
 
+export type CreateForPaymentFailedProps = Pick<
+    PaymentProps,
+    | "idempotencyKey"
+    | "transactionId"
+    | "stripeInvoiceId"
+    | "paymentStatus"
+    | "paymentGateway"
+    | "paymentFor"
+    | "subtotalAmount"
+    | "discountAmount"
+    | "totalAmount"
+    | "currency"
+    | "userId"
+    | "stripeCustomerId"
+    | "gatewayFee"
+    | "paymentIntent"
+    | "sessionId"
+    | "customerEmail"
+    | "customerName"
+    | "description"
+    | "slotflowSubscriptionId"
+    | "slotflowBookingId"
+>;
 export type PaymentRefundedProps = Pick<PaymentProps, "refundedAmount">;

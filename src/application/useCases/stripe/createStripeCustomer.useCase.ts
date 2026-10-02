@@ -1,19 +1,12 @@
-import { kafkaConfig } from "../../../config/env";
-import { IdType } from "../../../shared/utils/types";
-import { generateId } from "../../../shared/utils/generateId";
 import { BadRequestError } from "../../../shared/error/appError";
 import { paymentGateway } from "../../../infrastructure/payment";
-import { kafkaProducer } from "../../../infrastructure/messaging";
 import { toAppError } from "../../../shared/error/handleUnknownError";
-import { EventEnvelope, StripeCustomerCreatedEvent } from "../../dtos/kafka.dtos";
-import { IPaymentGateway } from "../../../domain/interfaces/payment/IPaymentGateway";
+import { IPaymentGateway } from "../../interfaces/payment/IPaymentGateway.service";
 import { CreateStripeCustomerInput, CreateStripeCustomerOutput } from "../../dtos/stripe.dtos";
-import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
 
 export class CreateStripeCustomerUseCase {
     constructor(
         private readonly paymentGateway: IPaymentGateway,
-        private readonly kafkaProducer: IKafkaProducerAdapter
     ) { }
 
     async execute(input: CreateStripeCustomerInput): Promise<CreateStripeCustomerOutput> {
@@ -38,22 +31,6 @@ export class CreateStripeCustomerUseCase {
                 role,
             });
 
-            await this.kafkaProducer.publish<EventEnvelope<StripeCustomerCreatedEvent>>(
-                kafkaConfig.topics.pub.stripeCustomerCreated, {
-                eventId: generateId(IdType.EVENT),
-                attempt: 1,
-                maxAttempts: 1,
-                occurredAt: new Date().toString(),
-                payload: {
-                    notificationData: {
-                        userId,
-                        body: "",
-                        pushNotification: false,
-                        title: "",
-                    },
-                }
-            });
-
             return {
                 stripeCustomerId: customer.customerId
             }
@@ -63,4 +40,4 @@ export class CreateStripeCustomerUseCase {
     }
 }
 
-export const createStripeCustomerUseCase = new CreateStripeCustomerUseCase(paymentGateway, kafkaProducer);
+export const createStripeCustomerUseCase = new CreateStripeCustomerUseCase(paymentGateway);

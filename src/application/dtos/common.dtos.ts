@@ -1,57 +1,16 @@
 import { Role } from "../../domain/enums/common.enum";
-import { RefundFor, RefundReason, RefundStatus } from "../../domain/enums/refund.enum";
-import { PaymentFor, PaymentGateway, PaymentMethod, PaymentStatus } from "../../domain/enums/payment.enum";
 
-// **** Used as the response interface for the all request
+/**
+ * Common dtos
+ */
+
+// common response
 export interface CommonResponse {
   success?: boolean;
   message?: string;
 };
 
-// **** PAYMENT INTERFACE
-export interface PaymentDTO {
-  _id: string;
-  idempotencyKey: string;
-  paymentStatus: PaymentStatus;
-  paymentMethod: PaymentMethod;
-  paymentGateway: PaymentGateway;
-  paymentFor: PaymentFor;
-  discountAmount: number;
-  totalAmount: number;
-  userId?: string;
-  providerId?: string;
-  paymentIntentId?: string;
-  transactionId: string;
-  chargeId?: string;
-  gatewayFee: number | null;
-  receiptUrl: string | null;
-  receiptNumber: string | null;
-  receiptEmail: string | null;
-  customerEmail: string | null;
-  description?: string;
-  refundedAmount?: number;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-// **** REFUND INTERFACE
-export interface RefundDTO {
-    _id: string;
-    idempotencyKey: string;
-    paymentId: string;
-    refundId: string;
-    amount: number;
-    refundStatus: RefundStatus;
-    refundGateway: PaymentGateway;
-    reason: RefundReason;
-    refundFor: RefundFor;
-    reasonInDetail: string;
-    metadata?: Record<string, string>;
-    updatedAt: Date;
-    createdAt: Date;
-}
-
-// **** Used as the type of table data
+//  type of table data
 export interface TableData<T> {
   totalPages?: number;
   currentPage?: number;
@@ -65,22 +24,41 @@ export interface ApiPaginationRequest {
   limit: number;
 }
 
+// Time zone interface
+export interface TimeZone {
+    value: string;
+    label: string;
+    offset: number;
+    abbrev: string;
+    altName: string;
+}
+
 // Decoded user from jwt token
 export interface AuthUser {
   id: string;
   role: Role;
   email: string;
   name: string;
+  timeZone: TimeZone;
 };
 
 // common date input filters
 export interface CommonDateInput {
-  startDate: Date;
-  endDate: Date
+  startDate: string;
+  endDate: string;
 }
 
-//
+// statis metric type
 export interface StatMetric {
   value: number;
   trend: string;
 }
+
+// Notification channels
+export type NotificationChannel = 'email' | 'push' | 'in_app';
+
+// Notification Type
+export type NotificationType =
+  | 'account_activity'
+  | 'system_updates'
+  | 'promotional_updates';

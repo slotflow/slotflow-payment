@@ -20,20 +20,27 @@ router.post("/subscription/checkout/session",
 
 // main backend server to payment server
 router.post('/booking/checkout/session',
+    authMiddleware,
+    authorize(Role.USER),
     paymentController.bookingCheckout
 );
 
 // main backend server to payment server
 router.post("/refund",
+    authMiddleware,
+    authorize(Role.USER),
     paymentController.refund
 );
 
-router.get("/stripe/account/status/:accountId",
+router.get("/stripe/account-status",
+    authMiddleware,
+    authorize(Role.PROVIDER),
     paymentController.getStripeAccountStatus
 );
 
 router.post('/stripe/account-link',
     authMiddleware,
+    authorize(Role.PROVIDER),
     paymentController.linkStripeAccount
 );
 
@@ -44,7 +51,7 @@ router.get('/reports/revenue',
 
 router.get('/analytics/revenue-stats',
     authMiddleware,
-    paymentController.getRevenue
+    paymentController.getRevenueStats
 );
 
 router.get('/analytics/revenue-chart',

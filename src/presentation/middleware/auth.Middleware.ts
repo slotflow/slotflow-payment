@@ -1,9 +1,10 @@
 import { log } from "../../shared/logger/logger";
 import { Role } from "../../domain/enums/common.enum";
-import { ERROR_CODES } from "../../shared/utils/types";
 import { NextFunction, Request, Response } from "express";
+import { ERROR_CODES } from "../../shared/utils/types/enums";
 import { UnauthorizedError } from "../../shared/error/appError";
-import { AuthUser } from "../../application/dtos/common.dtos";
+import { safeDecode } from "../../shared/utils/helpers/safeDecode";
+import { AuthUser, TimeZone } from "../../application/dtos/common.dtos";
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -11,22 +12,43 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     const role = req.headers["x-user-role"];
     const name = req.headers["x-user-name"];
     const email = req.headers["x-user-email"];
+    const timeZone = req.headers["x-user-timezone"];
 
-    const normalizedUserId = Array.isArray(userId) ? userId[0] : userId;
-    const normalizedRole = Array.isArray(role) ? (role[0] as Role) : (role as Role);
-    const normalizedName = Array.isArray(name) ? name[0] : name;
-    const normalizedEmail = Array.isArray(email) ? email[0] : email;
+    const rawUserId = Array.isArray(userId) ? userId[0] : userId;
+    const rawRole = Array.isArray(role) ? role[0] : role;
+    const rawName = Array.isArray(name) ? name[0] : name;
+    const rawEmail = Array.isArray(email) ? email[0] : email;
+    const rawTimeZone = Array.isArray(timeZone) ? timeZone[0] : timeZone;
 
-    const cleanEmail = normalizedEmail ? decodeURIComponent(normalizedEmail).trim() : undefined;
-    const cleanName = normalizedName ? decodeURIComponent(normalizedName).trim() : undefined;
+    const normalizedUserId = safeDecode(rawUserId);
+    const normalizedRole = safeDecode(rawRole) as Role | undefined;
+    const normalizedName = safeDecode(rawName);
+    const normalizedEmail = safeDecode(rawEmail);
 
-    if (normalizedRole !== Role.ADMIN && !userId) {
-      console.log("Unauthenticated request");
+    let normalizedTimeZone: TimeZone | string | undefined;
+    if (rawTimeZone) {
+      const decodedTimeZoneStr = safeDecode(rawTimeZone);
+      if (decodedTimeZoneStr) {
+        try {
+          normalizedTimeZone = JSON.parse(decodedTimeZoneStr) as TimeZone;
+        } catch {
+          normalizedTimeZone = decodedTimeZoneStr as unknown as TimeZone;
+        }
+      }
+    }
+
+    if (normalizedRole !== Role.ADMIN && !normalizedUserId) {
       res.status(401).json({ success: false, message: "Unauthenticated request" });
       return;
-    };
+    }
 
-    if (!normalizedUserId || !normalizedRole || !cleanName || !cleanEmail) {
+    if (
+      !normalizedUserId ||
+      !normalizedRole ||
+      !normalizedName ||
+      !normalizedEmail ||
+      !normalizedTimeZone
+    ) {
       return next(
         new UnauthorizedError(
           "Invalid user identity headers",
@@ -38,8 +60,9 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     const decodedUser: AuthUser = {
       id: normalizedUserId,
       role: normalizedRole,
-      name: cleanName,
-      email: cleanEmail,
+      name: normalizedName,
+      email: normalizedEmail,
+      timeZone: normalizedTimeZone as TimeZone
     };
 
     req.user = decodedUser;

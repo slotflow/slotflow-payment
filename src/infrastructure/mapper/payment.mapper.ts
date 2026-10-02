@@ -9,27 +9,40 @@ export class PaymentMapper {
             _id: doc._id.toString(),
             idempotencyKey: doc.idempotencyKey,
             transactionId: doc.transactionId,
+            stripeInvoiceId: doc.stripeInvoiceId,
+
             paymentStatus: doc.paymentStatus,
-            paymentMethod: doc.paymentMethod,
             paymentGateway: doc.paymentGateway,
             paymentFor: doc.paymentFor,
+
+            slotflowSubscriptionId: doc.slotflowSubscriptionId ?? undefined,
+            slotflowBookingId: doc.slotflowBookingId ?? undefined,
+
+            subtotalAmount: doc.subtotalAmount,
             discountAmount: doc.discountAmount,
             totalAmount: doc.totalAmount,
+            currency: doc.currency,
+            billingCycle: doc.billingCycle ?? undefined,
+
             userId: doc.userId ? doc.userId.toString() : undefined,
             providerId: doc.providerId ? doc.providerId.toString() : undefined,
-            paymentIntentId: doc.paymentIntentId ?? undefined,
-            chargeId: doc.chargeId ?? undefined,
-            sessionId: doc.sessionId,
-            gatewayFee: doc.gatewayFee ?? 0,
-            refundedAmount: doc.refundedAmount ?? 0,
-            stripeCustomerId: doc.stripeCustomerId,
-            stripeSubscriptionId: doc.stripeSubscriptionId,
-            stripeInvoiceId: doc.stripeInvoiceId,
-            receiptUrl: doc.receiptUrl ?? null,
-            receiptNumber: doc.receiptNumber ?? null,
-            receiptEmail: doc.receiptEmail ?? null,
-            customerEmail: doc.customerEmail ?? null,
-            description: doc.description ?? undefined,
+
+            stripeCustomerId: doc.stripeCustomerId ?? undefined,
+            stripeSubscriptionId: doc.stripeSubscriptionId ?? undefined,
+
+            gatewayFee: doc.gatewayFee ?? undefined,
+            receiptUrl: doc.receiptUrl,
+            receiptPdf: doc.receiptPdf ?? undefined,
+
+            paymentIntent: doc.paymentIntent ?? undefined,
+            sessionId: doc.sessionId ?? undefined,
+
+            customerEmail: doc.customerEmail,
+            customerName: doc.customerName,
+            description: doc.description,
+            refundedAmount: doc.refundedAmount ?? undefined,
+
+            paidAt: doc.paidAt,
             createdAt: doc.createdAt,
             updatedAt: doc.updatedAt,
         });
@@ -41,27 +54,40 @@ export class PaymentMapper {
         return {
             idempotencyKey: props.idempotencyKey,
             transactionId: props.transactionId,
+            stripeInvoiceId: props.stripeInvoiceId,
+
             paymentStatus: props.paymentStatus,
-            paymentMethod: props.paymentMethod,
             paymentGateway: props.paymentGateway,
             paymentFor: props.paymentFor,
+
+            slotflowSubscriptionId: props.slotflowSubscriptionId,
+            slotflowBookingId: props.slotflowBookingId,
+
+            subtotalAmount: props.subtotalAmount,
             discountAmount: props.discountAmount,
             totalAmount: props.totalAmount,
-            userId: props.userId ? new Types.ObjectId(props.userId) : null,
-            providerId: props.providerId ? new Types.ObjectId(props.providerId) : null,
-            paymentIntentId: props.paymentIntentId ?? null,
-            chargeId: props.chargeId ?? null,
-            sessionId: props.sessionId,
-            gatewayFee: props.gatewayFee ?? 0,
-            refundedAmount: props.refundedAmount ?? 0,
+            currency: props.currency,
+            billingCycle: props.billingCycle,
+
+            userId: props.userId ? new Types.ObjectId(props.userId) : undefined,
+            providerId: props.providerId ? new Types.ObjectId(props.providerId) : undefined,
+
             stripeCustomerId: props.stripeCustomerId,
             stripeSubscriptionId: props.stripeSubscriptionId ?? null,
-            stripeInvoiceId: props.stripeInvoiceId,
-            receiptUrl: props.receiptUrl ?? null,
-            receiptNumber: props.receiptNumber ?? null,
-            receiptEmail: props.receiptEmail ?? null,
-            customerEmail: props.customerEmail ?? null,
-            description: props.description ?? null,
+
+            gatewayFee: props.gatewayFee,
+            receiptUrl: props.receiptUrl,
+            receiptPdf: props.receiptPdf,
+
+            paymentIntent: props.paymentIntent,
+            sessionId: props.sessionId,
+
+            customerEmail: props.customerEmail,
+            customerName: props.customerName,
+            description: props.description,
+            refundedAmount: props.refundedAmount,
+
+            paidAt: props.paidAt,
             createdAt: props.createdAt,
             updatedAt: props.updatedAt,
         };

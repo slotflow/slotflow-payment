@@ -1,5 +1,5 @@
 import { TableData } from "../../dtos/common.dtos";
-import { IPaymentQueries } from "../../queries/IPayment.queries";
+import { IPaymentQueries } from "../../interfaces/queries/IPayment.queries";
 import { toAppError } from "../../../shared/error/handleUnknownError";
 import { GetAdminRevenueReportInput, GetAdminRevenueReportOutput } from "../../dtos/payment.dtos";
 

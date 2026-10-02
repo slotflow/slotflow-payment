@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { log } from '../../../shared/logger/logger';
 import { mongodbConfig } from '../../../config/env';
-import { ERROR_CODES } from '../../../shared/utils/types';
+import { ERROR_CODES } from '../../../shared/utils/types/enums';
 import { AppError } from '../../../shared/error/appError';
 
 export const connectMongoDB = async () => {

@@ -13,6 +13,12 @@ export const mongodbConfig = {
     mongoUri: appConfig.isDev ? validator.requireEnv("MONGO_URI_DEV") : validator.requireEnv("MONGO_URI"),
 };
 
+export const callbackUrlsConfig = {
+    integrationsUrl:  appConfig.isDev ? validator.requireEnv("INTEGRATION_CALLBACK_URL_DEV") : validator.requireEnv("INTEGRATION_CALLBACK_URL"),
+    subscriptionUrl: appConfig.isDev ? validator.requireEnv("SUBSCRIPTION_CALLBACK_URL_DEV") : validator.requireEnv("SUBSCRIPTION_CALLBACK_URL"),
+    bookingUrl: appConfig.isDev ? validator.requireEnv("BOOKING_CALLBACK_URL_DEV") : validator.requireEnv("BOOKING_CALLBACK_URL"),
+}
+
 export const serviceConfig = {
     frontendUrl: appConfig.isDev ? validator.requireEnv("FRONTEND_URL_DEV") : validator.requireEnv("FRONTEND_URL"),
     apiGatewayUrl: appConfig.isDev ? validator.requireEnv("API_GATEWAY_URL_DEV") : validator.requireEnv("API_GATEWAY_URL"),
@@ -57,13 +63,16 @@ export const kafkaConfig = {
         },
         
         pub: {
-            // PS -> MBS & NS
+            // PS -> MBS & NS [ email, notification ]
             providerSubscriptionPaymentSuccess: validator.requireEnv("KAFKA_PROVIDER_SUBSCRIPTION_PAYMENT_SUCCESS"),
-            userBookingPaymentSuccess: validator.requireEnv("KAFKA_USER_BOOKING_PAYMENT_SUCCESS"),
-            refundPayment: validator.requireEnv("KAFKA_REFUND_PAYMENT"),
+            providerSubscriptionPaymentFailed: validator.requireEnv("KAFKA_PROVIDER_SUBSCRIPTION_PAYMENT_FAILED"),
 
-            // PS -> MBS
-            stripeCustomerCreated: validator.requireEnv("KAFKA_STRIPE_CUSTOMER_CREATED"),
+            userBookingPaymentSuccess: validator.requireEnv("KAFKA_USER_BOOKING_PAYMENT_SUCCESS"),
+            userBookingPaymentFailed: validator.requireEnv("KAFKA_USER_BOOKING_PAYMENT_FAILED"),
+
+            stripeAccountStatusUpdated: validator.requireEnv("KAFKA_STRIPE_ACCOUNT_STATUS_UPDATED"),
+            
+            userBookingRefundPaymentSuccess: validator.requireEnv("KAFKA_USER_BOOKING_REFUND_PAYMENT_SUCCESS"),
         },
     },
 };

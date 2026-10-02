@@ -1,21 +1,21 @@
 import { log } from "../../../shared/logger/logger";
 import { Role } from "../../../domain/enums/common.enum";
 import { NextFunction, Request, Response } from "express";
-import { sendResponse } from "../../../shared/utils/response";
 import { AuthUser } from "../../../application/dtos/common.dtos";
-import { startAndEndDateSchema, validateEmailSchema } from "../../../shared/zod/common.zod";
+import { sendResponse } from "../../../shared/utils/helpers/response";
 import { GetPaymentsUseCase } from "../../../application/useCases/payment/getPayments.useCase";
 import { RefundPaymentUseCase } from "../../../application/useCases/payment/refundPayment.useCase";
-import { BookingCheckoutUseCase } from "../../../application/useCases/payment/bookingCheckout.useCase";
 import { StripeAccountLinkUseCase } from "../../../application/useCases/stripe/stripeAccountLink.useCase";
 import { GetPaymentDetailsUseCase } from "../../../application/useCases/payment/getPaymentDetails.useCase";
 import { GetAdminRevenueReportUseCase } from "../../../application/useCases/payment/getRevenueReport.useCase";
-import { GetAdminRevenueStatsUseCase } from "../../../application/useCases/payment/getAdminRevenueStats.useCase";
-import { SubscriptionCheckoutUseCase } from "../../../application/useCases/payment/subscriptionCheckout.useCase";
-import { GetStripeAccountStatusUseCase } from "../../../application/useCases/stripe/getStripeAccountStatus.useCase";
-import { GetProviderRevenueStatsUseCase } from "../../../application/useCases/payment/getProviderRevenueStats.useCase";
-import { GetAdminRevenueAanalyticsUseCase } from "../../../application/useCases/payment/getAdminRevenueAnalytics.useCase";
-import { bookingCheckoutShcema, getAdminRevenueReportSchema, getPaymentDetailsSchema, getPaymentsSchema, refundSchema, stripeAccountIdSchema, subscipriotonCheckoutSchema } from "../../../shared/zod/payment.zod";
+import { BookingCheckoutUseCase } from "../../../application/useCases/payment/booking/bookingCheckout.useCase";
+import { getRevenueAnalyticsSchema, getRevenueStatsSchema, validateEmailSchema } from "../../../shared/zod/common.zod";
+import { GetAdminRevenueStatsUseCase } from "../../../application/useCases/payment/revenue/getAdminRevenueStats.useCase";
+import { GetStripeAccountStatusUseCase } from "../../../application/useCases/paymentAccount/getStripeAccountStatus.useCase";
+import { SubscriptionCheckoutUseCase } from "../../../application/useCases/payment/subscription/subscriptionCheckout.useCase";
+import { GetProviderRevenueStatsUseCase } from "../../../application/useCases/payment/revenue/getProviderRevenueStats.useCase";
+import { GetAdminRevenueAanalyticsUseCase } from "../../../application/useCases/payment/revenue/getAdminRevenueAnalytics.useCase";
+import { bookingCheckoutShcema, getAdminRevenueReportSchema, getPaymentDetailsSchema, getPaymentsSchema, refundSchema, subscipriotonCheckoutSchema } from "../../../shared/zod/payment.zod";
 import { getPaymentsUseCase, getPaymentDetailsUseCase, subscriptionCheckoutUseCase, bookingCheckoutUseCase, getAdminRevenueReportUseCase, getAdminRevenueStatsUseCase, getProviderRevenueStatsUseCase, refundPaymentUseCase, stripeAccountLinkUseCase, getStripeAccountStatusUseCase, getAdminRevenueAanalyticsUseCase } from ".";
 
 class PaymentController {
@@ -38,7 +38,7 @@ class PaymentController {
         this.subscriptionCheckout = this.subscriptionCheckout.bind(this);
         this.bookingCheckout = this.bookingCheckout.bind(this);
         this.getRevenueReport = this.getRevenueReport.bind(this);
-        this.getRevenue = this.getRevenue.bind(this);
+        this.getRevenueStats = this.getRevenueStats.bind(this);
         this.refund = this.refund.bind(this);
         this.linkStripeAccount = this.linkStripeAccount.bind(this);
         this.getStripeAccountStatus = this.getStripeAccountStatus.bind(this);
@@ -107,8 +107,14 @@ class PaymentController {
 
     async bookingCheckout(req: Request, res: Response, next: NextFunction) {
         try {
+            const user = req.user as AuthUser;
             const validatedData = bookingCheckoutShcema.parse(req.body);
-            const result = await this.bookingCheckoutUseCase.execute(validatedData);
+            const result = await this.bookingCheckoutUseCase.execute({
+                ...validatedData,
+                userId: user.id,
+                email: user.email,
+                name: user.name
+            });
             sendResponse(res, result);
         } catch (error) {
             log.error("bookingCheckout failed : ", error as Error);
@@ -118,8 +124,7 @@ class PaymentController {
 
     async getRevenueReport(req: Request, res: Response, next: NextFunction) {
         try {
-            console.log("req.body : ", req.body);
-            console.log("req.query : ", req.query);
+            const user = req.user as AuthUser;
             const { endDate, limit, page, startDate } = getAdminRevenueReportSchema.parse({
                 ...req.body,
                 ...req.query
@@ -128,7 +133,8 @@ class PaymentController {
                 page,
                 limit,
                 startDate,
-                endDate
+                endDate,
+                timeZone: user.timeZone.value
             });
             console.log("result : ", result);
             sendResponse(res, result);
@@ -138,19 +144,23 @@ class PaymentController {
         };
     };
 
-    async getRevenue(req: Request, res: Response, next: NextFunction) {
+    async getRevenueStats(req: Request, res: Response, next: NextFunction) {
         try {
             const user = req.user as AuthUser;
-            const validatedData = startAndEndDateSchema.parse(req.query);
+            const validatedData = getRevenueStatsSchema.parse(req.query);
             if (user.role === Role.PROVIDER) {
                 const result = await this.getProviderRevenueStatsUseCase.execute({
+                    ...validatedData,
                     providerId: user.id,
-                    ...validatedData
+                    timeZone: user.timeZone.value
                 });
                 sendResponse(res, result);
             }
             if (user.role === Role.ADMIN) {
-                const result = await this.getAdminRevenueStatsUseCase.execute(validatedData);
+                const result = await this.getAdminRevenueStatsUseCase.execute({
+                    ...validatedData,
+                    timeZone: user.timeZone.value
+                });
                 sendResponse(res, result);
             }
         } catch (error) {
@@ -189,9 +199,9 @@ class PaymentController {
 
     async getStripeAccountStatus(req: Request, res: Response, next: NextFunction) {
         try {
-            const { accountId } = stripeAccountIdSchema.parse(req.params);
+            const user = req.user as AuthUser;
             const result = await this.getStripeAccountStatusUseCase.execute({
-                accountId,
+                userId: user.id
             });
             sendResponse(res, result);
         } catch (error) {
@@ -203,17 +213,21 @@ class PaymentController {
     async getRevenueAnalytics(req: Request, res: Response, next: NextFunction) {
         try {
             const user = req.user as AuthUser;
-            const validatedData = startAndEndDateSchema.parse(req.query);
+            const validatedData = getRevenueAnalyticsSchema.parse(req.query);
             // TODO provider dashboard revenue stats
             if (user.role === Role.PROVIDER) {
                 const result = await this.getProviderRevenueStatsUseCase.execute({
+                    ...validatedData,
                     providerId: user.id,
-                    ...validatedData
+                    timeZone: user.timeZone.value
                 });
                 sendResponse(res, result);
             }
             if (user.role === Role.ADMIN) {
-                const result = await this.getAdminRevenueAanalyticsUseCase.execute(validatedData);
+                const result = await this.getAdminRevenueAanalyticsUseCase.execute({
+                    ...validatedData,
+                    timeZone: user.timeZone.value
+                });
                 sendResponse(res, result);
             }
         } catch (error) {

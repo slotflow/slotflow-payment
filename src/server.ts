@@ -6,7 +6,7 @@ import { initDB } from './app/init/db.init';
 import { log } from './shared/logger/logger';
 import { initOtel } from './app/init/otel.init';
 import { initKafka } from './app/init/kafka.init';
-import { printText } from './shared/utils/printText';
+import { printText } from './shared/utils/helpers/printText';
 import { setupGracefulShutdown } from './app/init/shutdown';
 
 const start = async () => {

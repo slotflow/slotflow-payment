@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { PaymentAccountStatus } from "../../domain/enums/payment.enum";
-import { PaypalDetails, RazorpayDetails, StripeDetails } from "../../domain/contracts/paymentAccount.contract";
+import { PaypalDetails, RazorpayDetails, StripeDetails } from "../../domain/commands/paymentAccount.command";
 
 export interface IPaymentAccount extends Document {
     _id: mongoose.Types.ObjectId;
@@ -73,15 +73,10 @@ const PaymentAccountSchema = new Schema<IPaymentAccount>(
         razorpayData: {
             type: RazorpayDetailsSchema,
             default: null,
-        },
-        createdAt: {
-            type: Date,
-            required: true,
-        },
-        updatedAt: {
-            type: Date,
-            required: true,
-        },
+        }
+    },
+    {
+        timestamps: true,
     }
 );
 

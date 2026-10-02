@@ -1,6 +1,6 @@
 import { PaymentAccountStatus } from "../enums/payment.enum";
-import { CreatePaymentAccountProps } from "../commands/paymentAccount.command";
-import { PaymentAccountProps, StripeDetails, PaypalDetails, RazorpayDetails } from "../contracts/paymentAccount.contract";
+import { PaymentAccountProps } from "../contracts/paymentAccount.contract";
+import { CreatePaymentAccountProps, PaypalDetails, RazorpayDetails, StripeDetails } from "../commands/paymentAccount.command";
 
 export class PaymentAccount {
     private props: PaymentAccountProps;
@@ -10,6 +10,7 @@ export class PaymentAccount {
     }
 
     static create(props: CreatePaymentAccountProps): PaymentAccount {
+        const now = new Date();
         return new PaymentAccount({
             _id: "",
             userId: props.userId,
@@ -28,8 +29,8 @@ export class PaymentAccount {
                 customerId: null,
                 accountStatus: PaymentAccountStatus.NOT_CONNECTED,
             },
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: now,
+            updatedAt: now,
         });
     }
 

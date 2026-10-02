@@ -19,16 +19,15 @@ export interface StripeAccountLinkInput {
   email: string;
 };
 export interface StripeAccountLinkOutput {
-  accountLink: string;
-  accountId: string;
+  boardingUrl: string;
 }
 
 // GetStripeAccountStatus usecase input output
 export interface GetStripeAccountStatusInput {
-  accountId: string;
+  userId: string;
 }
 export type GetStripeAccountStatusOutput = {
-  accountStatus: PaymentAccountStatus;
+  stripeStatus: PaymentAccountStatus;
 }
 
 // UpdateAccountStatus usecase input

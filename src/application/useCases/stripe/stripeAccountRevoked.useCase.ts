@@ -1,5 +1,5 @@
 import { AppError } from "../../../shared/error/appError";
-import { ERROR_CODES } from "../../../shared/utils/types";
+import { ERROR_CODES } from "../../../shared/utils/types/enums";
 import { StripeAccountRevokedInput } from "../../dtos/stripe.dtos";
 import { toAppError } from "../../../shared/error/handleUnknownError";
 import { PaymentAccountStatus } from "../../../domain/enums/payment.enum";

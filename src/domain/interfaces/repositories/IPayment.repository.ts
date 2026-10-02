@@ -8,6 +8,8 @@ export interface IPaymentRepository {
 
     findById(payemtnId: string): Promise<Payment | null>;
 
+    findByInvoiceId(invoiceId: string): Promise<Payment | null>;
+
     findAll(page: number, limit: number, userId?: string, providerId?: string): Promise<{ items: Array<Payment>, totalPages: number; currentPage: number; totalCount: number; }>;
 
 };

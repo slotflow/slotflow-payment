@@ -1,74 +1,71 @@
-import { ERROR_CODES, IdType } from '../../../shared/utils/types';
 import { toAppError } from '../../../shared/error/handleUnknownError';
+import { ERROR_CODES, IdType } from '../../../shared/utils/types/enums';
 import { PaymentAccountStatus } from "../../../domain/enums/payment.enum";
 import { AppError, BadRequestError } from '../../../shared/error/appError';
 import { PaymentAccount } from "../../../domain/entities/paymentAccount.entity";
-import { IPaymentGateway } from '../../../domain/interfaces/payment/IPaymentGateway';
+import { IPaymentGateway } from '../../interfaces/payment/IPaymentGateway.service';
 import { StripeAccountLinkInput, StripeAccountLinkOutput } from "../../dtos/stripe.dtos";
-import { IKafkaProducerAdapter } from "../../../domain/interfaces/messaging/IKafkaProducerAdapter";
 import { IPaymentAccountRepository } from "../../../domain/interfaces/repositories/IPaymentAccount.repository";
 
 export class StripeAccountLinkUseCase {
     constructor(
-        private readonly kafkaProducer: IKafkaProducerAdapter,
         private readonly paymentGateway: IPaymentGateway,
         private readonly paymentAccountRepository: IPaymentAccountRepository
     ) { };
 
     async execute(input: StripeAccountLinkInput): Promise<StripeAccountLinkOutput> {
         try {
-            console.log("StripeAccountLinkUseCase start")
             const { email, userId } = input
             if (!userId || !email) {
                 throw new BadRequestError();
             }
 
-            const { account } = await this.paymentGateway.createStripeAccount({ email });
-            if (!account.id) {
-                throw new AppError(
-                    "Failed to get stripe ccountId",
-                    500,
-                    false,
-                    ERROR_CODES.INTERNAL_ERROR
-                )
-            };
+            let paymentAccount = await this.paymentAccountRepository.findByUserId({ userId });
+            let stripeAccountId = paymentAccount?.stripeData?.accountId;
 
-            const existingPaymentAccount = await this.paymentAccountRepository.findByUserId({ userId });
-            let accountEntity: PaymentAccount | null = null;
-            if (existingPaymentAccount) {
-                if (existingPaymentAccount.stripeData?.accountId) {
-                    accountEntity = existingPaymentAccount;
+            if (!stripeAccountId) {
+                const { account } = await this.paymentGateway.createStripeAccount({ email });
+                if (!account.id) {
+                    throw new AppError(
+                        "Failed to create Stripe account",
+                        500,
+                        false,
+                        ERROR_CODES.INTERNAL_ERROR
+                    );
                 }
-            } else {
-                const existingStripeAccount = await this.paymentAccountRepository.findByStripeAccountId({ stripeAccountId: account.id });
-                if (!existingStripeAccount) {
-                    const paymentAccount = PaymentAccount.create({ userId })
-                    paymentAccount.updateStripeData({
-                        accountStatus: PaymentAccountStatus.PENDING,
-                        accountId: account.id,
-                        customerId: null,
-                    })
+                stripeAccountId = account.id;
 
-                    const newPaymentAccount = await this.paymentAccountRepository.create(paymentAccount);
-                    if (!newPaymentAccount) {
-                        throw new AppError(
-                            "Internal server error",
-                            500,
-                            false,
-                            ERROR_CODES.INTERNAL_ERROR
-                        );
-                    }
-                    accountEntity = newPaymentAccount;
+                if (!paymentAccount) {
+                    paymentAccount = PaymentAccount.create({ userId });
+                }
+
+                paymentAccount.updateStripeData({
+                    ...paymentAccount.stripeData,
+                    accountStatus: PaymentAccountStatus.PENDING,
+                    accountId: stripeAccountId,
+                    customerId: paymentAccount.stripeData?.customerId ?? null
+                });
+
+                const savedAccount = paymentAccount._id
+                    ? await this.paymentAccountRepository.update(paymentAccount)
+                    : await this.paymentAccountRepository.create(paymentAccount);
+
+                if (!savedAccount) {
+                    throw new AppError(
+                        "Failed to save payment account details",
+                        500,
+                        false,
+                        ERROR_CODES.INTERNAL_ERROR
+                    );
                 }
             }
 
             const { accountLinkData } = await this.paymentGateway.createStripeAccountLink({
-                accountId: account.id
+                accountId: stripeAccountId
             });
 
             return {
-                accountLink: accountLinkData.url,
-                accountId: account.id
+                boardingUrl: accountLinkData.url
             };
         } catch (error: unknown) {
             throw toAppError(error, "Failed to create stripe account link");

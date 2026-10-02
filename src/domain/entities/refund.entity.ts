@@ -10,11 +10,12 @@ export class Refund {
     }
 
     static create(props: Omit<RefundProps, "_id" | "createdAt" | "updatedAt">): Refund {
+        const now = new Date();
         return new Refund({
             ...props,
             _id: "",
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: now,
+            updatedAt: now,
         });
     }
 

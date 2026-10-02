@@ -1,15 +1,21 @@
 import { paymentGateway } from "../../../infrastructure/payment";
 import { kafkaProducer } from "../../../infrastructure/messaging";
-import { paymentRepository, paymentAccountRepository } from "../../../infrastructure/repositoryImpls";
+import { paymentRepository, paymentAccountRepository } from "../../../infrastructure/repository";
 import { StripeAccountRevokedUseCase } from "../../../application/useCases/stripe/stripeAccountRevoked.useCase";
-import { BookingCheckoutCompleteUseCase } from "../../../application/useCases/payment/bookingCheckoutComplete.useCase";
+import { BookingPaymentFailedUseCase } from "../../../application/useCases/payment/booking/bookingPaymentFailed.useCase";
 import { UpdateStripeAccountStatusUseCase } from "../../../application/useCases/stripe/updateStripeAccountStatus.useCase";
-import { SubscriptionCheckoutCompleteUseCase } from "../../../application/useCases/payment/subscriptionCheckoutCompleted.useCase";
+import { SubscriptionPaymentFailedUseCase } from "../../../application/useCases/payment/subscription/subscriptionPaymentFailed.useCase";
+import { BookingInvoicePaymentSucceededUseCase } from "../../../application/useCases/payment/booking/bookingInvoicePaymentSucceeded.useCase";
+import { SubscriptionInvoicePaymentSucceededUseCase } from "../../../application/useCases/payment/subscription/subscriptionInvoicePaymentSucceeded.useCase";
 
-export const subscriptionCheckoutCompleteUseCase = new SubscriptionCheckoutCompleteUseCase(paymentRepository, kafkaProducer, paymentGateway);
+export const subscriptionInvoicePaymentSucceededUseCase = new SubscriptionInvoicePaymentSucceededUseCase(paymentRepository, kafkaProducer, paymentGateway);
 
-export const bookingCheckoutCompleteUseCase = new BookingCheckoutCompleteUseCase(paymentRepository, kafkaProducer, paymentGateway);
+export const bookingInvoicePaymentSucceededUseCase = new BookingInvoicePaymentSucceededUseCase(paymentRepository, kafkaProducer);
 
-export const updateStripeAccountStatusUseCase = new UpdateStripeAccountStatusUseCase(paymentAccountRepository);
+export const updateStripeAccountStatusUseCase = new UpdateStripeAccountStatusUseCase(kafkaProducer, paymentAccountRepository);
 
 export const stripeAccountRevokedUseCase = new StripeAccountRevokedUseCase(paymentAccountRepository);
+
+export const bookingPaymentFailedUseCase = new BookingPaymentFailedUseCase(paymentRepository, kafkaProducer);
+
+export const subscriptionPaymentFailedUseCase = new SubscriptionPaymentFailedUseCase(paymentRepository, kafkaProducer);
