@@ -10,3 +10,16 @@ export enum EventStatus {
     PENDING = "PENDING",
     RETRY = "RETRY",
 }
+
+export enum NotificationChannel {
+  EMAIL = 'EMAIL',
+  PUSH = 'PUSH',
+  IN_APP = 'IN_APP',
+  SMS = 'SMS',
+}
+
+export enum NotificationType {
+  ACCOUNT_ACTIVITY = 'ACCOUNT_ACTIVITY',
+  SYSTEM_UPDATES = 'SYSTEM_UPDATES',
+  PROMOTIONAL_UPDATES = 'PROMOTIONAL_UPDATES',
+}

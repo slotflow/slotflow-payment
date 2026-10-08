@@ -1,5 +1,4 @@
 import { IdType } from "../types/enums";
-import { NotificationChannel, NotificationType } from "../../../application/dtos/common.dtos";
 
 // time zone default constant
 export const defaultTimezone: string = "Asia/Kolkata";
@@ -15,18 +14,6 @@ export const PREFIX_MAP: Record<IdType, string> = {
   [IdType.PAYMENT_INTENT]: "sf_p_int_",
   [IdType.PAYMENT_CHARGEID]: "sf_p_cid_"
 };
-
-export const notificationChannel = {
-  EMAIL: 'email',
-  PUSH: 'push',
-  IN_APP: 'in_app',
-} as const satisfies Record<string, NotificationChannel>;
-
-export const notificationType = {
-  ACCOUNT_ACTIVITY: 'account_activity',
-  SYSTEM_UPDATES: 'system_updates',
-  PROMOTIONAL_UPDATES: 'promotional_updates',
-} as const satisfies Record<string, NotificationType>;
 
 //
 export const dateFormats = {

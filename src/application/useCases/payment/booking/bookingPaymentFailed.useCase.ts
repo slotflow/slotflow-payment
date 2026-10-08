@@ -3,10 +3,10 @@ import { IdType } from "../../../../shared/utils/types/enums";
 import { BookingPaymentFailedInput } from "../../../dtos/payment.dtos";
 import { toAppError } from "../../../../shared/error/handleUnknownError";
 import { generateId } from "../../../../shared/utils/helpers/generateId";
-import { notificationType } from "../../../../shared/utils/constants/constants";
 import { BookingPaymentFailedEvent, EventEnvelope } from "../../../dtos/kafka.dtos";
 import { IKafkaProducerAdapter } from "../../../interfaces/messaging/IKafkaProducer.adapter";
 import { IPaymentRepository } from "../../../../domain/interfaces/repositories/IPayment.repository";
+import { NotificationType } from "../../../../domain/enums/common.enum";
 
 export class BookingPaymentFailedUseCase {
     constructor(
@@ -38,7 +38,7 @@ export class BookingPaymentFailedUseCase {
                             },
                             notificationData: {
                                 userId: newPayment.userId,
-                                notificationType: notificationType.ACCOUNT_ACTIVITY
+                                notificationType: NotificationType.ACCOUNT_ACTIVITY
                             },
                         },
                     }

@@ -8,7 +8,7 @@ import { IKafkaProducerAdapter } from "../../interfaces/messaging/IKafkaProducer
 import { kafkaConfig } from "../../../config/env";
 import { EventEnvelope, StripeAccountStatusUpdatedEvent } from "../../dtos/kafka.dtos";
 import { generateId } from "../../../shared/utils/helpers/generateId";
-import { notificationType } from "../../../shared/utils/constants/constants";
+import { NotificationType } from "../../../domain/enums/common.enum";
 
 export class UpdateStripeAccountStatusUseCase {
     constructor(
@@ -66,7 +66,7 @@ export class UpdateStripeAccountStatusUseCase {
                         notificationData: {
                             userId: paymentAccount.userId,
                             accountStatus,
-                            notificationType: notificationType.ACCOUNT_ACTIVITY
+                            notificationType: NotificationType.ACCOUNT_ACTIVITY
                         },
                     },
                 }

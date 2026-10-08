@@ -13,7 +13,6 @@ import { IPaymentGateway } from "../../interfaces/payment/IPaymentGateway.servic
 import { IRefundRepository } from "../../../domain/interfaces/repositories/IRefund.repository";
 import { IPaymentRepository } from "../../../domain/interfaces/repositories/IPayment.repository";
 import { IKafkaProducerAdapter } from '../../interfaces/messaging/IKafkaProducer.adapter.ts';
-import { notificationType } from '../../../shared/utils/constants/constants.ts';
 
 export class RefundPaymentUseCase {
     constructor(

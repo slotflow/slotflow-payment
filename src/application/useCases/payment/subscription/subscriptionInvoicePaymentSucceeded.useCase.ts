@@ -6,13 +6,14 @@ import { toAppError } from "../../../../shared/error/handleUnknownError.ts";
 import { generateId } from "../../../../shared/utils/helpers/generateId.ts";
 import { ERROR_CODES, IdType } from "../../../../shared/utils/types/enums.ts";
 import { AppError, BadRequestError } from "../../../../shared/error/appError.ts";
-import { dateFormats, notificationType } from "../../../../shared/utils/constants/constants.ts";
+import { dateFormats } from "../../../../shared/utils/constants/constants.ts";
 import { IPaymentGateway } from "../../../interfaces/payment/IPaymentGateway.service.ts";
 import { IKafkaProducerAdapter } from "../../../interfaces/messaging/IKafkaProducer.adapter.ts";
 import { EventEnvelope, ProviderSubscriptionPaymentSuccessEvent } from "../../../dtos/kafka.dtos.ts";
 import { IPaymentRepository } from "../../../../domain/interfaces/repositories/IPayment.repository.ts";
 import { BillingCycle, PaymentFor, PaymentGateway, PaymentStatus } from "../../../../domain/enums/payment.enum.ts";
 import { formatDate } from "../../../../shared/utils/helpers/formatDate.ts";
+import { NotificationType } from "../../../../domain/enums/common.enum.ts";
 
 export class SubscriptionInvoicePaymentSucceededUseCase {
 
@@ -41,9 +42,9 @@ export class SubscriptionInvoicePaymentSucceededUseCase {
 
             const slotflowSubscriptionId: string = metaData?.subscriptionId as string;
 
-            const subtotalAmount: number = invoice.subtotal;
+            const subtotalAmount: number = invoice.subtotal / 100;
             const discountAmount: number = 0;
-            const totalAmount: number = invoice.total;
+            const totalAmount: number = invoice.total / 100;
             const currency: string = invoice.currency;
             const billingCycle: BillingCycle = metaData?.billingCycle as BillingCycle;
 
@@ -181,7 +182,7 @@ export class SubscriptionInvoicePaymentSucceededUseCase {
                             notificationData: {
                                 userId,
                                 transactionId: payment.transactionId,
-                                notificationType: notificationType.ACCOUNT_ACTIVITY
+                                notificationType: NotificationType.ACCOUNT_ACTIVITY
                             },
                         },
                     },

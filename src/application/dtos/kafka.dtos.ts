@@ -1,6 +1,6 @@
 import { KafkaMessage } from "kafkajs";
-import { NotificationType } from "./common.dtos";
 import { PaymentAccountStatus } from "../../domain/enums/payment.enum";
+import { NotificationType } from "../../domain/enums/common.enum";
 
 /**
  * Kafka common dtos

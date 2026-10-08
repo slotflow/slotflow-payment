@@ -2,10 +2,10 @@ import { kafkaConfig } from "../../../../config/env";
 import { IdType } from "../../../../shared/utils/types/enums";
 import { generateId } from "../../../../shared/utils/helpers/generateId";
 import { SubscriptionPaymentFailedInput } from "../../../dtos/payment.dtos";
-import { notificationType } from "../../../../shared/utils/constants/constants";
 import { EventEnvelope, SubscriptionPaymentFailedEvent } from "../../../dtos/kafka.dtos";
 import { IKafkaProducerAdapter } from "../../../interfaces/messaging/IKafkaProducer.adapter";
 import { IPaymentRepository } from "../../../../domain/interfaces/repositories/IPayment.repository";
+import { NotificationType } from "../../../../domain/enums/common.enum";
 
 export class SubscriptionPaymentFailedUseCase {
     constructor(
@@ -38,7 +38,7 @@ export class SubscriptionPaymentFailedUseCase {
                             },
                             notificationData: {
                                 userId: newPayment.userId,
-                                notificationType: notificationType.ACCOUNT_ACTIVITY
+                                notificationType: NotificationType.ACCOUNT_ACTIVITY
                             },
                         },
                     },

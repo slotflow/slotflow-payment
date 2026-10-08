@@ -6,12 +6,13 @@ import { generateId } from "../../../../shared/utils/helpers/generateId";
 import { toAppError } from "../../../../shared/error/handleUnknownError";
 import { ERROR_CODES, IdType } from "../../../../shared/utils/types/enums";
 import { AppError, BadRequestError } from "../../../../shared/error/appError";
-import { dateFormats, notificationType } from "../../../../shared/utils/constants/constants";
+import { dateFormats } from "../../../../shared/utils/constants/constants";
 import { CreateBookingPaymentSuccessEvent, EventEnvelope } from "../../../dtos/kafka.dtos";
 import { IKafkaProducerAdapter } from "../../../interfaces/messaging/IKafkaProducer.adapter";
 import { PaymentFor, PaymentGateway, PaymentStatus } from "../../../../domain/enums/payment.enum";
 import { IPaymentRepository } from "../../../../domain/interfaces/repositories/IPayment.repository";
 import { formatDate } from "../../../../shared/utils/helpers/formatDate";
+import { NotificationType } from "../../../../domain/enums/common.enum";
 
 export class BookingInvoicePaymentSucceededUseCase {
 
@@ -26,8 +27,6 @@ export class BookingInvoicePaymentSucceededUseCase {
                 throw new BadRequestError("Invoice object missing");
             }
 
-            console.log("invoice : ",invoice);
-
             const metaData: Stripe.Metadata | BookingMetaData | undefined | null = invoice?.parent?.subscription_details?.metadata || invoice?.metadata;
 
             const idempotencyKey: string = generateId(IdType.IDEMPOTENCY);
@@ -38,9 +37,9 @@ export class BookingInvoicePaymentSucceededUseCase {
             const paymentGateway: PaymentGateway = PaymentGateway.STRIPE;
             const paymentFor: PaymentFor = (metaData?.paymentFor as PaymentFor) || PaymentFor.APPOINTMENT_BOOKING;
 
-            const subtotalAmount: number = invoice.subtotal;
+            const subtotalAmount: number = invoice.subtotal / 100;
             const discountAmount: number = 0;
-            const totalAmount: number = invoice.total;
+            const totalAmount: number = invoice.total / 100;
             const currency: string = invoice.currency;
 
             const userId: string = metaData?.userId as string;
@@ -109,11 +108,7 @@ export class BookingInvoicePaymentSucceededUseCase {
                 paidAt,
             });
 
-            console.log("paymentData : ",paymentData);
-
             const payment = await this.paymentRepository.create(paymentData);
-
-            console.log("payment : ",payment);
 
             if (payment) {
                 await this.kafkaProducer.publish<EventEnvelope<CreateBookingPaymentSuccessEvent>>(
@@ -139,7 +134,7 @@ export class BookingInvoicePaymentSucceededUseCase {
                             notificationData: {
                                 userId,
                                 transactionId: payment.transactionId,
-                                notificationType: notificationType.ACCOUNT_ACTIVITY
+                                notificationType: NotificationType.ACCOUNT_ACTIVITY
                             },
                         },
                     }
