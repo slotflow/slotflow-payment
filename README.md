@@ -6,38 +6,38 @@
 
 A dedicated payment microservice powering SlotFlow's appointment payments, provider subscriptions, Stripe Connect onboarding, and event-driven payment workflows.
 
-  <img src="https://img.shields.io/badge/Service-Payment_Processing-635BFF?style=for-the-badge" alt="Payment Processing" />
-  <img src="https://img.shields.io/badge/Architecture-Microservices-6C63FF?style=for-the-badge" alt="Microservices" />
-  <img src="https://img.shields.io/badge/Runtime-Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
-  <img src="https://img.shields.io/badge/Language-TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Payments-Stripe-635BFF?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe" />
+<img src="https://img.shields.io/badge/Service-Payment_Processing-635BFF?style=for-the-badge" alt="Payment Processing" />
+<img src="https://img.shields.io/badge/Architecture-Microservices-6C63FF?style=for-the-badge" alt="Microservices" />
+<img src="https://img.shields.io/badge/Runtime-Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
+<img src="https://img.shields.io/badge/Language-TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+<img src="https://img.shields.io/badge/Payments-Stripe-635BFF?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe" />
 
 ---
 
 ### Live link & Repositories
 
-  <a href="https://slotflow.online">
-    <img src="https://img.shields.io/badge/Live_Application-SlotFlow-181717?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Application" />
-  </a>
-  <a href="https://github.com/slotflow">
-    <img src="https://img.shields.io/badge/GitHub-SlotFlow-181717?style=for-the-badge&logo=github&logoColor=white" alt="SlotFlow GitHub" />
-  </a>
+<a href="https://slotflow.online">
+  <img src="https://img.shields.io/badge/Live_Application-SlotFlow-181717?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Application" />
+</a>
+<a href="https://github.com/slotflow">
+  <img src="https://img.shields.io/badge/GitHub-SlotFlow-181717?style=for-the-badge&logo=github&logoColor=white" alt="SlotFlow GitHub" />
+</a>
 
 ### Technology Stack
 
-  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
-  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Express_5-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express" />
-  <img src="https://img.shields.io/badge/Stripe-635BFF?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe" />
-  <img src="https://img.shields.io/badge/Stripe_Connect-635BFF?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe Connect" />
-  <img src="https://img.shields.io/badge/Stripe-Webhook-635BFF?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe Webhook" />
+<img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
+<img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+<img src="https://img.shields.io/badge/Express_5-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express" />
+<img src="https://img.shields.io/badge/Stripe-635BFF?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe" />
+<img src="https://img.shields.io/badge/Stripe_Connect-635BFF?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe Connect" />
+<img src="https://img.shields.io/badge/Stripe-Webhook-635BFF?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe Webhook" />
 <img src="https://img.shields.io/badge/Stripe-Recurring_Subscription-635BFF?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe Recurring Subscription" />
 <img src="https://img.shields.io/badge/Stripe-Payment_Payout-635BFF?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe Payment Payout" />
-  <img src="https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
-  <img src="https://img.shields.io/badge/Mongoose-880000?style=for-the-badge" alt="Mongoose" />
-  <img src="https://img.shields.io/badge/Apache_Kafka-231F20?style=for-the-badge&logo=apachekafka&logoColor=white" alt="Apache Kafka" />
-  <img src="https://img.shields.io/badge/KafkaJS-231F20?style=for-the-badge&logo=apachekafka&logoColor=white" alt="KafkaJS" />
-  <img src="https://img.shields.io/badge/pnpm-F69220?style=for-the-badge&logo=pnpm&logoColor=white" alt="pnpm" />
+<img src="https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
+<img src="https://img.shields.io/badge/Mongoose-880000?style=for-the-badge" alt="Mongoose" />
+<img src="https://img.shields.io/badge/Apache_Kafka-231F20?style=for-the-badge&logo=apachekafka&logoColor=white" alt="Apache Kafka" />
+<img src="https://img.shields.io/badge/KafkaJS-231F20?style=for-the-badge&logo=apachekafka&logoColor=white" alt="KafkaJS" />
+<img src="https://img.shields.io/badge/pnpm-F69220?style=for-the-badge&logo=pnpm&logoColor=white" alt="pnpm" />
 <img src="https://img.shields.io/badge/OpenTelemetry-7B3FF2?style=for-the-badge&logo=opentelemetry&logoColor=white" alt="OpenTelemetry" />
 <img src="https://img.shields.io/badge/Tempo-F46800?style=for-the-badge&logo=grafana&logoColor=white" alt="Grafana Tempo" />
 <img src="https://img.shields.io/badge/Loki-F46800?style=for-the-badge&logo=grafana&logoColor=white" alt="Grafana Loki" />
@@ -48,7 +48,7 @@ A dedicated payment microservice powering SlotFlow's appointment payments, provi
 <img src="https://img.shields.io/badge/Upstash-Redis-00E9A3?style=for-the-badge&logo=upstash&logoColor=white" alt="Upstash Redis" />
 <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
 <img src="https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white" alt="AWS" />
-</div>
+
 </div>
 
 ---
@@ -162,35 +162,19 @@ The Payment Service manages the payment lifecycle between SlotFlow and Stripe. P
 
 ```mermaid
 flowchart TD
-    Platform["SlotFlow Platform"]
-    Payment["SlotFlow Payment Service"]
+    Client["SlotFlow Client"] --> Gateway["API Gateway"]
+    Gateway --> Payment["Payment Service"]
 
-    subgraph StripeServices["Stripe Integration"]
-        Checkout["Stripe Checkout"]
-        Billing["Stripe Subscriptions"]
-        Connect["Stripe Connect"]
-        Webhooks["Stripe Webhooks"]
-    end
+    Payment <--> MongoDB[("MongoDB")]
+    Payment <--> Redis[("Redis")]
+    Payment <--> Stripe["Stripe"]
 
-    Database[("MongoDB")]
-    Kafka[["Apache Kafka"]]
-    Consumers["Downstream SlotFlow Services"]
+    Stripe --- Features["Payments · Subscriptions · Checkout · Webhooks"]
 
-    Platform -->|"Payment requests"| Payment
-
-    Payment --> Checkout
-    Payment --> Billing
-    Payment --> Connect
-
-    Checkout --> Webhooks
-    Billing --> Webhooks
-    Connect --> Webhooks
-
-    Webhooks -->|"Verified events"| Payment
-
-    Payment <-->|"Payment and account records"| Database
-    Payment -->|"Payment outcomes and account updates"| Kafka
-    Kafka --> Consumers
+    Payment <--> Kafka[["Apache Kafka"]]
+    Kafka --> Backend["Main Backend"]
+    Kafka --> Notification["Notification Service"]
+    Kafka --> Socket["Socket Server"]
 ```
 
 ### Architecture Principles
@@ -225,7 +209,7 @@ Stripe webhooks provide event-driven updates for payment outcomes, expired check
 
 ### Payout Readiness
 
-The service integrates with Stripe Connect account capabilities to track whether a provider's account is enabled to receive payouts. This represents payout readiness; a complete payout initiation workflow is not documented as an implemented capability.
+The service integrates with Stripe Connect account capabilities to track whether a provider's account is enabled to receive payouts.
 
 ---
 
@@ -287,16 +271,16 @@ slotflow-payment/
 - **Metrics:** Metrics are exported over OTLP/gRPC every 10 seconds by the configured periodic metric reader.
 - **Logs:** OpenTelemetry logs are exported over OTLP/HTTP.
 - **Resource attributes:** The service name comes from `SERVICE_NAME`; the resource also includes version `1.0.0` and a development/production environment attribute.
-- **Health response:** `GET /` returns a simple gateway-online JSON response. It does not check Redis, exporters, or downstream services.
+- **Health response:** `GET /` returns a gateway-online JSON response.
 - **Shutdown:** `SIGINT` and `SIGTERM` initiate OpenTelemetry shutdown and then close the HTTP server.
 
-The receiver endpoints and any collector, metrics backend, log backend, or trace backend are externally configured. This repository does not include their deployment or dashboard configuration.
+The observability pipeline supports integration with OpenTelemetry collectors and compatible metrics, logging, and tracing backends.
 
 ---
 
 ## Related Repositories
 
-Only repositories with verified GitHub URLs are linked below. The backend targets correspond to services configured by this gateway; the infrastructure repository is related context and is not provisioned by this project.
+Explore the SlotFlow platform repositories:
 
 <div align="center">
 
@@ -332,23 +316,20 @@ Only repositories with verified GitHub URLs are linked below. The backend target
 
 Copyright © 2026 SlotFlow.
 
-The SlotFlow source code and associated assets are proprietary and confidential
-property of SlotFlow.
+The SlotFlow source code and associated assets are proprietary and confidential property of SlotFlow.
 
 No permission is granted to any person or organization to:
 
-- Use the software for personal, commercial, or production purposes
-- Copy, reproduce, or redistribute the source code
-- Modify, adapt, or create derivative works
-- Sell, sublicense, lease, or otherwise commercialize the software
-- Incorporate any portion of the software into another product or service
-- Host or deploy the software without explicit written permission
+- Use the software for personal, commercial, or production purposes.
+- Copy, reproduce, or redistribute the source code.
+- Modify, adapt, or create derivative works.
+- Sell, sublicense, lease, or otherwise commercialize the software.
+- Incorporate any portion of the software into another product or service.
+- Host or deploy the software without explicit written permission.
 
-Viewing the source code on GitHub does not grant any license or rights to use,
-modify, distribute, or commercialize the software.
+Viewing the source code on GitHub does not grant any license or rights to use, modify, distribute, or commercialize the software.
 
-Any use beyond viewing the repository requires prior written permission from
-SlotFlow.
+Any use beyond viewing the repository requires prior written permission from SlotFlow.
 
 All rights reserved.
 
