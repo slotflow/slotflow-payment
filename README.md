@@ -1,5 +1,7 @@
  <div>
 
+<div align="center">
+
 # SlotFlow Payment Service
 
 ### Payments, simplified.
@@ -25,12 +27,14 @@ A dedicated payment microservice powering SlotFlow's appointment payments, provi
 
 ### Technology Stack
 
-<div align="center">
   <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Express_5-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express" />
   <img src="https://img.shields.io/badge/Stripe-635BFF?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe" />
   <img src="https://img.shields.io/badge/Stripe_Connect-635BFF?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe Connect" />
+  <img src="https://img.shields.io/badge/Stripe-Webhook-635BFF?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe Webhook" />
+<img src="https://img.shields.io/badge/Stripe-Recurring_Subscription-635BFF?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe Recurring Subscription" />
+<img src="https://img.shields.io/badge/Stripe-Payment_Payout-635BFF?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe Payment Payout" />
   <img src="https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
   <img src="https://img.shields.io/badge/Mongoose-880000?style=for-the-badge" alt="Mongoose" />
   <img src="https://img.shields.io/badge/Apache_Kafka-231F20?style=for-the-badge&logo=apachekafka&logoColor=white" alt="Apache Kafka" />
