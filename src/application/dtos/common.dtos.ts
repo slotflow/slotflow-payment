@@ -8,15 +8,15 @@ import { Role } from "../../domain/enums/common.enum";
 export interface CommonResponse {
   success?: boolean;
   message?: string;
-};
+}
 
 //  type of table data
 export interface TableData<T> {
   totalPages?: number;
   currentPage?: number;
   totalCount?: number;
-  items?: T
-};
+  items?: T;
+}
 
 // Used for the pagination
 export interface ApiPaginationRequest {
@@ -26,11 +26,11 @@ export interface ApiPaginationRequest {
 
 // Time zone interface
 export interface TimeZone {
-    value: string;
-    label: string;
-    offset: number;
-    abbrev: string;
-    altName: string;
+  value: string;
+  label: string;
+  offset: number;
+  abbrev: string;
+  altName: string;
 }
 
 // Decoded user from jwt token
@@ -40,7 +40,7 @@ export interface AuthUser {
   email: string;
   name: string;
   timeZone: TimeZone;
-};
+}
 
 // common date input filters
 export interface CommonDateInput {

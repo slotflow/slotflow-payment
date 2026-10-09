@@ -4,20 +4,20 @@ import { PaymentAccountStatus } from "../../domain/enums/payment.enum";
 
 // createStripeCustomer usecase input output
 export interface CreateStripeCustomerInput {
-    username: string;
-    email: string;
-    userId: string;
-    role: Role;
+  username: string;
+  email: string;
+  userId: string;
+  role: Role;
 }
 export interface CreateStripeCustomerOutput {
-    stripeCustomerId: string;
+  stripeCustomerId: string;
 }
 
 // StripeAccountLink usecase input output
 export interface StripeAccountLinkInput {
   userId: string;
   email: string;
-};
+}
 export interface StripeAccountLinkOutput {
   boardingUrl: string;
 }
@@ -28,7 +28,7 @@ export interface GetStripeAccountStatusInput {
 }
 export type GetStripeAccountStatusOutput = {
   stripeStatus: PaymentAccountStatus;
-}
+};
 
 // UpdateAccountStatus usecase input
 export interface UpdateStripeAccountStatusInput {

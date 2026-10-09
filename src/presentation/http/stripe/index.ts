@@ -8,14 +8,29 @@ import { SubscriptionPaymentFailedUseCase } from "../../../application/useCases/
 import { BookingInvoicePaymentSucceededUseCase } from "../../../application/useCases/payment/booking/bookingInvoicePaymentSucceeded.useCase";
 import { SubscriptionInvoicePaymentSucceededUseCase } from "../../../application/useCases/payment/subscription/subscriptionInvoicePaymentSucceeded.useCase";
 
-export const subscriptionInvoicePaymentSucceededUseCase = new SubscriptionInvoicePaymentSucceededUseCase(paymentRepository, kafkaProducer, paymentGateway);
+export const subscriptionInvoicePaymentSucceededUseCase =
+  new SubscriptionInvoicePaymentSucceededUseCase(paymentRepository, kafkaProducer, paymentGateway);
 
-export const bookingInvoicePaymentSucceededUseCase = new BookingInvoicePaymentSucceededUseCase(paymentRepository, kafkaProducer);
+export const bookingInvoicePaymentSucceededUseCase = new BookingInvoicePaymentSucceededUseCase(
+  paymentRepository,
+  kafkaProducer,
+);
 
-export const updateStripeAccountStatusUseCase = new UpdateStripeAccountStatusUseCase(kafkaProducer, paymentAccountRepository);
+export const updateStripeAccountStatusUseCase = new UpdateStripeAccountStatusUseCase(
+  kafkaProducer,
+  paymentAccountRepository,
+);
 
-export const stripeAccountRevokedUseCase = new StripeAccountRevokedUseCase(paymentAccountRepository);
+export const stripeAccountRevokedUseCase = new StripeAccountRevokedUseCase(
+  paymentAccountRepository,
+);
 
-export const bookingPaymentFailedUseCase = new BookingPaymentFailedUseCase(paymentRepository, kafkaProducer);
+export const bookingPaymentFailedUseCase = new BookingPaymentFailedUseCase(
+  paymentRepository,
+  kafkaProducer,
+);
 
-export const subscriptionPaymentFailedUseCase = new SubscriptionPaymentFailedUseCase(paymentRepository, kafkaProducer);
+export const subscriptionPaymentFailedUseCase = new SubscriptionPaymentFailedUseCase(
+  paymentRepository,
+  kafkaProducer,
+);

@@ -1,5 +1,5 @@
 {
- "compilerOptions": {
+  "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
     "module": "ESNext",
@@ -14,8 +14,6 @@
     "preserveConstEnums": true,
     "allowImportingTsExtensions": true,
     "rewriteRelativeImportExtensions": true
- },
+  },
   "include": ["src/**/*"]
 }
-
- 

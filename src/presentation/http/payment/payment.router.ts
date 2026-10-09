@@ -6,62 +6,47 @@ import { authMiddleware } from "../../middleware/auth.Middleware";
 
 const router = Router();
 
-router.get('/',
-    authMiddleware,
-    paymentController.getPayments
+router.get("/", authMiddleware, paymentController.getPayments);
+
+// main backend server to payment server
+router.post(
+  "/subscription/checkout/session",
+  authMiddleware,
+  authorize(Role.PROVIDER),
+  paymentController.subscriptionCheckout,
 );
 
 // main backend server to payment server
-router.post("/subscription/checkout/session",
-    authMiddleware,
-    authorize(Role.PROVIDER),
-    paymentController.subscriptionCheckout
+router.post(
+  "/booking/checkout/session",
+  authMiddleware,
+  authorize(Role.USER),
+  paymentController.bookingCheckout,
 );
 
 // main backend server to payment server
-router.post('/booking/checkout/session',
-    authMiddleware,
-    authorize(Role.USER),
-    paymentController.bookingCheckout
+router.post("/refund", authMiddleware, authorize(Role.USER), paymentController.refund);
+
+router.get(
+  "/stripe/account-status",
+  authMiddleware,
+  authorize(Role.PROVIDER),
+  paymentController.getStripeAccountStatus,
 );
 
-// main backend server to payment server
-router.post("/refund",
-    authMiddleware,
-    authorize(Role.USER),
-    paymentController.refund
+router.post(
+  "/stripe/account-link",
+  authMiddleware,
+  authorize(Role.PROVIDER),
+  paymentController.linkStripeAccount,
 );
 
-router.get("/stripe/account-status",
-    authMiddleware,
-    authorize(Role.PROVIDER),
-    paymentController.getStripeAccountStatus
-);
+router.get("/reports/revenue", authMiddleware, paymentController.getRevenueReport);
 
-router.post('/stripe/account-link',
-    authMiddleware,
-    authorize(Role.PROVIDER),
-    paymentController.linkStripeAccount
-);
+router.get("/analytics/revenue-stats", authMiddleware, paymentController.getRevenueStats);
 
-router.get('/reports/revenue',
-    authMiddleware,
-    paymentController.getRevenueReport
-);
+router.get("/analytics/revenue-chart", authMiddleware, paymentController.getRevenueAnalytics);
 
-router.get('/analytics/revenue-stats',
-    authMiddleware,
-    paymentController.getRevenueStats
-);
-
-router.get('/analytics/revenue-chart',
-    authMiddleware,
-    paymentController.getRevenueAnalytics
-);
-
-router.get('/:paymentId',
-    authMiddleware,
-    paymentController.getPaymentDetails
-);
+router.get("/:paymentId", authMiddleware, paymentController.getPaymentDetails);
 
 export default router;

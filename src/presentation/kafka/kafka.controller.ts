@@ -2,17 +2,16 @@ import { kafkaConfig } from "../../config/env";
 import { log } from "../../shared/logger/logger";
 import { handlers, processEventWrapperUseCase } from ".";
 import { kafkaConsumer } from "../../infrastructure/messaging";
-import { PSSubKafkaEventPayload } from "../../application/dtos/kafka.dtos";
 import { IKafkaConsumerAdapter } from "../../application/interfaces/messaging/IKafkaConsumer.adapter";
 import { ProcessEventWrapperUseCase } from "../../application/useCases/kafka/processEventWrapper.useCase";
 
 class KafkaConsumerController {
   constructor(
     private readonly kafkaConsumer: IKafkaConsumerAdapter,
-    private readonly processEventWrapperUseCase: ProcessEventWrapperUseCase
+    private readonly processEventWrapperUseCase: ProcessEventWrapperUseCase,
   ) {
     this.startListening = this.startListening.bind(this);
-  };
+  }
 
   async startListening(): Promise<void> {
     try {
@@ -29,19 +28,19 @@ class KafkaConsumerController {
             businessUseCase: useCase,
             eventData,
             topic: topic as string,
-            payloadExtractor: (payload: PSSubKafkaEventPayload) => payload.paymentData
+            payloadExtractor: (payload) => payload.paymentData,
           });
         });
-      };
+      }
 
       await this.kafkaConsumer.startConsumer();
     } catch (error) {
-      log.error("kafka controller startListening failed : ", error as Error);
-    };
-  };
-};
+      log.error("kafka controller startListening failed : ", { error });
+    }
+  }
+}
 
 export const kafkaConsumerController = new KafkaConsumerController(
   kafkaConsumer,
-  processEventWrapperUseCase
+  processEventWrapperUseCase,
 );

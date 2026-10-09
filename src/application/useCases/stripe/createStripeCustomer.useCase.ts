@@ -5,39 +5,37 @@ import { IPaymentGateway } from "../../interfaces/payment/IPaymentGateway.servic
 import { CreateStripeCustomerInput, CreateStripeCustomerOutput } from "../../dtos/stripe.dtos";
 
 export class CreateStripeCustomerUseCase {
-    constructor(
-        private readonly paymentGateway: IPaymentGateway,
-    ) { }
+  constructor(private readonly paymentGateway: IPaymentGateway) {}
 
-    async execute(input: CreateStripeCustomerInput): Promise<CreateStripeCustomerOutput> {
-        try {
-            const { email, role, userId, username } = input;
-            if (!email || !username || !userId || !role) {
-                throw new BadRequestError();
-            }
+  async execute(input: CreateStripeCustomerInput): Promise<CreateStripeCustomerOutput> {
+    try {
+      const { email, role, userId, username } = input;
+      if (!email || !username || !userId || !role) {
+        throw new BadRequestError();
+      }
 
-            const existingCustomer = await this.paymentGateway.findCustomerByUserId(userId);
+      const existingCustomer = await this.paymentGateway.findCustomerByUserId(userId);
 
-            if (existingCustomer) {
-                return {
-                    stripeCustomerId: existingCustomer.customerId
-                };
-            }
+      if (existingCustomer) {
+        return {
+          stripeCustomerId: existingCustomer.customerId,
+        };
+      }
 
-            const customer = await this.paymentGateway.createStripeCustomer({
-                email,
-                name: username,
-                userId,
-                role,
-            });
+      const customer = await this.paymentGateway.createStripeCustomer({
+        email,
+        name: username,
+        userId,
+        role,
+      });
 
-            return {
-                stripeCustomerId: customer.customerId
-            }
-        } catch (error: unknown) {
-            throw toAppError(error, "Failed to create stripe customer");
-        }
+      return {
+        stripeCustomerId: customer.customerId,
+      };
+    } catch (error: unknown) {
+      throw toAppError(error, "Failed to create stripe customer");
     }
+  }
 }
 
 export const createStripeCustomerUseCase = new CreateStripeCustomerUseCase(paymentGateway);

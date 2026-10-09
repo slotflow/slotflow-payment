@@ -9,43 +9,40 @@ import { IPaymentRepository } from "../../../../domain/interfaces/repositories/I
 import { NotificationType } from "../../../../domain/enums/common.enum";
 
 export class BookingPaymentFailedUseCase {
-    constructor(
-        private readonly paymentRepository: IPaymentRepository,
-        private readonly kafkaProducer: IKafkaProducerAdapter,
-    ) { }
+  constructor(
+    private readonly paymentRepository: IPaymentRepository,
+    private readonly kafkaProducer: IKafkaProducerAdapter,
+  ) {}
 
-    async execute(input: BookingPaymentFailedInput): Promise<void> {
-        try {
-            const {
+  async execute(input: BookingPaymentFailedInput): Promise<void> {
+    try {
+      const { bookingId, payment } = input;
+
+      if (payment) {
+        const newPayment = await this.paymentRepository.create(payment);
+        if (!newPayment || !newPayment.userId || !bookingId) return;
+
+        await this.kafkaProducer.publish<EventEnvelope<BookingPaymentFailedEvent>>(
+          kafkaConfig.topics.pub.userBookingPaymentFailed,
+          {
+            eventId: generateId(IdType.EVENT),
+            attempt: 1,
+            maxAttempts: 1,
+            occurredAt: new Date().toString(),
+            payload: {
+              mbsData: {
                 bookingId,
-                payment
-            } = input;
-
-            if(payment) {
-                const newPayment = await this.paymentRepository.create(payment);
-                if (!newPayment || !newPayment.userId || !bookingId) return;
-                
-                await this.kafkaProducer.publish<EventEnvelope<BookingPaymentFailedEvent>>(
-                    kafkaConfig.topics.pub.userBookingPaymentFailed,
-                    {
-                        eventId: generateId(IdType.EVENT),
-                        attempt: 1,
-                        maxAttempts: 1,
-                        occurredAt: new Date().toString(),
-                        payload: {
-                            mbsData: {
-                                bookingId,
-                            },
-                            notificationData: {
-                                userId: newPayment.userId,
-                                notificationType: NotificationType.ACCOUNT_ACTIVITY
-                            },
-                        },
-                    }
-                );
-            }
-        } catch (error) {
-            throw toAppError(error, "Failed to handle booking payment failure.");
-        }
+              },
+              notificationData: {
+                userId: newPayment.userId,
+                notificationType: NotificationType.ACCOUNT_ACTIVITY,
+              },
+            },
+          },
+        );
+      }
+    } catch (error) {
+      throw toAppError(error, "Failed to handle booking payment failure.");
     }
+  }
 }

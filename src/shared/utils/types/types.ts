@@ -8,7 +8,7 @@ export interface FormattedDateTime {
 
 //
 export type DateInput = Date | string | number | null | undefined;
-export type DateFormatPattern = typeof dateFormats[keyof typeof dateFormats] | (string & {});
+export type DateFormatPattern = (typeof dateFormats)[keyof typeof dateFormats] | (string & {});
 
 //
 export interface DateRangeResult {
@@ -17,12 +17,12 @@ export interface DateRangeResult {
   days: number;
   duration: number;
   prevStart: Date;
-  : Date;
+  prevEnd: Date;
 }
 
 //
 export interface DateRangeProps {
-  startDate: Date | string,
-  endDate: Date | string,
+  startDate: Date | string;
+  endDate: Date | string;
   timeZone?: string;
 }

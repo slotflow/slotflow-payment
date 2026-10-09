@@ -50,10 +50,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       !normalizedTimeZone
     ) {
       return next(
-        new UnauthorizedError(
-          "Invalid user identity headers",
-          ERROR_CODES.USER_NOT_FOUND
-        )
+        new UnauthorizedError("Invalid user identity headers", ERROR_CODES.USER_NOT_FOUND),
       );
     }
 
@@ -62,15 +59,15 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       role: normalizedRole,
       name: normalizedName,
       email: normalizedEmail,
-      timeZone: normalizedTimeZone as TimeZone
+      timeZone: normalizedTimeZone as TimeZone,
     };
 
     req.user = decodedUser;
 
     next();
   } catch (error) {
-    log.error("error", error as Error);
+    log.error("error", { error });
     res.status(401).json({ success: false, message: "Unauthorized: Invalid token." });
     return;
-  };
+  }
 };

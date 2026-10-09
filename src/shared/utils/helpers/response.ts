@@ -5,11 +5,11 @@ export const sendResponse = <T>(
   data: T,
   message = "Success",
   success = true,
-  statusCode = 200
+  statusCode = 200,
 ) => {
   return res.status(statusCode).json({
     success,
     message,
-    data
+    data,
   });
 };

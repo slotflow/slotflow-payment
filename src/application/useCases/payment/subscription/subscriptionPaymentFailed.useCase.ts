@@ -1,51 +1,50 @@
 import { kafkaConfig } from "../../../../config/env";
+import { log } from "../../../../shared/logger/logger";
 import { IdType } from "../../../../shared/utils/types/enums";
+import { NotificationType } from "../../../../domain/enums/common.enum";
 import { generateId } from "../../../../shared/utils/helpers/generateId";
+import { toAppError } from "../../../../shared/error/handleUnknownError";
 import { SubscriptionPaymentFailedInput } from "../../../dtos/payment.dtos";
 import { EventEnvelope, SubscriptionPaymentFailedEvent } from "../../../dtos/kafka.dtos";
 import { IKafkaProducerAdapter } from "../../../interfaces/messaging/IKafkaProducer.adapter";
 import { IPaymentRepository } from "../../../../domain/interfaces/repositories/IPayment.repository";
-import { NotificationType } from "../../../../domain/enums/common.enum";
 
 export class SubscriptionPaymentFailedUseCase {
-    constructor(
-        private readonly paymentRepository: IPaymentRepository,
-        private readonly kafkaProducer: IKafkaProducerAdapter
-    ) { }
+  constructor(
+    private readonly paymentRepository: IPaymentRepository,
+    private readonly kafkaProducer: IKafkaProducerAdapter,
+  ) {}
 
-    async execute(input: SubscriptionPaymentFailedInput): Promise<void> {
-        try {
-            
-            const {
-                payment,
-                subscriptionId
-            } = input;
+  async execute(input: SubscriptionPaymentFailedInput): Promise<void> {
+    try {
+      const { payment, subscriptionId } = input;
 
-            if (payment) {
-                const newPayment = await this.paymentRepository.create(payment);
-                if (!newPayment || !newPayment.userId || !subscriptionId) return;
+      if (payment) {
+        const newPayment = await this.paymentRepository.create(payment);
+        if (!newPayment || !newPayment.userId || !subscriptionId) return;
 
-                await this.kafkaProducer.publish<EventEnvelope<SubscriptionPaymentFailedEvent>>(
-                    kafkaConfig.topics.pub.providerSubscriptionPaymentFailed,
-                    {
-                        eventId: generateId(IdType.EVENT),
-                        attempt: 1,
-                        maxAttempts: 1,
-                        occurredAt: new Date().toString(),
-                        payload: {
-                            mbsData: {
-                                subscriptionId: subscriptionId,
-                            },
-                            notificationData: {
-                                userId: newPayment.userId,
-                                notificationType: NotificationType.ACCOUNT_ACTIVITY
-                            },
-                        },
-                    },
-                )
-            }
-        } catch (error) {
-
-        }
+        await this.kafkaProducer.publish<EventEnvelope<SubscriptionPaymentFailedEvent>>(
+          kafkaConfig.topics.pub.providerSubscriptionPaymentFailed,
+          {
+            eventId: generateId(IdType.EVENT),
+            attempt: 1,
+            maxAttempts: 1,
+            occurredAt: new Date().toString(),
+            payload: {
+              mbsData: {
+                subscriptionId: subscriptionId,
+              },
+              notificationData: {
+                userId: newPayment.userId,
+                notificationType: NotificationType.ACCOUNT_ACTIVITY,
+              },
+            },
+          },
+        );
+      }
+    } catch (error: unknown) {
+      log.error("Payment for subscription failed : ", { error });
+      toAppError(error);
     }
+  }
 }

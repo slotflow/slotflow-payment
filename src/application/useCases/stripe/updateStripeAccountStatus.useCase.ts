@@ -11,69 +11,60 @@ import { generateId } from "../../../shared/utils/helpers/generateId";
 import { NotificationType } from "../../../domain/enums/common.enum";
 
 export class UpdateStripeAccountStatusUseCase {
-    constructor(
-        private readonly kafkaProducer: IKafkaProducerAdapter,
-        private readonly paymentAccountRepository: IPaymentAccountRepository
-    ) { }
+  constructor(
+    private readonly kafkaProducer: IKafkaProducerAdapter,
+    private readonly paymentAccountRepository: IPaymentAccountRepository,
+  ) {}
 
-    async execute(input: UpdateStripeAccountStatusInput): Promise<void> {
-        try {
-            const { account } = input;
+  async execute(input: UpdateStripeAccountStatusInput): Promise<void> {
+    try {
+      const { account } = input;
 
-            const paymentAccount = await this.paymentAccountRepository.findByStripeAccountId({ stripeAccountId: account.id });
-            if (!paymentAccount) {
-                throw new AppError(
-                    "Internal server error",
-                    500,
-                    false,
-                    ERROR_CODES.INTERNAL_ERROR
-                );
-            }
+      const paymentAccount = await this.paymentAccountRepository.findByStripeAccountId({
+        stripeAccountId: account.id,
+      });
+      if (!paymentAccount) {
+        throw new AppError("Internal server error", 500, false, ERROR_CODES.INTERNAL_ERROR);
+      }
 
-            let accountStatus: PaymentAccountStatus = PaymentAccountStatus.PENDING;
+      let accountStatus: PaymentAccountStatus = PaymentAccountStatus.PENDING;
 
-            if (!account.details_submitted) {
-                accountStatus = PaymentAccountStatus.PENDING;
-            } else if (!account.charges_enabled) {
-                accountStatus = PaymentAccountStatus.RESTRICTED;
-            } else if (account.charges_enabled && account.payouts_enabled) {
-                accountStatus = PaymentAccountStatus.ACTIVE;
-            };
+      if (!account.details_submitted) {
+        accountStatus = PaymentAccountStatus.PENDING;
+      } else if (!account.charges_enabled) {
+        accountStatus = PaymentAccountStatus.RESTRICTED;
+      } else if (account.charges_enabled && account.payouts_enabled) {
+        accountStatus = PaymentAccountStatus.ACTIVE;
+      }
 
-            paymentAccount.updateStripeData({
-                ...paymentAccount.stripeData,
-                accountStatus
-            });
+      paymentAccount.updateStripeData({
+        ...paymentAccount.stripeData,
+        accountStatus,
+      });
 
-            const updatedPaymentAccount = await this.paymentAccountRepository.update(paymentAccount);
-            if (!updatedPaymentAccount) {
-                throw new AppError(
-                    "Internal server error",
-                    500,
-                    false,
-                    ERROR_CODES.INTERNAL_ERROR
-                );
-            }
+      const updatedPaymentAccount = await this.paymentAccountRepository.update(paymentAccount);
+      if (!updatedPaymentAccount) {
+        throw new AppError("Internal server error", 500, false, ERROR_CODES.INTERNAL_ERROR);
+      }
 
-            await this.kafkaProducer.publish<EventEnvelope<StripeAccountStatusUpdatedEvent>>(
-                kafkaConfig.topics.pub.stripeAccountStatusUpdated,
-                {
-                    eventId: generateId(IdType.EVENT),
-                    attempt: 1,
-                    maxAttempts: 1,
-                    occurredAt: new Date().toString(),
-                    payload: {
-                        notificationData: {
-                            userId: paymentAccount.userId,
-                            accountStatus,
-                            notificationType: NotificationType.ACCOUNT_ACTIVITY
-                        },
-                    },
-                }
-            )
-
-        } catch (error: unknown) {
-            throw toAppError(error, "Failed to update stripe account status");
-        }
-    };
+      await this.kafkaProducer.publish<EventEnvelope<StripeAccountStatusUpdatedEvent>>(
+        kafkaConfig.topics.pub.stripeAccountStatusUpdated,
+        {
+          eventId: generateId(IdType.EVENT),
+          attempt: 1,
+          maxAttempts: 1,
+          occurredAt: new Date().toString(),
+          payload: {
+            notificationData: {
+              userId: paymentAccount.userId,
+              accountStatus,
+              notificationType: NotificationType.ACCOUNT_ACTIVITY,
+            },
+          },
+        },
+      );
+    } catch (error: unknown) {
+      throw toAppError(error, "Failed to update stripe account status");
+    }
+  }
 }

@@ -7,7 +7,6 @@ import { IPaymentRepository } from "../../domain/interfaces/repositories/IPaymen
 import { IProcessedEventRepository } from "../../domain/interfaces/repositories/IProcessedEvent.repository";
 import { IPaymentAccountRepository } from "../../domain/interfaces/repositories/IPaymentAccount.repository";
 
-
 // payment repository instance
 export const paymentRepository: IPaymentRepository = new PaymentRepositoryImpl();
 
@@ -15,7 +14,9 @@ export const paymentRepository: IPaymentRepository = new PaymentRepositoryImpl()
 export const refundRepository: IRefundRepository = new RefundRepositoryImpl();
 
 // processed event repository instance
-export const processedEventRepository: IProcessedEventRepository = new ProcessedEventRepositoryImpl();
+export const processedEventRepository: IProcessedEventRepository =
+  new ProcessedEventRepositoryImpl();
 
 // payment account repository instance
-export const paymentAccountRepository: IPaymentAccountRepository = new PaymentAccountRepositoryImpl();
+export const paymentAccountRepository: IPaymentAccountRepository =
+  new PaymentAccountRepositoryImpl();

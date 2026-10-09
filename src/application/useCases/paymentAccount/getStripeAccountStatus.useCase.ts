@@ -9,8 +9,8 @@ import { IPaymentAccountRepository } from "../../../domain/interfaces/repositori
 export class GetStripeAccountStatusUseCase {
   constructor(
     private readonly paymentGateway: IPaymentGateway,
-    private readonly paymentAccountRepository: IPaymentAccountRepository
-  ) { }
+    private readonly paymentAccountRepository: IPaymentAccountRepository,
+  ) {}
 
   async execute(input: GetStripeAccountStatusInput): Promise<GetStripeAccountStatusOutput> {
     try {
@@ -21,16 +21,12 @@ export class GetStripeAccountStatusUseCase {
 
       const paymentAccount = await this.paymentAccountRepository.findByUserId({ userId });
       if (!paymentAccount) {
-        throw new AppError(
-          "Payment account not found",
-          404,
-          false,
-          ERROR_CODES.INTERNAL_ERROR
-        );
+        throw new AppError("Payment account not found", 404, false, ERROR_CODES.INTERNAL_ERROR);
       }
 
-      let currentStatus: PaymentAccountStatus = paymentAccount.stripeData?.accountStatus || PaymentAccountStatus.NOT_CONNECTED;
-      let stripeAccountId = paymentAccount.stripeData?.accountId;
+      let currentStatus: PaymentAccountStatus =
+        paymentAccount.stripeData?.accountStatus || PaymentAccountStatus.NOT_CONNECTED;
+      const stripeAccountId = paymentAccount.stripeData?.accountId;
 
       if (stripeAccountId && currentStatus === PaymentAccountStatus.PENDING) {
         const stripeAccount = await this.paymentGateway.getStripeAccount(stripeAccountId);
@@ -45,7 +41,7 @@ export class GetStripeAccountStatusUseCase {
         if (paymentAccount.stripeData?.accountStatus !== currentStatus) {
           paymentAccount.updateStripeData({
             ...paymentAccount.stripeData,
-            accountStatus: currentStatus
+            accountStatus: currentStatus,
           });
 
           const updatedPaymentAccount = await this.paymentAccountRepository.update(paymentAccount);
@@ -54,20 +50,20 @@ export class GetStripeAccountStatusUseCase {
               "Failed to update payment account status",
               500,
               false,
-              ERROR_CODES.INTERNAL_ERROR
+              ERROR_CODES.INTERNAL_ERROR,
             );
           }
 
           return {
-            stripeStatus: updatedPaymentAccount.stripeData?.accountStatus ?? PaymentAccountStatus.PENDING
+            stripeStatus:
+              updatedPaymentAccount.stripeData?.accountStatus ?? PaymentAccountStatus.PENDING,
           };
         }
       }
 
       return {
-        stripeStatus: paymentAccount.stripeData?.accountStatus ?? PaymentAccountStatus.PENDING
+        stripeStatus: paymentAccount.stripeData?.accountStatus ?? PaymentAccountStatus.PENDING,
       };
-
     } catch (error: unknown) {
       throw toAppError(error, "Failed to get stripe account status");
     }

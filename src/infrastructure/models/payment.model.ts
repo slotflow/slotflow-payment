@@ -1,5 +1,10 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
-import { PaymentFor, PaymentGateway, PaymentStatus, BillingCycle } from "../../domain/enums/payment.enum";
+import {
+  PaymentFor,
+  PaymentGateway,
+  PaymentStatus,
+  BillingCycle,
+} from "../../domain/enums/payment.enum";
 
 export interface IPayment extends Document {
   _id: Types.ObjectId;
@@ -157,7 +162,7 @@ const PaymentSchema = new Schema<IPayment>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 PaymentSchema.index(
@@ -166,7 +171,7 @@ PaymentSchema.index(
     unique: true,
     partialFilterExpression: { paymentIntent: { $type: "string" } },
     name: "paymentIntent_unique_string",
-  }
+  },
 );
 
 PaymentSchema.index(
@@ -175,7 +180,7 @@ PaymentSchema.index(
     unique: true,
     partialFilterExpression: { sessionId: { $type: "string" } },
     name: "sessionId_unique_string",
-  }
+  },
 );
 
 PaymentSchema.index(
@@ -184,7 +189,7 @@ PaymentSchema.index(
     unique: true,
     partialFilterExpression: { stripeInvoiceId: { $type: "string" } },
     name: "stripeInvoiceId_unique_string",
-  }
+  },
 );
 
 export const PaymentModel = mongoose.model<IPayment>("Payment", PaymentSchema);

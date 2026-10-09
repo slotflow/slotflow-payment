@@ -7,9 +7,27 @@
   "scripts": {
     "predev": "npx kill-port 7000",
     "dev": "tsx watch src/server.ts",
+    "lint:check": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format:check": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "type:check": "tsc --noEmit",
     "build": "tsc",
     "start": "node dist/server.js",
-    "bundle": "tsup src/server.ts --format esm --dts --out-dir dist-bundle"
+    "bundle": "tsup src/server.ts --format esm --dts --out-dir dist-bundle",
+    "validate": "tsc --noEmit && pnpm lint:check && pnpm format:check && pnpm build",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,mts,cts}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "author": "midhun_kalarikkal",
   "license": "ISC",
@@ -45,13 +63,21 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/body-parser": "^1.19.6",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",
     "@types/node": "^25.0.5",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.9",
     "ts-node": "^10.9.2",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.1"
   }
 }

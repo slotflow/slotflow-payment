@@ -11,112 +11,103 @@ import { CreateStripeCustomerUseCase } from "../../stripe/createStripeCustomer.u
 import { IPaymentAccountRepository } from "../../../../domain/interfaces/repositories/IPaymentAccount.repository";
 
 export class BookingCheckoutUseCase {
-    constructor(
-        private readonly paymentGateway: IPaymentGateway,
-        private readonly createStripeCustomer: CreateStripeCustomerUseCase,
-        private readonly paymenttAccountRepository: IPaymentAccountRepository
-    ) { }
+  constructor(
+    private readonly paymentGateway: IPaymentGateway,
+    private readonly createStripeCustomer: CreateStripeCustomerUseCase,
+    private readonly paymenttAccountRepository: IPaymentAccountRepository,
+  ) {}
 
-    async execute(input: BookingCheckoutInput): Promise<string> {
-        try {
-            const {
-                serviceName,
-                description,
-                unitAmount,
-                providerId,
-                bookingId,
-                userId,
-                paymentFor,
-                email,
-                name,
-            } = input;
+  async execute(input: BookingCheckoutInput): Promise<string> {
+    try {
+      const {
+        serviceName,
+        description,
+        unitAmount,
+        providerId,
+        bookingId,
+        userId,
+        paymentFor,
+        email,
+        name,
+      } = input;
 
-            if (!serviceName ||
-                !description ||
-                !unitAmount ||
-                !providerId ||
-                !bookingId ||
-                !userId ||
-                !paymentFor ||
-                !email ||
-                !name
-            ) {
-                throw new BadRequestError();
-            }
+      if (
+        !serviceName ||
+        !description ||
+        !unitAmount ||
+        !providerId ||
+        !bookingId ||
+        !userId ||
+        !paymentFor ||
+        !email ||
+        !name
+      ) {
+        throw new BadRequestError();
+      }
 
-            let paymentAccount = await this.paymenttAccountRepository.findByUserId({ userId });
-            if (!paymentAccount) {
-                const newAccount = PaymentAccount.create({ userId });
+      let paymentAccount = await this.paymenttAccountRepository.findByUserId({ userId });
+      if (!paymentAccount) {
+        const newAccount = PaymentAccount.create({ userId });
 
-                paymentAccount = await this.paymenttAccountRepository.create(newAccount);
+        paymentAccount = await this.paymenttAccountRepository.create(newAccount);
 
-                if (!paymentAccount) {
-                    throw new AppError(
-                        "Failed to create payment account",
-                        500,
-                        true,
-                        ERROR_CODES.INTERNAL_ERROR
-                    );
-                }
-            }
-
-
-            let stripeCustomerId = paymentAccount?.stripeData?.customerId;
-
-            if (!stripeCustomerId) {
-                const customer = await this.createStripeCustomer.execute({
-                    email,
-                    username: name,
-                    userId,
-                    role: Role.USER
-                });
-
-                if (!customer) {
-                    throw new AppError(
-                        "Internal server error",
-                        500,
-                        true,
-                        ERROR_CODES.INTERNAL_ERROR
-                    );
-                }
-
-                paymentAccount.updateStripeData({
-                    accountId: paymentAccount.stripeData?.accountId,
-                    customerId: customer.stripeCustomerId,
-                    accountStatus: paymentAccount.stripeData?.accountStatus || PaymentAccountStatus.NOT_CONNECTED,
-                });
-
-                const updatedPaymentAccount = await this.paymenttAccountRepository.update(paymentAccount);
-                if (!updatedPaymentAccount) {
-                    throw new AppError(
-                        "Internal server error",
-                        500,
-                        true,
-                        ERROR_CODES.INTERNAL_ERROR
-                    );
-                }
-
-                stripeCustomerId = customer.stripeCustomerId;
-            }
-
-            const result = await this.paymentGateway.createBookingCheckoutSession({
-                serviceName,
-                description,
-                unitAmount,
-                providerId,
-                bookingId,
-                userId,
-                paymentFor,
-                userEmail: email,
-                userName: name,
-                stripeCustomerId,
-                successUrl: serviceConfig.frontendUrl + callbackUrlsConfig.bookingUrl + `?status=success`,
-                cancelUrl: serviceConfig.frontendUrl + callbackUrlsConfig.bookingUrl + `?status=failed`,
-            });
-
-            return result.sessionId;
-        } catch (error: unknown) {
-            throw toAppError(error, "Failed to booking checkout");
+        if (!paymentAccount) {
+          throw new AppError(
+            "Failed to create payment account",
+            500,
+            true,
+            ERROR_CODES.INTERNAL_ERROR,
+          );
         }
+      }
+
+      let stripeCustomerId = paymentAccount?.stripeData?.customerId;
+
+      if (!stripeCustomerId) {
+        const customer = await this.createStripeCustomer.execute({
+          email,
+          username: name,
+          userId,
+          role: Role.USER,
+        });
+
+        if (!customer) {
+          throw new AppError("Internal server error", 500, true, ERROR_CODES.INTERNAL_ERROR);
+        }
+
+        paymentAccount.updateStripeData({
+          accountId: paymentAccount.stripeData?.accountId,
+          customerId: customer.stripeCustomerId,
+          accountStatus:
+            paymentAccount.stripeData?.accountStatus || PaymentAccountStatus.NOT_CONNECTED,
+        });
+
+        const updatedPaymentAccount = await this.paymenttAccountRepository.update(paymentAccount);
+        if (!updatedPaymentAccount) {
+          throw new AppError("Internal server error", 500, true, ERROR_CODES.INTERNAL_ERROR);
+        }
+
+        stripeCustomerId = customer.stripeCustomerId;
+      }
+
+      const result = await this.paymentGateway.createBookingCheckoutSession({
+        serviceName,
+        description,
+        unitAmount,
+        providerId,
+        bookingId,
+        userId,
+        paymentFor,
+        userEmail: email,
+        userName: name,
+        stripeCustomerId,
+        successUrl: serviceConfig.frontendUrl + callbackUrlsConfig.bookingUrl + `?status=success`,
+        cancelUrl: serviceConfig.frontendUrl + callbackUrlsConfig.bookingUrl + `?status=failed`,
+      });
+
+      return result.sessionId;
+    } catch (error: unknown) {
+      throw toAppError(error, "Failed to booking checkout");
     }
+  }
 }

@@ -15,140 +15,142 @@ import { formatDate } from "../../../../shared/utils/helpers/formatDate";
 import { NotificationType } from "../../../../domain/enums/common.enum";
 
 export class BookingInvoicePaymentSucceededUseCase {
+  constructor(
+    private readonly paymentRepository: IPaymentRepository,
+    private readonly kafkaProducer: IKafkaProducerAdapter,
+  ) {}
 
-    constructor(
-        private readonly paymentRepository: IPaymentRepository,
-        private readonly kafkaProducer: IKafkaProducerAdapter,
-    ) { }
+  async execute(invoice: Stripe.Invoice): Promise<void> {
+    try {
+      if (!invoice) {
+        throw new BadRequestError("Invoice object missing");
+      }
 
-    async execute(invoice: Stripe.Invoice): Promise<void> {
-        try {
-            if (!invoice) {
-                throw new BadRequestError("Invoice object missing");
-            }
+      const metaData: Stripe.Metadata | BookingMetaData | undefined | null =
+        invoice?.parent?.subscription_details?.metadata || invoice?.metadata;
 
-            const metaData: Stripe.Metadata | BookingMetaData | undefined | null = invoice?.parent?.subscription_details?.metadata || invoice?.metadata;
+      const idempotencyKey: string = generateId(IdType.IDEMPOTENCY);
+      const transactionId: string = generateId(IdType.TRANSACTION);
+      const stripeInvoiceId: string = invoice.id as string;
 
-            const idempotencyKey: string = generateId(IdType.IDEMPOTENCY);
-            const transactionId: string = generateId(IdType.TRANSACTION);
-            const stripeInvoiceId: string = invoice.id as string;
+      const paymentStatus: PaymentStatus =
+        invoice?.status === "paid" ? PaymentStatus.PAID : PaymentStatus.PENDING;
+      const paymentGateway: PaymentGateway = PaymentGateway.STRIPE;
+      const paymentFor: PaymentFor =
+        (metaData?.paymentFor as PaymentFor) || PaymentFor.APPOINTMENT_BOOKING;
 
-            const paymentStatus: PaymentStatus = invoice?.status === "paid" ? PaymentStatus.PAID : PaymentStatus.PENDING;
-            const paymentGateway: PaymentGateway = PaymentGateway.STRIPE;
-            const paymentFor: PaymentFor = (metaData?.paymentFor as PaymentFor) || PaymentFor.APPOINTMENT_BOOKING;
+      const subtotalAmount: number = invoice.subtotal / 100;
+      const discountAmount: number = 0;
+      const totalAmount: number = invoice.total / 100;
+      const currency: string = invoice.currency;
 
-            const subtotalAmount: number = invoice.subtotal / 100;
-            const discountAmount: number = 0;
-            const totalAmount: number = invoice.total / 100;
-            const currency: string = invoice.currency;
+      const userId: string = metaData?.userId as string;
+      const providerId: string = metaData?.providerId as string;
+      const slotflowBookingId: string = metaData?.bookingId as string;
 
-            const userId: string = metaData?.userId as string;
-            const providerId: string = metaData?.providerId as string;
-            const slotflowBookingId: string = metaData?.bookingId as string;
+      const stripeCustomerId: string = invoice.customer as string;
 
-            const stripeCustomerId: string = invoice.customer as string;
+      const gatewayFee: number = 0;
+      const receiptUrl: string = invoice.hosted_invoice_url as string;
+      const receiptPdf: string = invoice.invoice_pdf as string;
 
-            const gatewayFee: number = 0;
-            const receiptUrl: string = invoice.hosted_invoice_url as string;
-            const receiptPdf: string = invoice.invoice_pdf as string;
+      const customerEmail: string = invoice.customer_email || (metaData?.userEmail as string);
+      const customerName: string = invoice?.customer_name || (metaData?.userName as string);
+      const description: string = invoice.billing_reason as string;
 
-            const customerEmail: string = invoice.customer_email || (metaData?.userEmail as string);
-            const customerName: string = invoice?.customer_name || (metaData?.userName as string);
-            const description: string = invoice.billing_reason as string;
+      const paidAt: Date = new Date(invoice.created * 1000);
 
-            const paidAt: Date = new Date(invoice.created * 1000);
+      if (
+        !idempotencyKey ||
+        !transactionId ||
+        !stripeInvoiceId ||
+        !paymentStatus ||
+        !paymentGateway ||
+        !paymentFor ||
+        subtotalAmount === undefined ||
+        discountAmount === undefined ||
+        totalAmount === undefined ||
+        !currency ||
+        !receiptUrl ||
+        !customerEmail ||
+        !paidAt
+      ) {
+        throw new BadRequestError("Missing required payment fields");
+      }
 
-            if (
-                !idempotencyKey ||
-                !transactionId ||
-                !stripeInvoiceId ||
-                !paymentStatus ||
-                !paymentGateway ||
-                !paymentFor ||
-                subtotalAmount === undefined ||
-                discountAmount === undefined ||
-                totalAmount === undefined ||
-                !currency ||
-                !receiptUrl ||
-                !customerEmail ||
-                !paidAt
-            ) {
-                throw new BadRequestError("Missing required payment fields");
-            }
+      const paymentData = Payment.createForBooking({
+        idempotencyKey,
+        transactionId,
+        stripeInvoiceId,
 
-            const paymentData = Payment.createForBooking({
-                idempotencyKey,
-                transactionId,
-                stripeInvoiceId,
+        paymentStatus,
+        paymentGateway,
+        paymentFor,
 
-                paymentStatus,
-                paymentGateway,
-                paymentFor,
+        slotflowBookingId,
 
-                slotflowBookingId,
+        subtotalAmount,
+        discountAmount,
+        totalAmount,
+        currency,
 
-                subtotalAmount,
-                discountAmount,
+        userId,
+        providerId,
+
+        stripeCustomerId,
+
+        gatewayFee,
+        receiptUrl,
+        receiptPdf,
+
+        customerEmail,
+        customerName,
+        description,
+
+        paidAt,
+      });
+
+      const payment = await this.paymentRepository.create(paymentData);
+
+      if (payment) {
+        await this.kafkaProducer.publish<EventEnvelope<CreateBookingPaymentSuccessEvent>>(
+          kafkaConfig.topics.pub.userBookingPaymentSuccess,
+          {
+            eventId: generateId(IdType.EVENT),
+            attempt: 1,
+            maxAttempts: 1,
+            occurredAt: new Date().toString(),
+            payload: {
+              mbsData: {
+                bookingId: slotflowBookingId,
+                paymentId: payment._id,
+              },
+              emailData: {
+                email: customerEmail,
+                name: customerName,
                 totalAmount,
-                currency,
-
-                userId,
-                providerId,
-
-                stripeCustomerId,
-
-                gatewayFee,
+                paymentDate: formatDate(payment.createdAt, dateFormats.WITH_TIME),
                 receiptUrl,
-                receiptPdf,
-
-                customerEmail,
-                customerName,
-                description,
-
-                paidAt,
-            });
-
-            const payment = await this.paymentRepository.create(paymentData);
-
-            if (payment) {
-                await this.kafkaProducer.publish<EventEnvelope<CreateBookingPaymentSuccessEvent>>(
-                    kafkaConfig.topics.pub.userBookingPaymentSuccess,
-                    {
-                        eventId: generateId(IdType.EVENT),
-                        attempt: 1,
-                        maxAttempts: 1,
-                        occurredAt: new Date().toString(),
-                        payload: {
-                            mbsData: {
-                                bookingId: slotflowBookingId,
-                                paymentId: payment._id,
-                            },
-                            emailData: {
-                                email: customerEmail,
-                                name: customerName,
-                                totalAmount,
-                                paymentDate: formatDate(payment.createdAt, dateFormats.WITH_TIME),
-                                receiptUrl,
-                                transactionId: payment.transactionId,
-                            },
-                            notificationData: {
-                                userId,
-                                transactionId: payment.transactionId,
-                                notificationType: NotificationType.ACCOUNT_ACTIVITY
-                            },
-                        },
-                    }
-                );
-            } else {
-                throw new AppError(
-                    "Failed to create payment",
-                    500,
-                    false,
-                    ERROR_CODES.PAYMENT_SERVICE_ERROR
-                )
-            }
-        } catch (error: unknown) {
-            throw toAppError(error, "Failed to complete booking payment");
-        }
+                transactionId: payment.transactionId,
+              },
+              notificationData: {
+                userId,
+                transactionId: payment.transactionId,
+                notificationType: NotificationType.ACCOUNT_ACTIVITY,
+              },
+            },
+          },
+        );
+      } else {
+        throw new AppError(
+          "Failed to create payment",
+          500,
+          false,
+          ERROR_CODES.PAYMENT_SERVICE_ERROR,
+        );
+      }
+    } catch (error: unknown) {
+      throw toAppError(error, "Failed to complete booking payment");
     }
+  }
 }
