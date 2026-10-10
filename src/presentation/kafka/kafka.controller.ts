@@ -1,7 +1,8 @@
 import { kafkaConfig } from "../../config/env";
 import { log } from "../../shared/logger/logger";
-import { handlers, processEventWrapperUseCase } from ".";
+import { handler, processEventWrapperUseCase } from ".";
 import { kafkaConsumer } from "../../infrastructure/messaging";
+import { HandlerMap } from "../../application/dtos/kafka.dtos";
 import { IKafkaConsumerAdapter } from "../../application/interfaces/messaging/IKafkaConsumer.adapter";
 import { ProcessEventWrapperUseCase } from "../../application/useCases/kafka/processEventWrapper.useCase";
 
@@ -13,24 +14,32 @@ class KafkaConsumerController {
     this.startListening = this.startListening.bind(this);
   }
 
+  private async register<K extends keyof HandlerMap>(topic: string, useCase: HandlerMap[K]) {
+    await this.kafkaConsumer.subscribe(topic, async ({ message }) => {
+      if (!message.value) return;
+      const eventData = JSON.parse(message.value.toString());
+      await this.processEventWrapperUseCase.execute({
+        businessUseCase: useCase,
+        eventData,
+        topic,
+      });
+    });
+  }
+
   async startListening(): Promise<void> {
     try {
       log.info("start listening kafka controller");
 
-      for (const [key, topic] of Object.entries(kafkaConfig.topics.sub)) {
-        const useCase = handlers[key as keyof typeof handlers];
-        if (!useCase) continue;
+      log.info("start listening kafka controller");
 
-        await this.kafkaConsumer.subscribe(topic as string, async ({ message }) => {
-          if (!message.value) return;
-          const eventData = JSON.parse(message.value.toString());
-          await this.processEventWrapperUseCase.execute({
-            businessUseCase: useCase,
-            eventData,
-            topic: topic as string,
-            payloadExtractor: (payload) => payload.paymentData,
-          });
-        });
+      for (const [key, topic] of Object.entries(kafkaConfig.topics.sub)) {
+        const useCase = handler[key as keyof HandlerMap];
+        if (!useCase) continue;
+        /**
+         * TODO remove the as string explitic type assertion,
+         * because currently there is no subscription event payload
+         *  */
+        await this.register(topic as string, useCase);
       }
 
       await this.kafkaConsumer.startConsumer();

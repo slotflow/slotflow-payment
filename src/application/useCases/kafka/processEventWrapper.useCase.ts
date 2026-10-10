@@ -1,15 +1,16 @@
+import {
+  DqMetaData,
+  EventEnvelope,
+  PSSubKafkaEventPayload,
+  ProcessEventWrapperInput,
+  PSSubKafkaEventPayloadType,
+} from "../../dtos/kafka.dtos";
 import { log } from "../../../shared/logger/logger";
 import { appConfig, kafkaConfig } from "../../../config/env";
 import { EventStatus } from "../../../domain/enums/common.enum";
 import { ProcessedEvent } from "../../../domain/entities/ProcessedEvent.entity";
 import { IKafkaProducerAdapter } from "../../interfaces/messaging/IKafkaProducer.adapter";
 import { IProcessedEventRepository } from "../../../domain/interfaces/repositories/IProcessedEvent.repository";
-import {
-  DqMetaData,
-  EventEnvelope,
-  PSSubKafkaEventPayload,
-  ProcessEventWrapperInput,
-} from "../../dtos/kafka.dtos";
 
 export class ProcessEventWrapperUseCase {
   constructor(
@@ -17,12 +18,13 @@ export class ProcessEventWrapperUseCase {
     private kafkaProducer: IKafkaProducerAdapter,
   ) {}
 
-  async execute<TPayloadData>(input: ProcessEventWrapperInput<TPayloadData>): Promise<void> {
+  async execute<T extends PSSubKafkaEventPayloadType>(
+    input: ProcessEventWrapperInput<T>,
+  ): Promise<void> {
     try {
-      const { topic, eventData, businessUseCase, payloadExtractor } = input;
-      const { eventId, attempt, maxAttempts, payload } = eventData;
-
-      const payloadData = payloadExtractor(payload);
+      const { topic, eventData, businessUseCase } = input;
+      const { eventId, attempt, maxAttempts } = eventData;
+      const payloadData = eventData.payload.paymentData;
 
       let processedEvent = await this.processedEventRepository.findByEventId(eventId);
 
@@ -88,18 +90,19 @@ export class ProcessEventWrapperUseCase {
             `Kafka Event ${eventId} exhausted all ${maxAttempts} attempts. Moving to DLQ (or dropping).`,
           );
 
-          await this.kafkaProducer.publish<
-            EventEnvelope<PSSubKafkaEventPayload<TPayloadData>, DqMetaData>
-          >(kafkaConfig.topics.dlqTopic, {
-            ...eventData,
-            metadata: {
-              service: appConfig.serviceName,
-              originalTopic: topic,
-              error: (error as Error).message,
-              failedAt: new Date(),
-              retryCount: attempt,
+          await this.kafkaProducer.publish<EventEnvelope<PSSubKafkaEventPayload, DqMetaData>>(
+            kafkaConfig.topics.dlqTopic,
+            {
+              ...eventData,
+              metadata: {
+                service: appConfig.serviceName,
+                originalTopic: topic,
+                error: (error as Error).message,
+                failedAt: new Date(),
+                retryCount: attempt,
+              },
             },
-          });
+          );
         }
       }
     } catch (error) {

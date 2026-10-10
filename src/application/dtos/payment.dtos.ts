@@ -10,7 +10,7 @@ import { ApiPaginationRequest, AuthUser, CommonDateInput, StatMetric } from "./c
  * Payment queries dtos
  */
 
-// 1. findStatsDataForProviderDashboard
+// findStatsDataForProviderDashboard
 export interface GetProviderRevenueQuery extends CommonDateInput {
   providerId: string;
   timeZone: string;
@@ -22,7 +22,7 @@ export interface GetProviderRevenueView extends Record<string, StatMetric | unde
   pendingPayout: StatMetric;
 }
 
-// 2. findStatsDataForAdminDashboard
+// findStatsDataForAdminDashboard
 export interface GetAdminRevenueStatsDataQuery extends CommonDateInput {
   timeZone: string;
 }
@@ -35,7 +35,7 @@ export interface GetAdminRevenueStatsDataView extends Record<string, StatMetric 
   totalPayoutsToProviders: StatMetric;
 }
 
-// 3. findAdminRevenueReport
+// findAdminRevenueReport
 export interface GetAdminRevenueReportQuery extends ApiPaginationRequest, CommonDateInput {
   timeZone: string;
 }
@@ -50,7 +50,7 @@ export interface GetAdminRevenueReportView {
   grandInitalAmount: number;
 }
 
-// 4. findAnalyticsForAdminDashboard
+// findAnalyticsForAdminDashboard
 export interface GetAdminRevenueAanalyticsQuery extends CommonDateInput {
   timeZone: string;
 }
@@ -158,6 +158,7 @@ export interface SubscriptionPaymentFailedInput {
  * Stripe payment gateway dtos
  */
 
+// Create stripe subscription checkout session
 export interface CreateSubscriptionCheckoutSessionInput {
   subscriptionId: string;
   userId: string;
@@ -174,11 +175,11 @@ export interface CreateSubscriptionCheckoutSessionInput {
   alreadyUsedTrial: boolean;
   isTrial: boolean;
 }
-
 export interface CreateSubscriptionCheckoutSessionOutput {
   sessionId: string;
 }
 
+// Create booking checkout session with stripe
 export interface CreateBookingCheckoutSessionInput {
   serviceName: string;
   description: string;
@@ -193,22 +194,22 @@ export interface CreateBookingCheckoutSessionInput {
   successUrl: string;
   cancelUrl: string;
 }
-
 export interface CreateBookingCheckoutSessionOutput {
   sessionId: string;
 }
 
+// Create stripe customer
 export interface CreateStripeCustomerInput {
   email: string;
   name: string;
   userId: string;
   role: Role;
 }
-
 export interface CreateStripeCustomerOutput {
   customerId: string;
 }
 
+// Create refund
 export interface CreateRefundInput {
   paymentIntent: string;
   refundAmount: number;
@@ -221,39 +222,38 @@ export interface CreateRefundInput {
     refundFor: string;
   };
 }
-
 export interface CreateRefundOutput {
   refundId: string;
 }
 
+// Retrieve stripe payment intent
 export interface RetrievePaymentIntentInput {
   paymentIntent: string;
 }
-
 export interface RetrievePaymentIntentOutput {
   paymentIntent: Stripe.PaymentIntent;
 }
 
+// Retrieve Stripe balance
 export interface RetrieveBalanceInput {
   balanceTransaction: string;
 }
-
 export interface RetrieveBalanceOutput {
   balanceTransaction: Stripe.BalanceTransaction;
 }
 
+// Create stripe account
 export interface CreateStripeAccountInput {
   email: string;
 }
-
 export interface CreateStripeAccountout {
   account: Stripe.Response<Stripe.Account>;
 }
 
+// Create stripe account link for boarding
 export interface CreateStripeAccountLinkInput {
   accountId: string;
 }
-
 export interface CreateStripeAccountLinkOutput {
   accountLinkData: Stripe.Response<Stripe.AccountLink>;
 }
@@ -262,6 +262,7 @@ export interface CreateStripeAccountLinkOutput {
  * Supporting interfaces
  */
 
+// Subscription metadata for the stripe subscription checkout
 export interface SubscriptionMetaData {
   userId: string;
   userName: string;
@@ -272,6 +273,7 @@ export interface SubscriptionMetaData {
   paymentFor: PaymentFor;
 }
 
+// Booking metadata for the booking checkout
 export interface BookingMetaData {
   providerId: string;
   bookingId: string;

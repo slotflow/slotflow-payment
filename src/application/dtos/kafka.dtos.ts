@@ -13,9 +13,11 @@ export interface KafkaClientAdapterProps {
   message: KafkaMessage;
 }
 
-// backend-main service subscribing kafka event payload
-export interface PSSubKafkaEventPayload<TPaymentData = Record<string, string | number>> {
-  paymentData: TPaymentData;
+// payment service subscribing kafka event payload
+export interface PSSubKafkaEventPayload<
+  T extends PSSubKafkaEventPayloadType = PSSubKafkaEventPayloadType,
+> {
+  paymentData: T;
 }
 
 // dlq metadata
@@ -47,11 +49,12 @@ export interface SendEmailCommon {
 export type MessageHandler = (payload: KafkaClientAdapterProps) => Promise<void>;
 
 // process event wrapper input
-export interface ProcessEventWrapperInput<TPayloadData> {
+export interface ProcessEventWrapperInput<
+  T extends PSSubKafkaEventPayloadType = PSSubKafkaEventPayloadType,
+> {
   topic: string;
-  eventData: EventEnvelope<PSSubKafkaEventPayload<TPayloadData>>;
-  businessUseCase: { execute: (data: TPayloadData) => Promise<void> };
-  payloadExtractor: (payload: PSSubKafkaEventPayload<TPayloadData>) => TPayloadData;
+  eventData: EventEnvelope<PSSubKafkaEventPayload<T>>;
+  businessUseCase: { execute: (data: T) => Promise<void> };
 }
 
 // Notification data common event input
@@ -60,9 +63,24 @@ interface CommonNotificationEventInput {
   notificationType: NotificationType;
 }
 
+// kafka subscription events union
+export type PSSubKafkaEventPayloadType = unknown;
+
+// kafka subscription events mapper
+export type PSSubKafkaEventPayloadMap = unknown;
+
+// kafka subscription events handler map type
+export type HandlerMap = {
+  [K in keyof PSSubKafkaEventPayloadMap]: {
+    execute: (input: PSSubKafkaEventPayloadMap[K]) => Promise<void>;
+  };
+};
+
 /**
  * Kafka events payload
  */
+
+// publishing events
 
 // provider create payment success event
 export interface ProviderSubscriptionPaymentSuccessEvent {
